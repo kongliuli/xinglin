@@ -1,0 +1,12 @@
+d:\Code\杏林\xinglin-main\src\Printing.Service\bin\Debug\net9.0\Xinglin.Printing.Service.deps.json
+d:\Code\杏林\xinglin-main\src\Printing.Service\bin\Debug\net9.0\Xinglin.Printing.Service.dll
+d:\Code\杏林\xinglin-main\src\Printing.Service\bin\Debug\net9.0\Xinglin.Printing.Service.pdb
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.GeneratedMSBuildEditorConfig.editorconfig
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.AssemblyInfoInputs.cache
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.AssemblyInfo.cs
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.csproj.CoreCompileInputs.cache
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.sourcelink.json
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.dll
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\refint\Xinglin.Printing.Service.dll
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\Xinglin.Printing.Service.pdb
+d:\Code\杏林\xinglin-main\src\Printing.Service\obj\Debug\net9.0\ref\Xinglin.Printing.Service.dll

@@ -1,0 +1,16 @@
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.csproj.AssemblyReference.cache
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.GeneratedMSBuildEditorConfig.editorconfig
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.AssemblyInfoInputs.cache
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.AssemblyInfo.cs
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.csproj.CoreCompileInputs.cache
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.sourcelink.json
+d:\Code\杏林\xinglin-main\src\DataAdapters\bin\Debug\net9.0\Xinglin.DataAdapters.deps.json
+d:\Code\杏林\xinglin-main\src\DataAdapters\bin\Debug\net9.0\Xinglin.DataAdapters.dll
+d:\Code\杏林\xinglin-main\src\DataAdapters\bin\Debug\net9.0\Xinglin.DataAdapters.pdb
+d:\Code\杏林\xinglin-main\src\DataAdapters\bin\Debug\net9.0\Xinglin.Core.dll
+d:\Code\杏林\xinglin-main\src\DataAdapters\bin\Debug\net9.0\Xinglin.Core.pdb
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin..42F835F8.Up2Date
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.dll
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\refint\Xinglin.DataAdapters.dll
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\Xinglin.DataAdapters.pdb
+d:\Code\杏林\xinglin-main\src\DataAdapters\obj\Debug\net9.0\ref\Xinglin.DataAdapters.dll
