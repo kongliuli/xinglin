@@ -1,0 +1,16 @@
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.csproj.AssemblyReference.cache
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.GeneratedMSBuildEditorConfig.editorconfig
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.AssemblyInfoInputs.cache
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.AssemblyInfo.cs
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.csproj.CoreCompileInputs.cache
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.sourcelink.json
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\bin\Debug\net9.0-windows\ReportTemplateEditor.Engine.deps.json
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\bin\Debug\net9.0-windows\ReportTemplateEditor.Engine.dll
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\bin\Debug\net9.0-windows\ReportTemplateEditor.Engine.pdb
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\bin\Debug\net9.0-windows\ReportTemplateEditor.Core.dll
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\bin\Debug\net9.0-windows\ReportTemplateEditor.Core.pdb
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTe.B83053F6.Up2Date
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.dll
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\refint\ReportTemplateEditor.Engine.dll
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ReportTemplateEditor.Engine.pdb
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0-windows\ref\ReportTemplateEditor.Engine.dll

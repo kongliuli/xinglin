@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Xinglin.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+87f0c29455b3918466b17c02908206c245b59d17")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de5e947e3da9c168310d9a75f62882219aef5de5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Xinglin.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Xinglin.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
