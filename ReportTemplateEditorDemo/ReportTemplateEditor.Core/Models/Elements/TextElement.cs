@@ -11,9 +11,19 @@ namespace ReportTemplateEditor.Core.Models.Elements
         public override string Type => "Text";
 
         /// <summary>
-        /// 文本内容
+        /// 文本内容（支持富文本）
         /// </summary>
         public string Text { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 富文本内容（XAML格式）
+        /// </summary>
+        public string RichText { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 是否使用富文本
+        /// </summary>
+        public bool IsRichText { get; set; } = false;
 
         /// <summary>
         /// 字体名称

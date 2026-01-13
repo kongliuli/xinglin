@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Xinglin.Server.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+38fc1bfda2bd3861c92c9053e70ac3083c407f9f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2604a160841ffa88a99570d91a6721ee43f28947")]
 [assembly: System.Reflection.AssemblyProductAttribute("Xinglin.Server.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Xinglin.Server.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

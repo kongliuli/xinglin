@@ -18,6 +18,11 @@ namespace ReportTemplateEditor.Core.Models
         public string Name { get; set; } = "未命名模板";
 
         /// <summary>
+        /// 模板文件路径
+        /// </summary>
+        public string FilePath { get; set; } = string.Empty;
+
+        /// <summary>
         /// 模板版本
         /// </summary>
         public string Version { get; set; } = "1.0";
@@ -80,7 +85,7 @@ namespace ReportTemplateEditor.Core.Models
         /// <summary>
         /// 数据绑定集合
         /// </summary>
-        public List<DataBinding> DataBindings { get; set; } = new List<DataBinding>();
+        public List<TemplateDataBinding> DataBindings { get; set; } = new List<TemplateDataBinding>();
 
         /// <summary>
         /// 是否为默认模板
@@ -116,7 +121,7 @@ namespace ReportTemplateEditor.Core.Models
     /// <summary>
     /// 数据绑定
     /// </summary>
-    public class DataBinding
+    public class TemplateDataBinding
     {
         /// <summary>
         /// 绑定唯一标识

@@ -79,11 +79,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
+      "projectUniqueName": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
       "projectName": "ReportTemplateEditor.Engine",
-      "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
+      "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
       "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-      "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\obj\\",
+      "outputPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\apps\\Download\\cache\\NuGetPackages"

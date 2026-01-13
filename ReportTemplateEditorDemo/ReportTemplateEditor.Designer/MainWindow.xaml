@@ -296,247 +296,260 @@
             </Grid>
             
             <!-- 右侧面板：图层管理 + 属性面板 -->
-            <Border Grid.Column="4" BorderThickness="1,0,0,0" BorderBrush="#E0E0E0">
-                <Grid Background="#FAFAFA">
+            <Grid Grid.Column="4" Background="#FAFAFA">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="5"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- 图层管理面板 -->
+                <Grid Grid.Row="0">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     
-                    <!-- 图层管理面板 -->
-                    <Border Grid.Row="0" Background="#FAFAFA">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            
-                            <!-- 图层管理标题 -->
-                            <TextBlock Grid.Row="0" Text="图层管理" FontWeight="Bold" Padding="10" Background="#F0F0F0"/>
-                            
-                            <!-- 图层列表 -->
-                            <DockPanel Grid.Row="1" Margin="5">
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
-                                    <Button Content="上移" Click="MoveLayerUp_Click" ToolTip="将选中元素上移一层" Margin="0,0,5,0"/>
-                                    <Button Content="下移" Click="MoveLayerDown_Click" ToolTip="将选中元素下移一层" Margin="0,0,5,0"/>
-                                    <Button Content="置顶" Click="BringToFront_Click" ToolTip="将选中元素置于顶层" Margin="0,0,5,0"/>
-                                    <Button Content="置底" Click="SendToBack_Click" ToolTip="将选中元素置于底层"/>
-                                </StackPanel>
-                                <ListBox x:Name="layerList" ItemsSource="{Binding ElementWrappers}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Margin="5">
-                                                <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0"/>
-                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="10" Foreground="#666666"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </DockPanel>
-                        </Grid>
-                    </Border>
+                    <!-- 图层管理标题 -->
+                    <TextBlock Grid.Row="0" Text="图层管理" FontWeight="Bold" Padding="10" Background="#F0F0F0"/>
                     
-                    <!-- 分隔线 -->
-                    <GridSplitter Grid.Row="1" Height="5" Background="#E0E0E0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+                    <!-- 图层列表 -->
+                    <DockPanel Grid.Row="1" Margin="5">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                            <Button Content="上移" Click="MoveLayerUp_Click" ToolTip="将选中元素上移一层" Margin="0,0,5,0"/>
+                            <Button Content="下移" Click="MoveLayerDown_Click" ToolTip="将选中元素下移一层" Margin="0,0,5,0"/>
+                            <Button Content="置顶" Click="BringToFront_Click" ToolTip="将选中元素置于顶层" Margin="0,0,5,0"/>
+                            <Button Content="置底" Click="SendToBack_Click" ToolTip="将选中元素置于底层"/>
+                        </StackPanel>
+                        <ListBox x:Name="layerList" ItemsSource="{Binding ElementWrappers}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="5">
+                                        <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0"/>
+                                        <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="10" Foreground="#666666"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Grid>
+                
+                <!-- 分隔线 -->
+                <GridSplitter Grid.Row="1" Height="5" Background="#E0E0E0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+                
+                <!-- 属性和预览面板 -->
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
                     
-                    <!-- 属性面板 -->
-                    <Border Grid.Row="2" Background="#FAFAFA">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            
-                            <TextBlock Grid.Row="0" Text="属性" FontWeight="Bold" Padding="10" Background="#F0F0F0"/>
-                            
-                            <ScrollViewer Grid.Row="1" Margin="5">
+                    <TabControl Grid.Row="1">
+                        <TabItem Header="属性">
+                            <ScrollViewer Margin="5">
                                 <StackPanel>
                                     <!-- 选择信息 -->
                                     <TextBlock x:Name="selectionInfoText" Text="未选择任何元素" Foreground="#666666" Margin="0,0,0,10"/>
                                     
                                     <!-- 位置和大小属性 -->
-                            <Expander Header="位置和大小" Style="{StaticResource PropertyGroupStyle}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="0" x:Name="posXTextBox" IsEnabled="False"/>
-                                
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="posYTextBox" IsEnabled="False"/>
-                                
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="widthTextBox" IsEnabled="False"/>
-                                
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="0" x:Name="heightTextBox" IsEnabled="False"/>
+                                    <Expander Header="位置和大小" Style="{StaticResource PropertyGroupStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="0" x:Name="posXTextBox" IsEnabled="False"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="posYTextBox" IsEnabled="False"/>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="widthTextBox" IsEnabled="False"/>
+                                            
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="0" x:Name="heightTextBox" IsEnabled="False"/>
+                                        </Grid>
+                                    </Expander>
+                                    
+                                    <!-- 外观属性 -->
+                                    <Expander Header="外观" Style="{StaticResource PropertyGroupStyle}">
+                                        <StackPanel>
+                                            <!-- 基本外观 -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5"/>
+                                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5"/>
+                                                <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False"/>
+                                            </Grid>
+                                            
+                                            <!-- 背景和边框 -->
+                                            <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
+                                            <Grid Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="backgroundColorTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="边框颜色:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="#000000" x:Name="borderColorTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="边框宽度:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="borderWidthTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="边框样式:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="borderStyleComboBox" IsEnabled="False">
+                                                    <ComboBoxItem Content="Solid" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Dashed"/>
+                                                    <ComboBoxItem Content="Dotted"/>
+                                                </ComboBox>
+                                                
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="圆角半径:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="0" x:Name="cornerRadiusTextBox" IsEnabled="False"/>
+                                            </Grid>
+                                            
+                                            <!-- 阴影效果 -->
+                                            <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
+                                            <Grid Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="阴影颜色:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#000000" x:Name="shadowColorTextBox" IsEnabled="False"/>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="阴影深度:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="shadowDepthTextBox" IsEnabled="False"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Expander>
+                                    
+                                    <!-- 文本属性 -->
+                                    <Expander Header="文本" Style="{StaticResource PropertyGroupStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
+                                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="Microsoft YaHei"/>
+                                                <ComboBoxItem Content="SimSun"/>
+                                                <ComboBoxItem Content="SimHei"/>
+                                                <ComboBoxItem Content="Arial"/>
+                                                <ComboBoxItem Content="Times New Roman"/>
+                                            </ComboBox>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
+                                            
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
+                                            <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="Normal"/>
+                                                <ComboBoxItem Content="Bold"/>
+                                            </ComboBox>
+                                            
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
+                                            <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
+                                                <ComboBoxItem Content="Normal"/>
+                                                <ComboBoxItem Content="Italic"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </Expander>
+                                    
+                                    <!-- 数据绑定属性 -->
+                                    <Expander Header="数据绑定" Style="{StaticResource PropertyGroupStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="路径:" Margin="5,5,0,5" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="False" TextChanged="dataPathTextBox_TextChanged" VerticalAlignment="Center"/>
+                                            <Button Grid.Row="0" Grid.Column="2" Margin="5" x:Name="selectPathButton" Content="选择" Width="50" Height="25" Click="selectPathButton_Click" VerticalAlignment="Center"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="格式:" Margin="5,5,0,5" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="False" TextChanged="formatStringTextBox_TextChanged" VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="2" Text="" Margin="5" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Expander>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="数据预览">
+                            <Grid Margin="5">
+                                <StackPanel>
+                                    <Border BorderThickness="1" BorderBrush="#E0E0E0" Background="White" Margin="0,0,0,5">
+                                        <Canvas x:Name="previewCanvas" Width="200" Height="100" Background="White">
+                                            <!-- 预览内容将在这里动态生成 -->
+                                        </Canvas>
+                                    </Border>
+                                    <Button x:Name="loadDataButton" Content="加载测试数据" Margin="0,5,0,0" Click="loadDataButton_Click"/>
+                                    <Button x:Name="refreshPreviewButton" Content="刷新预览" Click="refreshPreviewButton_Click"/>
+                                </StackPanel>
                             </Grid>
-                        </Expander>
-                        
-                        <!-- 外观属性 -->
-                        <Expander Header="外观" Style="{StaticResource PropertyGroupStyle}">
-                            <StackPanel>
-                                <!-- 基本外观 -->
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5"/>
-                                    <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5"/>
-                                    <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False"/>
-                                </Grid>
-                                
-                                <!-- 背景和边框 -->
-                                <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="backgroundColorTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="边框颜色:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="#000000" x:Name="borderColorTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="边框宽度:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="borderWidthTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="边框样式:" Margin="5,5,0,5"/>
-                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="borderStyleComboBox" IsEnabled="False">
-                                        <ComboBoxItem Content="Solid" IsSelected="True"/>
-                                        <ComboBoxItem Content="Dashed"/>
-                                        <ComboBoxItem Content="Dotted"/>
-                                    </ComboBox>
-                                    
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="圆角半径:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="0" x:Name="cornerRadiusTextBox" IsEnabled="False"/>
-                                </Grid>
-                                
-                                <!-- 阴影效果 -->
-                                <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
-                                <Grid Margin="0,10,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="阴影颜色:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#000000" x:Name="shadowColorTextBox" IsEnabled="False"/>
-                                    
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="阴影深度:" Margin="5,5,0,5"/>
-                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="shadowDepthTextBox" IsEnabled="False"/>
-                                </Grid>
-                            </StackPanel>
-                        </Expander>
-                        
-                        <!-- 文本属性 -->
-                        <Expander Header="文本" Style="{StaticResource PropertyGroupStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
-                                
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="Microsoft YaHei"/>
-                                    <ComboBoxItem Content="SimSun"/>
-                                    <ComboBoxItem Content="SimHei"/>
-                                    <ComboBoxItem Content="Arial"/>
-                                    <ComboBoxItem Content="Times New Roman"/>
-                                </ComboBox>
-                                
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
-                                
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="Normal"/>
-                                    <ComboBoxItem Content="Bold"/>
-                                </ComboBox>
-                                
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="Normal"/>
-                                    <ComboBoxItem Content="Italic"/>
-                                </ComboBox>
-                            </Grid>
-                        </Expander>
-                        
-                        <!-- 数据绑定属性 -->
-                        <Expander Header="数据绑定" Style="{StaticResource PropertyGroupStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="路径:" Margin="5,5,0,5"/>                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="False" TextChanged="dataPathTextBox_TextChanged"/>                                
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="格式:" Margin="5,5,0,5"/>                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="False" TextChanged="formatStringTextBox_TextChanged"/>
-                            </Grid>
-                        </Expander>
-                    </StackPanel>
-                </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
             </Grid>
-            </Border>
         </Grid>
-        </Border>
-        </Grid>
-        
-
         
         <!-- 状态栏 -->
         <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="#E0E0E0">

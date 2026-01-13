@@ -1,0 +1,63 @@
+        /// <summary>
+        /// 选择数据路径按钮点击事件
+        /// </summary>
+        private void selectPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 创建测试数据（实际项目中应该从外部加载）
+                var testData = new
+                {
+                    Patient = new
+                    {
+                        Name = "张三",
+                        Age = 30,
+                        Gender = "男",
+                        PatientId = "P20230001"
+                    },
+                    Report = new
+                    {
+                        ReportId = "R20230001",
+                        ReportDate = DateTime.Now.ToString("yyyy-MM-dd"),
+                        Department = "检验科",
+                        Doctor = "李医生"
+                    },
+                    TestItems = new List<object>
+                    {
+                        new { ItemName = "白细胞计数", Result = "7.5", Unit = "×10^9/L", ReferenceRange = "4.0-10.0" },
+                        new { ItemName = "红细胞计数", Result = "4.5", Unit = "×10^12/L", ReferenceRange = "4.0-5.5" },
+                        new { ItemName = "血红蛋白", Result = "135", Unit = "g/L", ReferenceRange = "120-160" },
+                        new { ItemName = "血小板计数", Result = "200", Unit = "×10^9/L", ReferenceRange = "100-300" }
+                    }
+                };
+
+                // 显示数据路径选择窗口
+                DataPathSelectorWindow window = new DataPathSelectorWindow
+                {
+                    Owner = this,
+                    DataSource = testData
+                };
+                window.Initialize();
+                
+                if (window.ShowDialog() == true && !string.IsNullOrEmpty(window.SelectedPath))
+                {
+                    // 更新当前选中元素的数据绑定路径
+                    if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+                    {
+                        var command = new ModifyElementPropertyCommand(textElement, "DataBindingPath", window.SelectedPath);
+                        _commandManager.ExecuteCommand(command);
+                        dataPathTextBox.Text = window.SelectedPath;
+                        
+                        // 更新绑定内容
+                        if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                        {
+                            SetTextElementContent(textBlock, textElement);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = string.Format("选择数据路径失败: {0}", ex.Message);
+            }
+        }

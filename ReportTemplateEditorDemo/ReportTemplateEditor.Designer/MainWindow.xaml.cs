@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Documents;
 using Microsoft.Win32;
 using TemplateElements = ReportTemplateEditor.Core.Models.Elements;
 using ReportTemplateEditor.Core.Models;
@@ -21,36 +23,44 @@ namespace ReportTemplateEditor.Designer
     {
         // 当前模板定义
         private ReportTemplateDefinition _currentTemplate;
-        
+
         // 渲染引擎
         private ITemplateRenderer _renderer;
-        
+
         // 数据绑定引擎
         private DataBindingEngine _dataBindingEngine = new DataBindingEngine();
-        
+
         // 命令管理器，用于撤销/重做功能
         private ReportTemplateEditor.Core.Models.Commands.CommandManager _commandManager = new ReportTemplateEditor.Core.Models.Commands.CommandManager();
-        
+
         // 当前绑定的数据对象（用于测试）
         private object _boundData;
-        
+
         // 当前选中的元素列表，支持多选
         private List<UIElementWrapper> _selectedElements = new List<UIElementWrapper>();
-        
+
         // 当前主选中元素（用于属性面板显示）
         private UIElementWrapper _primarySelectedElement;
-        
+
         // 元素拖拽状态
         private bool _isDragging;
         private Point _dragStartPoint;
-        
-        // 元素包装类，用于关联UI元素和模型
-        private List<UIElementWrapper> _elementWrappers = new List<UIElementWrapper>();
-        
+
         // 网格相关设置
         private bool _showGrid = true;
         private bool _snapToGrid = true;
         private double _gridSize = 10;
+
+        // 元素包装类，用于关联UI元素和模型
+        private List<UIElementWrapper> _elementWrappers = new List<UIElementWrapper>();
+
+        // UI元素包装类，用于关联UI元素和模型
+        private class UIElementWrapper
+        {
+            public TemplateElements.ElementBase ModelElement { get; set; }
+            public UIElement UiElement { get; set; }
+            public Border SelectionBorder { get; set; }
+        }
 
         public MainWindow()
         {
@@ -73,9 +83,12 @@ namespace ReportTemplateEditor.Designer
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.LineWidget());
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.RectangleWidget());
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.EllipseWidget());
-            
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.BarcodeWidget());
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.SignatureWidget());
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.AutoNumberWidget());
+
             // TODO: 可以从配置文件或插件目录加载更多控件
-            
+
             // 初始化工具箱
             InitializeToolbox();
         }
@@ -115,11 +128,11 @@ namespace ReportTemplateEditor.Designer
                 Orientation = "Portrait",
                 BackgroundColor = "#FFFFFF"
             };
-            
+
             // 更新画布尺寸以匹配模板设置
             UpdateCanvasSize();
         }
-        
+
         /// <summary>
         /// 根据模板设置更新画布尺寸
         /// </summary>
@@ -129,13 +142,13 @@ namespace ReportTemplateEditor.Designer
             {
                 return;
             }
-            
+
             // 根据模板的页面设置调整画布尺寸
             designCanvas.Width = _currentTemplate.PageWidth;
             designCanvas.Height = _currentTemplate.PageHeight;
             gridCanvas.Width = _currentTemplate.PageWidth;
             gridCanvas.Height = _currentTemplate.PageHeight;
-            
+
             // 更新画布标题
             string orientationText = _currentTemplate.Orientation == "Portrait" ? "纵向" : "横向";
             string sizeText = $"{_currentTemplate.PageWidth}×{_currentTemplate.PageHeight} mm";
@@ -174,14 +187,14 @@ namespace ReportTemplateEditor.Designer
 
             // 添加选中效果
             Border selectionBorder = CreateSelectionBorder(uiElement);
-            
+
             // 设置选择边框的位置和大小
             Canvas.SetLeft(selectionBorder, element.X);
             Canvas.SetTop(selectionBorder, element.Y);
             selectionBorder.Width = element.Width;
             selectionBorder.Height = element.Height;
             Canvas.SetZIndex(selectionBorder, element.ZIndex + 1);
-            
+
             // 创建包装类
             var wrapper = new UIElementWrapper
             {
@@ -197,7 +210,7 @@ namespace ReportTemplateEditor.Designer
 
             // 选中新添加的元素
             SelectElement(wrapper);
-            
+
             // 更新图层列表
             UpdateLayerList();
         }
@@ -209,10 +222,10 @@ namespace ReportTemplateEditor.Designer
         {
             // 创建添加元素命令
             var command = new AddElementCommand(_currentTemplate, element);
-            
+
             // 执行命令
             _commandManager.ExecuteCommand(command);
-            
+
             // 添加到画布
             AddElementToCanvas(element);
         }
@@ -225,19 +238,25 @@ namespace ReportTemplateEditor.Designer
             switch (element.Type)
             {
                 case "Text":
-                    return CreateTextUIElement((TemplateElements.TextElement)element);;
+                    return CreateTextUIElement((TemplateElements.TextElement)element); ;
                 case "Image":
-                    return CreateImageUIElement((TemplateElements.ImageElement)element);;
+                    return CreateImageUIElement((TemplateElements.ImageElement)element); ;
                 case "Table":
-                    return CreateTableUIElement((TemplateElements.TableElement)element);;
+                    return CreateTableUIElement((TemplateElements.TableElement)element); ;
                 case "TestItem":
-                    return CreateTestItemUIElement((TemplateElements.TestItemElement)element);;
+                    return CreateTestItemUIElement((TemplateElements.TestItemElement)element); ;
                 case "Line":
-                    return CreateLineUIElement((TemplateElements.LineElement)element);;
+                    return CreateLineUIElement((TemplateElements.LineElement)element); ;
                 case "Rectangle":
-                    return CreateRectangleUIElement((TemplateElements.RectangleElement)element);;
+                    return CreateRectangleUIElement((TemplateElements.RectangleElement)element); ;
                 case "Ellipse":
-                    return CreateEllipseUIElement((TemplateElements.EllipseElement)element);;
+                    return CreateEllipseUIElement((TemplateElements.EllipseElement)element); ;
+                case "Barcode":
+                    return CreateBarcodeUIElement((TemplateElements.BarcodeElement)element); ;
+                case "Signature":
+                    return CreateSignatureUIElement((TemplateElements.SignatureElement)element); ;
+                case "AutoNumber":
+                    return CreateAutoNumberUIElement((TemplateElements.AutoNumberElement)element); ;
                 default:
                     return null;
             }
@@ -248,6 +267,42 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private UIElement CreateTextUIElement(TemplateElements.TextElement textElement)
         {
+            if (textElement.IsRichText && !string.IsNullOrEmpty(textElement.RichText))
+            {
+                // 创建富文本控件
+                var richTextBox = new RichTextBox
+                {
+                    Width = textElement.Width,
+                    Height = textElement.Height,
+                    IsReadOnly = true,
+                    Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(textElement.BackgroundColor)),
+                    Cursor = Cursors.Hand,
+                    Padding = new Thickness(2)
+                };
+
+                // 加载富文本内容
+                try
+                {
+                    // 使用XamlReader加载富文本内容
+                    var flowDocument = System.Windows.Markup.XamlReader.Parse(textElement.RichText) as FlowDocument;
+                    if (flowDocument != null)
+                    {
+                        richTextBox.Document = flowDocument;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 如果解析失败，显示错误信息
+                    richTextBox.Document = new FlowDocument(new Paragraph(new Run($"富文本解析错误: {ex.Message}")));
+                }
+
+                // 添加鼠标事件
+                richTextBox.MouseDown += Element_MouseDown;
+
+                return richTextBox;
+            }
+
+            // 创建普通文本控件
             var textBlock = new TextBlock
             {
                 FontFamily = new FontFamily(textElement.FontFamily),
@@ -448,7 +503,7 @@ namespace ReportTemplateEditor.Designer
                 StrokeThickness = lineElement.LineWidth,
                 Cursor = Cursors.Hand
             };
-            
+
             // 设置线条样式
             switch (lineElement.LineStyle)
             {
@@ -462,17 +517,17 @@ namespace ReportTemplateEditor.Designer
                     line.StrokeDashArray = null;
                     break;
             }
-            
+
             // 设置线条起点和终点样式
             line.StrokeStartLineCap = (PenLineCap)Enum.Parse(typeof(PenLineCap), lineElement.StartLineCap);
             line.StrokeEndLineCap = (PenLineCap)Enum.Parse(typeof(PenLineCap), lineElement.EndLineCap);
-            
+
             // 添加鼠标事件
             line.MouseDown += Element_MouseDown;
-            
+
             return line;
         }
-        
+
         /// <summary>
         /// 创建矩形UI元素
         /// </summary>
@@ -487,7 +542,7 @@ namespace ReportTemplateEditor.Designer
                 StrokeThickness = rectangleElement.StrokeWidth,
                 Cursor = Cursors.Hand
             };
-            
+
             // 设置矩形样式
             switch (rectangleElement.StrokeStyle)
             {
@@ -501,20 +556,20 @@ namespace ReportTemplateEditor.Designer
                     rectangle.StrokeDashArray = null;
                     break;
             }
-            
+
             // 设置圆角半径
             if (rectangleElement.CornerRadius > 0)
             {
                 rectangle.RadiusX = rectangleElement.CornerRadius;
                 rectangle.RadiusY = rectangleElement.CornerRadius;
             }
-            
+
             // 添加鼠标事件
             rectangle.MouseDown += Element_MouseDown;
-            
+
             return rectangle;
         }
-        
+
         /// <summary>
         /// 创建椭圆UI元素
         /// </summary>
@@ -529,7 +584,7 @@ namespace ReportTemplateEditor.Designer
                 StrokeThickness = ellipseElement.StrokeWidth,
                 Cursor = Cursors.Hand
             };
-            
+
             // 设置椭圆样式
             switch (ellipseElement.StrokeStyle)
             {
@@ -543,13 +598,168 @@ namespace ReportTemplateEditor.Designer
                     ellipse.StrokeDashArray = null;
                     break;
             }
-            
+
             // 添加鼠标事件
             ellipse.MouseDown += Element_MouseDown;
-            
+
             return ellipse;
         }
-        
+
+        /// <summary>
+        /// 创建条形码UI元素
+        /// </summary>
+        private UIElement CreateBarcodeUIElement(TemplateElements.BarcodeElement barcodeElement)
+        {
+            // 创建一个网格来容纳条码和文本
+            var grid = new Grid
+            {
+                Width = barcodeElement.Width,
+                Height = barcodeElement.Height,
+                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.BackgroundColor)),
+                Cursor = Cursors.Hand
+            };
+
+            // 添加条码占位符（实际项目中会使用专门的条码生成库）
+            var barcodePlaceholder = new Rectangle
+            {
+                Width = barcodeElement.BarcodeWidth,
+                Height = barcodeElement.BarcodeHeight,
+                Fill = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.BarcodeColor)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 5, 0, 0)
+            };
+            grid.Children.Add(barcodePlaceholder);
+
+            // 如果需要显示文本，添加文本标签
+            if (barcodeElement.ShowText)
+            {
+                var textBlock = new TextBlock
+                {
+                    Text = barcodeElement.Data,
+                    FontSize = barcodeElement.FontSize,
+                    Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.TextColor)),
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Margin = new Thickness(0, 0, 0, 5)
+                };
+                grid.Children.Add(textBlock);
+            }
+
+            // 添加鼠标事件
+            grid.MouseDown += Element_MouseDown;
+
+            return grid;
+        }
+
+        /// <summary>
+        /// 创建签名区域UI元素
+        /// </summary>
+        private UIElement CreateSignatureUIElement(TemplateElements.SignatureElement signatureElement)
+        {
+            // 创建边框作为签名区域容器
+            var border = new Border
+            {
+                Width = signatureElement.Width,
+                Height = signatureElement.Height,
+                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.BackgroundColor)),
+                BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.BorderColor)),
+                BorderThickness = new Thickness(signatureElement.BorderWidth),
+                Cursor = Cursors.Pen,
+                Padding = new Thickness(5)
+            };
+
+            // 创建网格来容纳签名和提示文本
+            var grid = new Grid();
+            border.Child = grid;
+
+            // 创建签名画布（实际签名绘制功能将在后续增强中实现）
+            var signatureCanvas = new Canvas
+            {
+                Background = Brushes.Transparent,
+                Width = signatureElement.Width - 10,
+                Height = signatureElement.Height - 10
+            };
+            grid.Children.Add(signatureCanvas);
+
+            // 添加提示文本
+            var promptTextBlock = new TextBlock
+            {
+                Text = signatureElement.PromptText,
+                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.PromptTextColor)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontStyle = FontStyles.Italic
+            };
+            grid.Children.Add(promptTextBlock);
+
+            // 添加鼠标事件
+            border.MouseDown += Element_MouseDown;
+
+            return border;
+        }
+
+        /// <summary>
+        /// 创建自动编号UI元素
+        /// </summary>
+        private UIElement CreateAutoNumberUIElement(TemplateElements.AutoNumberElement autoNumberElement)
+        {
+            // 创建文本块显示自动编号
+            var textBlock = new TextBlock
+            {
+                Width = autoNumberElement.Width,
+                Height = autoNumberElement.Height,
+                Text = autoNumberElement.GetFormattedNumber(),
+                FontFamily = new FontFamily(autoNumberElement.FontFamily),
+                FontSize = autoNumberElement.FontSize,
+                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(autoNumberElement.FontWeight),
+                FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(autoNumberElement.FontStyle),
+                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(autoNumberElement.TextColor)),
+                TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), autoNumberElement.TextAlignment),
+                Padding = new Thickness(2),
+                Cursor = Cursors.Hand
+            };
+
+            // 添加鼠标事件
+            textBlock.MouseDown += Element_MouseDown;
+
+            return textBlock;
+        }
+
+        /// <summary>
+        /// 设置文本元素内容，支持数据绑定
+        /// </summary>
+        private void SetTextElementContent(TextBlock textBlock, TemplateElements.TextElement textElement)
+        {
+            if (_boundData != null && !string.IsNullOrEmpty(textElement.DataBindingPath))
+            {
+                // 使用数据绑定引擎获取值
+                object value = _dataBindingEngine.GetValue(_boundData, textElement.DataBindingPath);
+                
+                // 应用格式字符串
+                if (!string.IsNullOrEmpty(textElement.FormatString))
+                {
+                    try
+                    {
+                        textBlock.Text = string.Format(textElement.FormatString, value);
+                    }
+                    catch
+                    {
+                        textBlock.Text = value?.ToString() ?? textElement.Text;
+                    }
+                }
+                else
+                {
+                    textBlock.Text = value?.ToString() ?? textElement.Text;
+                }
+            }
+            else
+            {
+                // 使用默认文本
+                textBlock.Text = textElement.Text;
+            }
+        }
+
         /// <summary>
         /// 设置检验项目元素内容，支持数据绑定
         /// </summary>
@@ -711,13 +921,19 @@ namespace ReportTemplateEditor.Designer
                         TextBlock resultText = grid.Children[1] as TextBlock;
                         TextBlock unitText = grid.Children[2] as TextBlock;
                         TextBlock referenceText = grid.Children[3] as TextBlock;
-                        
+
                         if (itemNameText != null && resultText != null && unitText != null && referenceText != null)
                         {
                             SetTestItemElementContent(testItem, itemNameText, resultText, unitText, referenceText);
                         }
                     }
                 }
+                else if (wrapper.ModelElement is TemplateElements.AutoNumberElement autoNumberElement && wrapper.UiElement is TextBlock autoNumberTextBlock)
+                {
+                    // 更新自动编号元素
+                    autoNumberTextBlock.Text = autoNumberElement.GetFormattedNumber();
+                }
+                // TODO: 添加对其他新控件的支持
             }
         }
 
@@ -784,6 +1000,51 @@ namespace ReportTemplateEditor.Designer
                 dataPathTextBox.Text = textElement.DataBindingPath;
                 formatStringTextBox.Text = textElement.FormatString;
             }
+            else if (element is TemplateElements.BarcodeElement barcodeElement)
+            {
+                // 启用条形码属性
+                // 注意：需要在XAML中添加对应的控件
+                // TODO: 添加条形码属性控件到XAML
+
+                // 禁用其他类型属性
+                textContentTextBox.IsEnabled = false;
+                fontFamilyComboBox.IsEnabled = false;
+                fontSizeTextBox.IsEnabled = false;
+                fontWeightComboBox.IsEnabled = false;
+                fontStyleComboBox.IsEnabled = false;
+                dataPathTextBox.IsEnabled = true; // 支持数据绑定
+                formatStringTextBox.IsEnabled = true;
+            }
+            else if (element is TemplateElements.SignatureElement signatureElement)
+            {
+                // 启用签名区域属性
+                // 注意：需要在XAML中添加对应的控件
+                // TODO: 添加签名区域属性控件到XAML
+
+                // 禁用其他类型属性
+                textContentTextBox.IsEnabled = false;
+                fontFamilyComboBox.IsEnabled = false;
+                fontSizeTextBox.IsEnabled = false;
+                fontWeightComboBox.IsEnabled = false;
+                fontStyleComboBox.IsEnabled = false;
+                dataPathTextBox.IsEnabled = false;
+                formatStringTextBox.IsEnabled = false;
+            }
+            else if (element is TemplateElements.AutoNumberElement autoNumberElement)
+            {
+                // 启用自动编号属性
+                // 注意：需要在XAML中添加对应的控件
+                // TODO: 添加自动编号属性控件到XAML
+
+                // 禁用其他类型属性
+                textContentTextBox.IsEnabled = false;
+                fontFamilyComboBox.IsEnabled = true; // 支持字体设置
+                fontSizeTextBox.IsEnabled = true; // 支持字体大小设置
+                fontWeightComboBox.IsEnabled = true; // 支持字体粗细设置
+                fontStyleComboBox.IsEnabled = true; // 支持字体样式设置
+                dataPathTextBox.IsEnabled = false;
+                formatStringTextBox.IsEnabled = true; // 支持格式字符串设置
+            }
             else
             {
                 // 禁用文本属性
@@ -833,14 +1094,14 @@ namespace ReportTemplateEditor.Designer
                 // 使用控件注册系统创建元素实例
                 var registry = ReportTemplateEditor.Core.Models.Widgets.WidgetRegistry.Instance;
                 var element = registry.CreateWidgetInstance(widgetType);
-                
+
                 if (element != null)
                 {
                     // 设置默认位置为鼠标点击位置
                     Point mousePoint = Mouse.GetPosition(designCanvas);
                     element.X = mousePoint.X;
                     element.Y = mousePoint.Y;
-                    
+
                     // 使用命令管理器添加元素
                     AddElementWithCommand(element);
                 }
@@ -877,7 +1138,7 @@ namespace ReportTemplateEditor.Designer
             {
                 // 创建拖拽数据
                 DataObject dragData = new DataObject("WidgetType", widgetType);
-                
+
                 // 开始拖拽操作
                 DragDrop.DoDragDrop(listBoxItem, dragData, DragDropEffects.Copy);
             }
@@ -911,17 +1172,17 @@ namespace ReportTemplateEditor.Designer
                         // 使用控件注册系统创建元素实例
                         var registry = ReportTemplateEditor.Core.Models.Widgets.WidgetRegistry.Instance;
                         var element = registry.CreateWidgetInstance(widgetType);
-                        
+
                         if (element != null)
-                            {
-                                // 设置位置为鼠标释放位置
-                                Point dropPoint = e.GetPosition(designCanvas);
-                                element.X = dropPoint.X;
-                                element.Y = dropPoint.Y;
-                                
-                                // 使用命令管理器添加元素
-                                AddElementWithCommand(element);
-                            }
+                        {
+                            // 设置位置为鼠标释放位置
+                            Point dropPoint = e.GetPosition(designCanvas);
+                            element.X = dropPoint.X;
+                            element.Y = dropPoint.Y;
+
+                            // 使用命令管理器添加元素
+                            AddElementWithCommand(element);
+                        }
                     }
                 }
                 else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -931,7 +1192,7 @@ namespace ReportTemplateEditor.Designer
                     if (files != null && files.Length > 0)
                     {
                         // 这里可以添加处理图片文件的逻辑
-                        statusText.Text = $"拖拽了 {files.Length} 个文件"; 
+                        statusText.Text = $"拖拽了 {files.Length} 个文件";
                     }
                 }
             }
@@ -953,7 +1214,7 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "Text", textContentTextBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.Text = textElement.Text;
@@ -971,7 +1232,7 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "FontFamily", fontFamilyComboBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.FontFamily = new FontFamily(textElement.FontFamily);
@@ -991,7 +1252,7 @@ namespace ReportTemplateEditor.Designer
                     // 创建并执行修改属性命令
                     var command = new ModifyElementPropertyCommand(textElement, "FontSize", fontSize);
                     _commandManager.ExecuteCommand(command);
-                    
+
                     if (_primarySelectedElement.UiElement is TextBlock textBlock)
                     {
                         textBlock.FontSize = fontSize;
@@ -1010,7 +1271,7 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "FontWeight", fontWeightComboBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(textElement.FontWeight);
@@ -1028,7 +1289,7 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "FontStyle", fontStyleComboBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(textElement.FontStyle);
@@ -1046,7 +1307,7 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "DataBindingPath", dataPathTextBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 // 更新绑定内容
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
@@ -1065,15 +1326,1000 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(textElement, "FormatString", formatStringTextBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
-                // 更新绑定内容
-                if (_primarySelectedElement.UiElement is TextBlock textBlock)
-                {
-                    SetTextElementContent(textBlock, textElement);
-                }
             }
         }
 
+        /// <summary>
+        /// 选择数据路径按钮点击事件
+        /// </summary>
+        private void selectPathButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 创建测试数据（实际项目中应该从外部加载）
+                var testData = new
+                {
+                    Patient = new
+                    {
+                        Name = "张三",
+                        Age = 30,
+                        Gender = "男",
+                        PatientId = "P20230001"
+                    },
+                    Report = new
+                    {
+                        ReportId = "R20230001",
+                        ReportDate = DateTime.Now.ToString("yyyy-MM-dd"),
+                        Department = "检验科",
+                        Doctor = "李医生"
+                    },
+                    TestItems = new List<object>
+                    {
+                        new { ItemName = "白细胞计数", Result = "7.5", Unit = "×10^9/L", ReferenceRange = "4.0-10.0" },
+                        new { ItemName = "红细胞计数", Result = "4.5", Unit = "×10^12/L", ReferenceRange = "4.0-5.5" },
+                        new { ItemName = "血红蛋白", Result = "135", Unit = "g/L", ReferenceRange = "120-160" },
+                        new { ItemName = "血小板计数", Result = "200", Unit = "×10^9/L", ReferenceRange = "100-300" }
+                    }
+                };
+
+                // 显示数据路径选择窗口
+                var window = new DataPathSelectorWindow
+                {
+                    Owner = this,
+                    DataSource = testData
+                };
+                window.Initialize();
+
+                if (window.ShowDialog() == true && !string.IsNullOrEmpty(window.SelectedPath))
+                {
+                    // 更新当前选中元素的数据绑定路径
+                    if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+                    {
+                        var command = new ModifyElementPropertyCommand(textElement, "DataBindingPath", window.SelectedPath);
+                        _commandManager.ExecuteCommand(command);
+                        dataPathTextBox.Text = window.SelectedPath;
+
+                        // 更新绑定内容
+                        if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                        {
+                            SetTextElementContent(textBlock, textElement);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = $"选择数据路径失败: {ex.Message}";
+            }
+        }
+        #endregion // 属性面板事件处理
+        #endregion // 事件处理
+
+        #region 缺失的事件处理程序实现
+        
+        // 文件菜单事件
+        /// <summary>
+        /// 新建模板
+        /// </summary>
+        private void NewTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            // 询问用户是否保存当前模板
+            if (_currentTemplate != null && _elementWrappers.Count > 0)
+            {
+                var result = MessageBox.Show("当前模板未保存，是否保存？", "提示", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveTemplate_Click(sender, e);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            // 初始化新模板
+            InitializeTemplate();
+
+            // 清除当前元素
+            designCanvas.Children.Clear();
+            _elementWrappers.Clear();
+            _selectedElements.Clear();
+            _primarySelectedElement = null;
+
+            // 重新绘制网格
+            DrawGrid();
+        }
+
+        /// <summary>
+        /// 绘制网格线
+        /// </summary>
+        private void DrawGrid()
+        {
+            // 清除现有网格
+            var existingGrid = designCanvas.Children.OfType<Canvas>().FirstOrDefault(c => c.Name == "gridCanvas");
+            if (existingGrid != null)
+            {
+                designCanvas.Children.Remove(existingGrid);
+            }
+
+            // 创建新的网格画布
+            var gridCanvas = new Canvas
+            {
+                Name = "gridCanvas",
+                Width = _currentTemplate.PageWidth,
+                Height = _currentTemplate.PageHeight,
+                IsHitTestVisible = false
+            };
+
+            // 绘制水平网格线
+            var horizontalLines = new System.Windows.Shapes.Path
+            {
+                Stroke = Brushes.LightGray,
+                StrokeThickness = 0.5
+            };
+
+            var horizontalGeometryGroup = new GeometryGroup();
+            for (double y = 0; y <= _currentTemplate.PageHeight; y += _gridSize)
+            {
+                horizontalGeometryGroup.Children.Add(new LineGeometry(new Point(0, y), new Point(_currentTemplate.PageWidth, y)));
+            }
+            horizontalLines.Data = horizontalGeometryGroup;
+            gridCanvas.Children.Add(horizontalLines);
+
+            // 绘制垂直网格线
+            var verticalLines = new System.Windows.Shapes.Path
+            {
+                Stroke = Brushes.LightGray,
+                StrokeThickness = 0.5
+            };
+
+            var verticalGeometryGroup = new GeometryGroup();
+            for (double x = 0; x <= _currentTemplate.PageWidth; x += _gridSize)
+            {
+                verticalGeometryGroup.Children.Add(new LineGeometry(new Point(x, 0), new Point(x, _currentTemplate.PageHeight)));
+            }
+            verticalLines.Data = verticalGeometryGroup;
+            gridCanvas.Children.Add(verticalLines);
+
+            // 添加网格到设计画布
+            designCanvas.Children.Add(gridCanvas);
+        }
+        /// <summary>
+        /// 打开模板
+        /// </summary>
+        private void OpenTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            // 询问用户是否保存当前模板
+            if (_currentTemplate != null && _elementWrappers.Count > 0)
+            {
+                var result = MessageBox.Show("当前模板未保存，是否保存？", "提示", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveTemplate_Click(sender, e);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    return;
+                }
+            }
+
+            // 打开文件选择对话框
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "报告模板文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+                Title = "打开报告模板",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // 读取模板文件
+                    string json = File.ReadAllText(openFileDialog.FileName);
+                    
+                    // 反序列化模板
+                    var template = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportTemplateDefinition>(json);
+                    if (template == null)
+                    {
+                        MessageBox.Show("模板文件格式无效", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    // 设置当前模板
+                    _currentTemplate = template;
+                    
+                    // 设置模板文件路径
+                    _currentTemplate.FilePath = openFileDialog.FileName;
+
+                    // 更新画布尺寸
+                    UpdateCanvasSize();
+
+                    // 清除当前元素
+                    designCanvas.Children.Clear();
+                    _elementWrappers.Clear();
+                    _selectedElements.Clear();
+                    _primarySelectedElement = null;
+
+                    // 绘制网格
+                    DrawGrid();
+
+                    // 添加模板元素到画布
+                    if (_currentTemplate.Elements != null)
+                    {
+                        foreach (var element in _currentTemplate.Elements)
+                        {
+                            AddElementToCanvas(element);
+                        }
+                    }
+
+                    statusText.Text = string.Format("已打开模板: {0}", openFileDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(string.Format("打开模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        /// <summary>
+        /// 保存模板
+        /// </summary>
+        private void SaveTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            // 如果模板没有文件路径，调用另存为
+            if (string.IsNullOrEmpty(_currentTemplate.FilePath))
+            {
+                SaveTemplateAs_Click(sender, e);
+                return;
+            }
+
+            try
+            {
+                // 保存模板
+                SaveTemplateToFile(_currentTemplate.FilePath);
+                statusText.Text = string.Format("已保存模板: {0}", _currentTemplate.FilePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("保存模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// 将模板保存到文件
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        private void SaveTemplateToFile(string filePath)
+        {
+            // 更新模板的元素列表
+            _currentTemplate.Elements = _elementWrappers.Select(w => w.ModelElement).ToList();
+
+            // 序列化模板
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
+
+            // 保存到文件
+            File.WriteAllText(filePath, json);
+
+            // 更新模板的文件路径
+            _currentTemplate.FilePath = filePath;
+        }
+        /// <summary>
+        /// 另存为新模板
+        /// </summary>
+        private void SaveTemplateAs_Click(object sender, RoutedEventArgs e)
+        {
+            // 打开保存文件对话框
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "报告模板文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+                Title = "保存报告模板",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                FileName = _currentTemplate.Name + ".json"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // 保存模板
+                    SaveTemplateToFile(saveFileDialog.FileName);
+                    statusText.Text = string.Format("已保存模板: {0}", _currentTemplate.FilePath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(string.Format("保存模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        private void Exit_Click(object sender, RoutedEventArgs e) {}
+        
+        // 编辑菜单事件
+        private void Undo_Click(object sender, RoutedEventArgs e) {}
+        private void Redo_Click(object sender, RoutedEventArgs e) {}
+        private void Cut_Click(object sender, RoutedEventArgs e) {}
+        private void Copy_Click(object sender, RoutedEventArgs e) {}
+        private void Paste_Click(object sender, RoutedEventArgs e) {}
+        private void Delete_Click(object sender, RoutedEventArgs e) {}
+        
+        // 视图菜单事件
+        /// <summary>
+        /// 显示/隐藏网格
+        /// </summary>
+        private void ShowGrid_Click(object sender, RoutedEventArgs e)
+        {
+            _showGrid = !_showGrid;
+            
+            // 更新菜单项的选中状态
+            var menuItem = sender as MenuItem;
+            if (menuItem != null)
+            {
+                menuItem.IsChecked = _showGrid;
+            }
+            
+            // 显示或隐藏网格
+            var gridCanvas = designCanvas.Children.OfType<Canvas>().FirstOrDefault(c => c.Name == "gridCanvas");
+            if (gridCanvas != null)
+            {
+                gridCanvas.Visibility = _showGrid ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        /// <summary>
+        /// 对齐到网格开关
+        /// </summary>
+        private void SnapToGrid_Click(object sender, RoutedEventArgs e)
+        {
+            _snapToGrid = !_snapToGrid;
+            
+            // 更新菜单项的选中状态
+            var menuItem = sender as MenuItem;
+            if (menuItem != null)
+            {
+                menuItem.IsChecked = _snapToGrid;
+            }
+        }
+        
+        // 缩放菜单事件
+        /// <summary>
+        /// 缩放至50%
+        /// </summary>
+        private void Zoom50_Click(object sender, RoutedEventArgs e)
+        {
+            zoomSlider.Value = 50;
+        }
+
+        /// <summary>
+        /// 缩放至75%
+        /// </summary>
+        private void Zoom75_Click(object sender, RoutedEventArgs e)
+        {
+            zoomSlider.Value = 75;
+        }
+
+        /// <summary>
+        /// 缩放至100%
+        /// </summary>
+        private void Zoom100_Click(object sender, RoutedEventArgs e)
+        {
+            zoomSlider.Value = 100;
+        }
+
+        /// <summary>
+        /// 缩放至150%
+        /// </summary>
+        private void Zoom150_Click(object sender, RoutedEventArgs e)
+        {
+            zoomSlider.Value = 150;
+        }
+
+        /// <summary>
+        /// 缩放至200%
+        /// </summary>
+        private void Zoom200_Click(object sender, RoutedEventArgs e)
+        {
+            zoomSlider.Value = 200;
+        }
+        
+        // 工具菜单事件
+        private void TemplateProperties_Click(object sender, RoutedEventArgs e) {}
+        /// <summary>
+        /// 预览模板
+        /// </summary>
+        private void PreviewTemplate_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 创建预览窗口
+                var previewWindow = new Window
+                {
+                    Title = "模板预览",
+                    Width = 800,
+                    Height = 600,
+                    WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                    Background = Brushes.White
+                };
+
+                // 创建预览画布
+                var previewCanvas = new Canvas
+                {
+                    Width = _currentTemplate.PageWidth,
+                    Height = _currentTemplate.PageHeight,
+                    Background = Brushes.White,
+                    Margin = new Thickness(20)
+                };
+
+                // 添加白色背景
+                var background = new Rectangle
+                {
+                    Width = _currentTemplate.PageWidth,
+                    Height = _currentTemplate.PageHeight,
+                    Fill = Brushes.White,
+                    Stroke = Brushes.LightGray,
+                    StrokeThickness = 1
+                };
+                previewCanvas.Children.Add(background);
+
+                // 渲染模板元素
+                foreach (var wrapper in _elementWrappers)
+                {
+                    UIElement uiElement = CreateUIElement(wrapper.ModelElement);
+                    if (uiElement != null)
+                    {
+                        Canvas.SetLeft(uiElement, wrapper.ModelElement.X);
+                        Canvas.SetTop(uiElement, wrapper.ModelElement.Y);
+                        if (uiElement is FrameworkElement frameworkElement)
+                        {
+                            frameworkElement.Width = wrapper.ModelElement.Width;
+                            frameworkElement.Height = wrapper.ModelElement.Height;
+                        }
+                        Canvas.SetZIndex(uiElement, wrapper.ModelElement.ZIndex);
+                        previewCanvas.Children.Add(uiElement);
+                    }
+                }
+
+                // 创建滚动视图
+                var scrollViewer = new ScrollViewer
+                {
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    Content = previewCanvas
+                };
+
+                // 设置窗口内容
+                previewWindow.Content = scrollViewer;
+
+                // 显示预览窗口
+                previewWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(string.Format("预览模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        /// <summary>
+        /// 导出为JSON
+        /// </summary>
+        private void ExportJson_Click(object sender, RoutedEventArgs e)
+        {
+            // 打开保存文件对话框
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "JSON文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+                Title = "导出为JSON",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                FileName = _currentTemplate.Name + "_export.json"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // 更新模板的元素列表
+                    _currentTemplate.Elements = _elementWrappers.Select(w => w.ModelElement).ToList();
+
+                    // 序列化模板
+                    string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
+
+                    // 保存到文件
+                    File.WriteAllText(saveFileDialog.FileName, json);
+
+                    statusText.Text = string.Format("已导出JSON: {0}", saveFileDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(string.Format("导出JSON失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        
+        // 对齐菜单事件
+        private void AlignLeft_Click(object sender, RoutedEventArgs e) {}
+        private void AlignCenter_Click(object sender, RoutedEventArgs e) {}
+        private void AlignRight_Click(object sender, RoutedEventArgs e) {}
+        private void AlignTop_Click(object sender, RoutedEventArgs e) {}
+        private void AlignMiddle_Click(object sender, RoutedEventArgs e) {}
+        private void AlignBottom_Click(object sender, RoutedEventArgs e) {}
+        
+        // 分布菜单事件
+        private void DistributeHorizontal_Click(object sender, RoutedEventArgs e) {}
+        private void DistributeVertical_Click(object sender, RoutedEventArgs e) {}
+        
+        // 图层菜单事件
+        private void MoveLayerUp_Click(object sender, RoutedEventArgs e) {}
+        private void MoveLayerDown_Click(object sender, RoutedEventArgs e) {}
+        private void BringToFront_Click(object sender, RoutedEventArgs e) {}
+        private void SendToBack_Click(object sender, RoutedEventArgs e) {}
+        private void layerList_SelectionChanged(object sender, SelectionChangedEventArgs e) {}
+        
+        // 画布事件
+        /// <summary>
+        /// 缩放滑块值变化事件
+        /// </summary>
+        private void zoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // 获取缩放比例
+            double zoomPercentage = e.NewValue;
+            double scale = zoomPercentage / 100.0;
+
+            // 更新缩放文本
+            zoomText.Text = $"{zoomPercentage}%";
+
+            // 应用缩放变换
+            ApplyZoom(scale);
+        }
+
+        /// <summary>
+        /// 应用缩放变换
+        /// </summary>
+        /// <param name="scale">缩放比例</param>
+        private void ApplyZoom(double scale)
+        {
+            if(designCanvas == null)
+                return;
+            // 获取画布的变换组
+            TransformGroup transformGroup = designCanvas.RenderTransform as TransformGroup;
+            if (transformGroup == null)
+            {
+                transformGroup = new TransformGroup();
+                designCanvas.RenderTransform = transformGroup;
+            }
+
+            // 移除现有的缩放变换
+            var existingScaleTransform = transformGroup.Children.OfType<ScaleTransform>().FirstOrDefault();
+            if (existingScaleTransform != null)
+            {
+                transformGroup.Children.Remove(existingScaleTransform);
+            }
+
+            // 创建新的缩放变换
+            var scaleTransform = new ScaleTransform(scale, scale, 0, 0);
+            transformGroup.Children.Add(scaleTransform);
+        }
+        private void DesignCanvas_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 记录拖拽起始点
+            _dragStartPoint = e.GetPosition(designCanvas);
+            _isDragging = true;
+            
+            // 获取当前鼠标下的元素
+            HitTestResult result = VisualTreeHelper.HitTest(designCanvas, _dragStartPoint);
+            if (result != null)
+            {
+                // 查找元素包装器
+                var element = FindElementWrapper(result.VisualHit);
+                if (element != null)
+                {
+                    // 选中元素
+                    SelectElement(element);
+                    
+                    // 捕获鼠标
+                    designCanvas.CaptureMouse();
+                }
+            }
+        }
+        
+        private void DesignCanvas_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isDragging || _primarySelectedElement == null)
+            {
+                return;
+            }
+            
+            // 计算拖拽偏移
+            Point currentPoint = e.GetPosition(designCanvas);
+            double deltaX = currentPoint.X - _dragStartPoint.X;
+            double deltaY = currentPoint.Y - _dragStartPoint.Y;
+            
+            // 更新元素位置
+            foreach (var element in _selectedElements)
+            {
+                double newX = Canvas.GetLeft(element.UiElement) + deltaX;
+                double newY = Canvas.GetTop(element.UiElement) + deltaY;
+                
+                // 应用网格对齐
+                newX = SnapToGrid(newX);
+                newY = SnapToGrid(newY);
+                
+                // 更新模型
+                element.ModelElement.X = newX;
+                element.ModelElement.Y = newY;
+                
+                // 更新UI
+                Canvas.SetLeft(element.UiElement, newX);
+                Canvas.SetTop(element.UiElement, newY);
+                Canvas.SetLeft(element.SelectionBorder, newX);
+                Canvas.SetTop(element.SelectionBorder, newY);
+            }
+            
+            // 更新拖拽起始点
+            _dragStartPoint = currentPoint;
+        }
+        
+        private void DesignCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isDragging)
+            {
+                _isDragging = false;
+                designCanvas.ReleaseMouseCapture();
+                
+                // 更新属性面板
+                if (_primarySelectedElement != null)
+                {
+                    UpdatePropertyPanel(_primarySelectedElement.ModelElement);
+                }
+            }
+        }
+        
+        private void designCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // 支持鼠标滚轮缩放
+            double delta = e.Delta > 0 ? 5 : -5;
+            double newZoom = zoomSlider.Value + delta;
+            
+            // 限制缩放范围
+            newZoom = Math.Max(10, Math.Min(300, newZoom));
+            
+            // 更新缩放滑块
+            zoomSlider.Value = newZoom;
+            
+            e.Handled = true;
+        }
+        
+        /// <summary>
+        /// 查找元素包装器
+        /// </summary>
+        /// <param name="visual">视觉元素</param>
+        /// <returns>元素包装器</returns>
+        private UIElementWrapper FindElementWrapper(DependencyObject visual)
+        {
+            // 遍历可视化树，查找对应的元素包装器
+            while (visual != null && visual != designCanvas)
+            {
+                foreach (var wrapper in _elementWrappers)
+                {
+                    if (wrapper.UiElement == visual || wrapper.SelectionBorder == visual)
+                    {
+                        return wrapper;
+                    }
+                }
+                visual = VisualTreeHelper.GetParent(visual);
+            }
+            return null;
+        }
+        
+        /// <summary>
+        /// 纸张大小选择变化事件
+        /// </summary>
+        private void paperSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (paperSizeComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string paperSize = selectedItem.Tag.ToString();
+                bool isLandscape = orientationToggle?.IsChecked == true;
+
+                if(_currentTemplate is null)
+                    return;
+
+                // 更新纸张大小
+                switch (paperSize)
+                {
+                    case "A4":
+                        if (isLandscape)
+                        {
+                            _currentTemplate.PageWidth = 297;
+                            _currentTemplate.PageHeight = 210;
+                        }
+                        else
+                        {
+                            _currentTemplate.PageWidth = 210;
+                            _currentTemplate.PageHeight = 297;
+                        }
+                        break;
+                    case "A5":
+                        if (isLandscape)
+                        {
+                            _currentTemplate.PageWidth = 210;
+                            _currentTemplate.PageHeight = 148;
+                        }
+                        else
+                        {
+                            _currentTemplate.PageWidth = 148;
+                            _currentTemplate.PageHeight = 210;
+                        }
+                        break;
+                }
+
+                // 更新画布尺寸
+                UpdateCanvasSize();
+
+                // 重新绘制网格
+                DrawGrid();
+            }
+        }
+        /// <summary>
+        /// 页面方向切换为横向
+        /// </summary>
+        private void orientationToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            orientationToggle.Content = "横向";
+            _currentTemplate.Orientation = "Landscape";
+
+            // 交换页面宽度和高度
+            double temp = _currentTemplate.PageWidth;
+            _currentTemplate.PageWidth = _currentTemplate.PageHeight;
+            _currentTemplate.PageHeight = temp;
+
+            // 更新画布尺寸
+            UpdateCanvasSize();
+
+            // 重新绘制网格
+            DrawGrid();
+        }
+
+        /// <summary>
+        /// 页面方向切换为纵向
+        /// </summary>
+        private void orientationToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            orientationToggle.Content = "纵向";
+            _currentTemplate.Orientation = "Portrait";
+
+            // 交换页面宽度和高度
+            double temp = _currentTemplate.PageWidth;
+            _currentTemplate.PageWidth = _currentTemplate.PageHeight;
+            _currentTemplate.PageHeight = temp;
+
+            // 更新画布尺寸
+            UpdateCanvasSize();
+
+            // 重新绘制网格
+            DrawGrid();
+        }
+        
+        // 元素事件
+        private void Element_MouseDown(object sender, MouseButtonEventArgs e) {}
+        
+        // 位置和大小属性变化事件处理程序（仅添加真正缺失的）
+        private void posXTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(posXTextBox.Text, out double x))
+            {
+                // 应用网格对齐
+                x = SnapToGrid(x);
+                
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "X", x);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                Canvas.SetLeft(_primarySelectedElement.UiElement, x);
+                Canvas.SetLeft(_primarySelectedElement.SelectionBorder, x);
+                
+                // 更新文本框值（考虑网格对齐后的实际值）
+                posXTextBox.Text = x.ToString();
+            }
+        }
+        
+        private void posYTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(posYTextBox.Text, out double y))
+            {
+                // 应用网格对齐
+                y = SnapToGrid(y);
+                
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "Y", y);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                Canvas.SetTop(_primarySelectedElement.UiElement, y);
+                Canvas.SetTop(_primarySelectedElement.SelectionBorder, y);
+                
+                // 更新文本框值（考虑网格对齐后的实际值）
+                posYTextBox.Text = y.ToString();
+            }
+        }
+        
+        private void widthTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(widthTextBox.Text, out double width))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "Width", width);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                if (_primarySelectedElement.UiElement is FrameworkElement frameworkElement)
+                {
+                    frameworkElement.Width = width;
+                }
+                _primarySelectedElement.SelectionBorder.Width = width;
+            }
+        }
+        
+        private void heightTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(heightTextBox.Text, out double height))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "Height", height);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                if (_primarySelectedElement.UiElement is FrameworkElement frameworkElement)
+                {
+                    frameworkElement.Height = height;
+                }
+                _primarySelectedElement.SelectionBorder.Height = height;
+            }
+        }
+        
+        private void visibleCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_primarySelectedElement != null)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "IsVisible", true);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                _primarySelectedElement.UiElement.Visibility = Visibility.Visible;
+                _primarySelectedElement.SelectionBorder.Visibility = Visibility.Visible;
+            }
+        }
+        
+        private void visibleCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_primarySelectedElement != null)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "IsVisible", false);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                _primarySelectedElement.UiElement.Visibility = Visibility.Collapsed;
+                _primarySelectedElement.SelectionBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+        
+        private void rotationTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(rotationTextBox.Text, out double rotation))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "Rotation", rotation);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI的旋转变换
+            }
+        }
+        
+        private void zIndexTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && int.TryParse(zIndexTextBox.Text, out int zIndex))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "ZIndex", zIndex);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI
+                Canvas.SetZIndex(_primarySelectedElement.UiElement, zIndex);
+                Canvas.SetZIndex(_primarySelectedElement.SelectionBorder, zIndex + 1);
+            }
+        }
+        
+        private void borderColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null)
+            {
+                string color = borderColorTextBox.Text;
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "BorderColor", color);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的边框颜色
+            }
+        }
+        
+        private void borderWidthTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(borderWidthTextBox.Text, out double borderWidth))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "BorderWidth", borderWidth);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的边框宽度
+            }
+        }
+        
+        private void borderStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null)
+            {
+                string borderStyle = borderStyleComboBox.Text;
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "BorderStyle", borderStyle);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的边框样式
+            }
+        }
+        
+        private void cornerRadiusTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(cornerRadiusTextBox.Text, out double cornerRadius))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "CornerRadius", cornerRadius);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的圆角半径
+            }
+        }
+        
+        private void shadowColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null)
+            {
+                string shadowColor = shadowColorTextBox.Text;
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "ShadowColor", shadowColor);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的阴影颜色
+            }
+        }
+        
+        private void shadowDepthTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement != null && double.TryParse(shadowDepthTextBox.Text, out double shadowDepth))
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(_primarySelectedElement.ModelElement, "ShadowDepth", shadowDepth);
+                _commandManager.ExecuteCommand(command);
+                
+                // TODO: 更新UI元素的阴影深度
+            }
+        }
+        
+        /// <summary>
+        /// 更新图层列表
+        /// </summary>
+        private void UpdateLayerList()
+        {
+            // 清除当前图层列表
+            layerList.Items.Clear();
+            
+            // 添加所有元素到图层列表
+            foreach (var wrapper in _elementWrappers)
+            {
+                layerList.Items.Add($"{wrapper.ModelElement.Type} ({wrapper.ModelElement.Id})");
+            }
+        }
+        
+        #endregion
+        
         /// <summary>
         /// 不透明度变化事件
         /// </summary>
@@ -1094,6 +2340,138 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 加载测试数据按钮点击事件
+        /// </summary>
+        private void loadDataButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 创建测试数据
+                var testData = new
+                {
+                    Patient = new
+                    {
+                        Name = "张三",
+                        Age = 30,
+                        Gender = "男",
+                        PatientId = "P20230001"
+                    },
+                    Report = new
+                    {
+                        ReportId = "R20230001",
+                        ReportDate = DateTime.Now.ToString("yyyy-MM-dd"),
+                        Department = "检验科",
+                        Doctor = "李医生"
+                    },
+                    TestItems = new List<object>
+                    {
+                        new { ItemName = "白细胞计数", Result = "7.5", Unit = "×10^9/L", ReferenceRange = "4.0-10.0" },
+                        new { ItemName = "红细胞计数", Result = "4.5", Unit = "×10^12/L", ReferenceRange = "4.0-5.5" },
+                        new { ItemName = "血红蛋白", Result = "135", Unit = "g/L", ReferenceRange = "120-160" },
+                        new { ItemName = "血小板计数", Result = "200", Unit = "×10^9/L", ReferenceRange = "100-300" }
+                    }
+                };
+
+                // 保存绑定数据
+                _boundData = testData;
+                statusText.Text = "测试数据已加载";
+
+                // 更新所有元素的绑定内容
+                UpdateAllBindings();
+
+                // 刷新预览
+                RefreshPreview();
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = string.Format("加载测试数据失败: {0}", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 刷新预览按钮点击事件
+        /// </summary>
+        private void refreshPreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshPreview();
+        }
+
+        /// <summary>
+        /// 刷新数据预览
+        /// </summary>
+        private void RefreshPreview()
+        {
+            try
+            {
+                // 清除预览画布
+                previewCanvas.Children.Clear();
+
+                // 如果没有绑定数据，显示提示信息
+                if (_boundData == null)
+                {
+                    TextBlock tip = new TextBlock
+                    {
+                        Text = "请先加载测试数据",
+                        Foreground = Brushes.Gray,
+                        FontStyle = FontStyles.Italic,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    Canvas.SetLeft(tip, 50);
+                    Canvas.SetTop(tip, 40);
+                    previewCanvas.Children.Add(tip);
+                    return;
+                }
+
+                // 简单示例：在预览画布上显示绑定数据的基本信息
+                TextBlock patientInfo = new TextBlock
+                {
+                    Text = string.Format("患者: {0}, {1}岁, {2}", 
+                        GetBoundValue("Patient.Name"),
+                        GetBoundValue("Patient.Age"),
+                        GetBoundValue("Patient.Gender")),
+                    Margin = new Thickness(5),
+                    FontSize = 12
+                };
+                Canvas.SetLeft(patientInfo, 5);
+                Canvas.SetTop(patientInfo, 5);
+                previewCanvas.Children.Add(patientInfo);
+
+                TextBlock reportInfo = new TextBlock
+                {
+                    Text = string.Format("报告: {0}, {1}", 
+                        GetBoundValue("Report.ReportId"),
+                        GetBoundValue("Report.ReportDate")),
+                    Margin = new Thickness(5),
+                    FontSize = 12
+                };
+                Canvas.SetLeft(reportInfo, 5);
+                Canvas.SetTop(reportInfo, 25);
+                previewCanvas.Children.Add(reportInfo);
+
+                statusText.Text = "预览已刷新";
+            }
+            catch (Exception ex)
+            {
+                statusText.Text = string.Format("刷新预览失败: {0}", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取绑定数据的值
+        /// </summary>
+        private string GetBoundValue(string path)
+        {
+            if (_boundData == null)
+            {
+                return string.Empty;
+            }
+
+            object value = _dataBindingEngine.GetValue(_boundData, path);
+            return value?.ToString() ?? string.Empty;
+        }
+
+        /// <summary>
         /// 背景颜色变化事件
         /// </summary>
         private void backgroundColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -1103,1168 +2481,17 @@ namespace ReportTemplateEditor.Designer
                 // 创建并执行修改属性命令
                 var command = new ModifyElementPropertyCommand(element, "BackgroundColor", backgroundColorTextBox.Text);
                 _commandManager.ExecuteCommand(command);
-                
+
                 // 更新UI元素
-                UpdateElementAppearance(_primarySelectedElement);
-            }
-        }
-
-        /// <summary>
-        /// 边框颜色变化事件
-        /// </summary>
-        private void borderColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                // 创建并执行修改属性命令
-                var command = new ModifyElementPropertyCommand(element, "BorderColor", borderColorTextBox.Text);
-                _commandManager.ExecuteCommand(command);
-                
-                // 更新UI元素
-                UpdateElementAppearance(_primarySelectedElement);
-            }
-        }
-
-        /// <summary>
-        /// 边框宽度变化事件
-        /// </summary>
-        private void borderWidthTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                if (double.TryParse(borderWidthTextBox.Text, out double borderWidth))
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
-                    // 创建并执行修改属性命令
-                    var command = new ModifyElementPropertyCommand(element, "BorderWidth", borderWidth);
-                    _commandManager.ExecuteCommand(command);
-                    
-                    // 更新UI元素
-                    UpdateElementAppearance(_primarySelectedElement);
+                    textBlock.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(element.BackgroundColor));
+                }
+                else if (_primarySelectedElement.UiElement is Border border)
+                {
+                    border.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(element.BackgroundColor));
                 }
             }
-        }
-
-        /// <summary>
-        /// 边框样式变化事件
-        /// </summary>
-        private void borderStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                // 创建并执行修改属性命令
-                var command = new ModifyElementPropertyCommand(element, "BorderStyle", borderStyleComboBox.Text);
-                _commandManager.ExecuteCommand(command);
-                
-                // 更新UI元素
-                UpdateElementAppearance(_primarySelectedElement);
-            }
-        }
-
-        /// <summary>
-        /// 圆角半径变化事件
-        /// </summary>
-        private void cornerRadiusTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                if (double.TryParse(cornerRadiusTextBox.Text, out double cornerRadius))
-                {
-                    // 创建并执行修改属性命令
-                    var command = new ModifyElementPropertyCommand(element, "CornerRadius", cornerRadius);
-                    _commandManager.ExecuteCommand(command);
-                    
-                    // 更新UI元素
-                    UpdateElementAppearance(_primarySelectedElement);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 阴影颜色变化事件
-        /// </summary>
-        private void shadowColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                // 创建并执行修改属性命令
-                var command = new ModifyElementPropertyCommand(element, "ShadowColor", shadowColorTextBox.Text);
-                _commandManager.ExecuteCommand(command);
-                
-                // 更新UI元素
-                UpdateElementAppearance(_primarySelectedElement);
-            }
-        }
-
-        /// <summary>
-        /// 阴影深度变化事件
-        /// </summary>
-        private void shadowDepthTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
-            {
-                if (double.TryParse(shadowDepthTextBox.Text, out double shadowDepth))
-                {
-                    // 创建并执行修改属性命令
-                    var command = new ModifyElementPropertyCommand(element, "ShadowDepth", shadowDepth);
-                    _commandManager.ExecuteCommand(command);
-                    
-                    // 更新UI元素
-                    UpdateElementAppearance(_primarySelectedElement);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 更新元素外观
-        /// </summary>
-        private void UpdateElementAppearance(UIElementWrapper wrapper)
-        {
-            // 这里需要根据元素类型和属性更新UI外观
-            // 由于不同元素类型的UI结构不同，这里只做简单示例
-            if (wrapper.UiElement is Border border)
-            {
-                // 更新边框属性
-                border.BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BorderColor));
-                border.BorderThickness = new Thickness(wrapper.ModelElement.BorderWidth);
-                border.CornerRadius = new CornerRadius(wrapper.ModelElement.CornerRadius);
-                border.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BackgroundColor));
-            }
-            else if (wrapper.UiElement is TextBlock textBlock)
-            {
-                // 更新文本块属性
-                textBlock.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BackgroundColor));
-            }
-        }
-
-        #endregion
-
-        /// <summary>
-        /// 设计画布鼠标按下事件
-        /// </summary>
-        private void DesignCanvas_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            // 检查是否点击在元素上
-            Point clickPoint = e.GetPosition(designCanvas);
-            var hitElement = VisualTreeHelper.HitTest(designCanvas, clickPoint).VisualHit;
-
-            // 查找是否点击在元素上
-            UIElementWrapper clickedWrapper = null;
-            foreach (var wrapper in _elementWrappers)
-            {
-                if (wrapper.UiElement.IsAncestorOf(hitElement as DependencyObject) || 
-                    wrapper.UiElement == hitElement)
-                {
-                    clickedWrapper = wrapper;
-                    break;
-                }
-            }
-
-            if (clickedWrapper != null)
-            {
-                // 检查是否按住Shift键进行多选
-                if (Keyboard.Modifiers == ModifierKeys.Shift)
-                {
-                    // 添加到选择
-                    AddToSelection(clickedWrapper);
-                }
-                else
-                {
-                    // 选中单个元素
-                    SelectElement(clickedWrapper);
-                }
-
-                // 准备拖拽
-                _isDragging = true;
-                _dragStartPoint = clickPoint;
-
-                // 记录元素原始位置，用于创建移动命令
-                _elementOriginalPositions.Clear();
-                foreach (var wrapper in _selectedElements)
-                {
-                    _elementOriginalPositions[wrapper.ModelElement] = new Point(wrapper.ModelElement.X, wrapper.ModelElement.Y);
-                }
-
-                // 捕获鼠标
-                designCanvas.CaptureMouse();
-            }
-            else
-            {
-                // 点击空白处，取消选择
-                ClearSelection();
-                selectionInfoText.Text = "未选择任何元素";
-                statusText.Text = "就绪";
-            }
-        }
-
-        /// <summary>
-        /// 设计画布鼠标移动事件
-        /// </summary>
-        private void DesignCanvas_PreviewMouseMove(object sender, MouseEventArgs e)
-        {
-            if (!_isDragging || _selectedElements.Count == 0)
-            {
-                return;
-            }
-
-            // 计算新位置
-            Point currentPoint = e.GetPosition(designCanvas);
-            
-            // 考虑缩放因素，计算实际移动距离
-            double deltaX = (currentPoint.X - _dragStartPoint.X) / _currentScale;
-            double deltaY = (currentPoint.Y - _dragStartPoint.Y) / _currentScale;
-
-            // 拖拽所有选中元素
-            foreach (var wrapper in _selectedElements)
-            {
-                // 计算新的元素位置
-                double newX = SnapToGrid(Canvas.GetLeft(wrapper.UiElement) + deltaX);
-                double newY = SnapToGrid(Canvas.GetTop(wrapper.UiElement) + deltaY);
-
-                // 更新UI元素位置
-                Canvas.SetLeft(wrapper.UiElement, newX);
-                Canvas.SetTop(wrapper.UiElement, newY);
-                Canvas.SetLeft(wrapper.SelectionBorder, newX);
-                Canvas.SetTop(wrapper.SelectionBorder, newY);
-
-                // 更新模型位置
-                wrapper.ModelElement.X = newX;
-                wrapper.ModelElement.Y = newY;
-            }
-
-            // 更新属性面板（仅更新主选中元素）
-            if (_primarySelectedElement != null)
-            {
-                posXTextBox.Text = _primarySelectedElement.ModelElement.X.ToString();
-                posYTextBox.Text = _primarySelectedElement.ModelElement.Y.ToString();
-            }
-
-            // 更新拖拽起点
-            _dragStartPoint = currentPoint;
-        }
-
-        /// <summary>
-        /// 元素移动前的位置信息，用于创建移动命令
-        /// </summary>
-        private Dictionary<TemplateElements.ElementBase, Point> _elementOriginalPositions = new Dictionary<TemplateElements.ElementBase, Point>();
-
-        /// <summary>
-        /// 设计画布鼠标释放事件
-        /// </summary>
-        private void DesignCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_isDragging)
-            {
-                _isDragging = false;
-                designCanvas.ReleaseMouseCapture();
-                
-                // 执行移动元素命令
-                foreach (var wrapper in _selectedElements)
-                {
-                    if (_elementOriginalPositions.TryGetValue(wrapper.ModelElement, out Point originalPos))
-                    {
-                        // 检查位置是否发生变化
-                        if (Math.Abs(wrapper.ModelElement.X - originalPos.X) > 0.1 || Math.Abs(wrapper.ModelElement.Y - originalPos.Y) > 0.1)
-                        {
-                            // 创建并执行移动命令
-                            var command = new MoveElementCommand(wrapper.ModelElement, wrapper.ModelElement.X, wrapper.ModelElement.Y);
-                            _commandManager.ExecuteCommand(command);
-                        }
-                    }
-                }
-                
-                statusText.Text = "元素已移动";
-            }
-        }
-
-        /// <summary>
-        /// 元素鼠标按下事件
-        /// </summary>
-        private void Element_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            // 查找对应的包装类
-            UIElement uiElement = sender as UIElement;
-            if (uiElement == null)
-            {
-                return;
-            }
-
-            UIElementWrapper wrapper = _elementWrappers.Find(w => w.UiElement == uiElement);
-            if (wrapper != null)
-            {
-                SelectElement(wrapper);
-                e.Handled = true;
-            }
-        }
-
-        #endregion
-
-        #region 菜单栏事件
-
-        /// <summary>
-        /// 新建模板
-        /// </summary>
-        private void NewTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            // 清空画布
-            designCanvas.Children.Clear();
-            designCanvas.Children.Add(gridCanvas);
-            _elementWrappers.Clear();
-            _selectedElements.Clear();
-            _primarySelectedElement = null;
-
-            // 重置模板
-            InitializeTemplate();
-
-            // 更新UI
-            selectionInfoText.Text = "未选择任何元素";
-            statusText.Text = "已创建新模板";
-        }
-
-        /// <summary>
-        /// 打开模板
-        /// </summary>
-        private void OpenTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "JSON 模板文件 (*.json)|*.json|所有文件 (*.*)|*.*",
-                Title = "打开模板文件"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    string jsonContent = System.IO.File.ReadAllText(openFileDialog.FileName);
-                    _currentTemplate = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportTemplateDefinition>(jsonContent);
-
-                    // 清空画布
-                    designCanvas.Children.Clear();
-                    designCanvas.Children.Add(gridCanvas);
-                    _elementWrappers.Clear();
-                    _selectedElements.Clear();
-                    _primarySelectedElement = null;
-
-                    // 更新画布尺寸以匹配模板设置
-                    UpdateCanvasSize();
-
-                    // 重新添加所有元素
-                    foreach (var element in _currentTemplate.Elements)
-                    {
-                        AddElementToCanvas(element);
-                    }
-
-                    statusText.Text = string.Format("已打开模板: {0}", _currentTemplate.Name);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(string.Format("打开模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 保存模板
-        /// </summary>
-        private void SaveTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            SaveTemplate(false);
-        }
-
-        /// <summary>
-        /// 保存模板为
-        /// </summary>
-        private void SaveTemplateAs_Click(object sender, RoutedEventArgs e)
-        {
-            SaveTemplate(true);
-        }
-
-        /// <summary>
-        /// 保存模板
-        /// </summary>
-        private void SaveTemplate(bool saveAs)
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "JSON 模板文件 (*.json)|*.json|所有文件 (*.*)|*.*",
-                Title = "保存模板文件",
-                FileName = string.Format("{0}.json", _currentTemplate.Name)
-            };
-
-            if (saveAs)
-            {
-                if (saveFileDialog.ShowDialog() != true)
-                {
-                    return;
-                }
-            }
-
-            try
-            {
-                string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
-                System.IO.File.WriteAllText(saveFileDialog.FileName, jsonContent);
-                statusText.Text = string.Format("已保存模板到: {0}", saveFileDialog.FileName);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("保存模板失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>
-        /// 退出
-        /// </summary>
-        private void Exit_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        #region 对齐和分布功能
-
-        /// <summary>
-        /// 左对齐选中元素
-        /// </summary>
-        private void AlignLeft_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算左对齐位置（使用第一个选中元素的X坐标）
-            double left = _selectedElements[0].ModelElement.X;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                wrapper.ModelElement.X = left;
-                Canvas.SetLeft(wrapper.UiElement, left);
-            }
-        }
-
-        /// <summary>
-        /// 水平居中对齐选中元素
-        /// </summary>
-        private void AlignCenter_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算水平居中位置（使用第一个选中元素的中心X坐标）
-            double centerX = _selectedElements[0].ModelElement.X + _selectedElements[0].ModelElement.Width / 2;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                double newX = centerX - wrapper.ModelElement.Width / 2;
-                wrapper.ModelElement.X = newX;
-                Canvas.SetLeft(wrapper.UiElement, newX);
-            }
-        }
-
-        /// <summary>
-        /// 右对齐选中元素
-        /// </summary>
-        private void AlignRight_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算右对齐位置（使用第一个选中元素的右边缘X坐标）
-            double right = _selectedElements[0].ModelElement.X + _selectedElements[0].ModelElement.Width;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                double newX = right - wrapper.ModelElement.Width;
-                wrapper.ModelElement.X = newX;
-                Canvas.SetLeft(wrapper.UiElement, newX);
-            }
-        }
-
-        /// <summary>
-        /// 顶部对齐选中元素
-        /// </summary>
-        private void AlignTop_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算顶部对齐位置（使用第一个选中元素的Y坐标）
-            double top = _selectedElements[0].ModelElement.Y;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                wrapper.ModelElement.Y = top;
-                Canvas.SetTop(wrapper.UiElement, top);
-            }
-        }
-
-        /// <summary>
-        /// 垂直居中对齐选中元素
-        /// </summary>
-        private void AlignMiddle_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算垂直居中位置（使用第一个选中元素的中心Y坐标）
-            double centerY = _selectedElements[0].ModelElement.Y + _selectedElements[0].ModelElement.Height / 2;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                double newY = centerY - wrapper.ModelElement.Height / 2;
-                wrapper.ModelElement.Y = newY;
-                Canvas.SetTop(wrapper.UiElement, newY);
-            }
-        }
-
-        /// <summary>
-        /// 底部对齐选中元素
-        /// </summary>
-        private void AlignBottom_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 2)
-                return;
-
-            // 计算底部对齐位置（使用第一个选中元素的底边缘Y坐标）
-            double bottom = _selectedElements[0].ModelElement.Y + _selectedElements[0].ModelElement.Height;
-
-            // 更新所有选中元素的位置
-            foreach (var wrapper in _selectedElements.Skip(1))
-            {
-                double newY = bottom - wrapper.ModelElement.Height;
-                wrapper.ModelElement.Y = newY;
-                Canvas.SetTop(wrapper.UiElement, newY);
-            }
-        }
-
-        /// <summary>
-        /// 水平均匀分布选中元素
-        /// </summary>
-        private void DistributeHorizontal_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 3)
-                return;
-
-            // 按X坐标排序
-            var sortedElements = _selectedElements.OrderBy(w => w.ModelElement.X).ToList();
-
-            // 计算总宽度
-            double totalWidth = sortedElements.Last().ModelElement.X + sortedElements.Last().ModelElement.Width - sortedElements.First().ModelElement.X;
-            
-            // 计算可用空间
-            double usedWidth = sortedElements.Sum(w => w.ModelElement.Width);
-            double availableSpace = totalWidth - usedWidth;
-            
-            // 计算间距
-            double spacing = availableSpace / (_selectedElements.Count - 1);
-
-            // 更新位置
-            double currentX = sortedElements.First().ModelElement.X + sortedElements.First().ModelElement.Width + spacing;
-            for (int i = 1; i < sortedElements.Count - 1; i++)
-            {
-                sortedElements[i].ModelElement.X = currentX;
-                Canvas.SetLeft(sortedElements[i].UiElement, currentX);
-                currentX += sortedElements[i].ModelElement.Width + spacing;
-            }
-        }
-
-        /// <summary>
-        /// 垂直均匀分布选中元素
-        /// </summary>
-        private void DistributeVertical_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count < 3)
-                return;
-
-            // 按Y坐标排序
-            var sortedElements = _selectedElements.OrderBy(w => w.ModelElement.Y).ToList();
-
-            // 计算总高度
-            double totalHeight = sortedElements.Last().ModelElement.Y + sortedElements.Last().ModelElement.Height - sortedElements.First().ModelElement.Y;
-            
-            // 计算可用空间
-            double usedHeight = sortedElements.Sum(w => w.ModelElement.Height);
-            double availableSpace = totalHeight - usedHeight;
-            
-            // 计算间距
-            double spacing = availableSpace / (_selectedElements.Count - 1);
-
-            // 更新位置
-            double currentY = sortedElements.First().ModelElement.Y + sortedElements.First().ModelElement.Height + spacing;
-            for (int i = 1; i < sortedElements.Count - 1; i++)
-            {
-                sortedElements[i].ModelElement.Y = currentY;
-                Canvas.SetTop(sortedElements[i].UiElement, currentY);
-                currentY += sortedElements[i].ModelElement.Height + spacing;
-            }
-        }
-
-        #endregion
-
-        #region 图层管理功能
-
-        /// <summary>
-        /// 将选中元素上移一层
-        /// </summary>
-        private void MoveLayerUp_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count == 0)
-                return;
-
-            foreach (var wrapper in _selectedElements)
-            {
-                // 查找当前元素的索引
-                int currentIndex = _elementWrappers.IndexOf(wrapper);
-                if (currentIndex > 0)
-                {
-                    // 交换位置
-                    var temp = _elementWrappers[currentIndex - 1];
-                    _elementWrappers[currentIndex - 1] = wrapper;
-                    _elementWrappers[currentIndex] = temp;
-                    
-                    // 更新ZIndex
-                    int tempZIndex = wrapper.ModelElement.ZIndex;
-                    wrapper.ModelElement.ZIndex = temp.ModelElement.ZIndex;
-                    temp.ModelElement.ZIndex = tempZIndex;
-                    
-                    Canvas.SetZIndex(wrapper.UiElement, wrapper.ModelElement.ZIndex);
-                    Canvas.SetZIndex(temp.UiElement, temp.ModelElement.ZIndex);
-                }
-            }
-            
-            // 更新图层列表
-            UpdateLayerList();
-        }
-
-        /// <summary>
-        /// 将选中元素下移一层
-        /// </summary>
-        private void MoveLayerDown_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count == 0)
-                return;
-
-            foreach (var wrapper in _selectedElements)
-            {
-                // 查找当前元素的索引
-                int currentIndex = _elementWrappers.IndexOf(wrapper);
-                if (currentIndex < _elementWrappers.Count - 1)
-                {
-                    // 交换位置
-                    var temp = _elementWrappers[currentIndex + 1];
-                    _elementWrappers[currentIndex + 1] = wrapper;
-                    _elementWrappers[currentIndex] = temp;
-                    
-                    // 更新ZIndex
-                    int tempZIndex = wrapper.ModelElement.ZIndex;
-                    wrapper.ModelElement.ZIndex = temp.ModelElement.ZIndex;
-                    temp.ModelElement.ZIndex = tempZIndex;
-                    
-                    Canvas.SetZIndex(wrapper.UiElement, wrapper.ModelElement.ZIndex);
-                    Canvas.SetZIndex(temp.UiElement, temp.ModelElement.ZIndex);
-                }
-            }
-            
-            // 更新图层列表
-            UpdateLayerList();
-        }
-
-        /// <summary>
-        /// 将选中元素置于顶层
-        /// </summary>
-        private void BringToFront_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count == 0)
-                return;
-
-            // 找到当前最高的ZIndex
-            int maxZIndex = _elementWrappers.Max(w => w.ModelElement.ZIndex) + 1;
-
-            foreach (var wrapper in _selectedElements)
-            {
-                wrapper.ModelElement.ZIndex = maxZIndex++;
-                Canvas.SetZIndex(wrapper.UiElement, wrapper.ModelElement.ZIndex);
-            }
-            
-            // 更新图层列表
-            UpdateLayerList();
-        }
-
-        /// <summary>
-        /// 将选中元素置于底层
-        /// </summary>
-        private void SendToBack_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count == 0)
-                return;
-
-            // 找到当前最低的ZIndex
-            int minZIndex = _elementWrappers.Min(w => w.ModelElement.ZIndex) - 1;
-
-            foreach (var wrapper in _selectedElements)
-            {
-                wrapper.ModelElement.ZIndex = minZIndex++;
-                Canvas.SetZIndex(wrapper.UiElement, wrapper.ModelElement.ZIndex);
-            }
-            
-            // 更新图层列表
-            UpdateLayerList();
-        }
-
-        /// <summary>
-        /// 设置文本元素内容，支持数据绑定
-        /// </summary>
-        private void SetTextElementContent(TextBlock textBlock, TemplateElements.TextElement textElement)
-        {
-            if (!string.IsNullOrEmpty(textElement.DataBindingPath) && _boundData != null)
-            {
-                // 使用数据绑定引擎获取值
-                object value = _dataBindingEngine.GetValue(_boundData, textElement.DataBindingPath, textElement.FormatString);
-                textBlock.Text = value?.ToString() ?? textElement.Text;
-            }
-            else
-            {
-                // 使用默认文本
-                textBlock.Text = textElement.Text;
-            }
-        }
-
-        /// <summary>
-        /// 更新图层列表
-        /// </summary>
-        private void UpdateLayerList()
-        {
-            // 按ZIndex排序元素
-            var sortedElements = _elementWrappers.OrderBy(w => w.ModelElement.ZIndex).ToList();
-            
-            // 更新图层列表
-            layerList.ItemsSource = null;
-            layerList.ItemsSource = sortedElements;
-        }
-        
-        /// <summary>
-        /// 图层列表选择变化事件
-        /// </summary>
-        private void layerList_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (layerList.SelectedItems.Count > 0)
-            {
-                // 清空当前选择
-                ClearSelection();
-                
-                // 选中图层列表中的元素
-                foreach (UIElementWrapper wrapper in layerList.SelectedItems)
-                {
-                    AddToSelection(wrapper);
-                }
-            }
-        }
-
-        #endregion
-
-        /// <summary>
-        /// 撤销
-        /// </summary>
-        private void Undo_Click(object sender, RoutedEventArgs e)
-        {
-            if (_commandManager.CanUndo)
-            {
-                _commandManager.Undo();
-                // 重新构建画布
-                RebuildCanvas();
-                statusText.Text = $"撤销: {_commandManager.UndoCommandDescription}";
-            }
-            else
-            {
-                statusText.Text = "没有可撤销的操作";
-            }
-        }
-
-        /// <summary>
-        /// 重做
-        /// </summary>
-        private void Redo_Click(object sender, RoutedEventArgs e)
-        {
-            if (_commandManager.CanRedo)
-            {
-                _commandManager.Redo();
-                // 重新构建画布
-                RebuildCanvas();
-                statusText.Text = $"重做: {_commandManager.RedoCommandDescription}";
-            }
-            else
-            {
-                statusText.Text = "没有可重做的操作";
-            }
-        }
-
-        /// <summary>
-        /// 重新构建画布
-        /// </summary>
-        private void RebuildCanvas()
-        {
-            // 清空画布
-            designCanvas.Children.Clear();
-            designCanvas.Children.Add(gridCanvas);
-            _elementWrappers.Clear();
-            _selectedElements.Clear();
-            _primarySelectedElement = null;
-
-            // 重新添加所有元素
-            foreach (var element in _currentTemplate.Elements)
-            {
-                AddElementToCanvas(element);
-            }
-
-            // 更新图层列表
-            UpdateLayerList();
-        }
-
-        /// <summary>
-        /// 剪切
-        /// </summary>
-        private void Cut_Click(object sender, RoutedEventArgs e)
-        {
-            statusText.Text = "剪切功能未实现";
-        }
-
-        /// <summary>
-        /// 复制
-        /// </summary>
-        private void Copy_Click(object sender, RoutedEventArgs e)
-        {
-            statusText.Text = "复制功能未实现";
-        }
-
-        /// <summary>
-        /// 粘贴
-        /// </summary>
-        private void Paste_Click(object sender, RoutedEventArgs e)
-        {
-            statusText.Text = "粘贴功能未实现";
-        }
-
-        /// <summary>
-        /// 删除
-        /// </summary>
-        private void Delete_Click(object sender, RoutedEventArgs e)
-        {
-            if (_selectedElements.Count > 0)
-            {
-                // 使用命令管理器执行删除操作
-                foreach (var wrapper in _selectedElements.ToList())
-                {
-                    // 创建删除命令
-                    var command = new DeleteElementCommand(_currentTemplate, wrapper.ModelElement);
-                    
-                    // 执行命令
-                    _commandManager.ExecuteCommand(command);
-                    
-                    // 从画布中移除
-                    designCanvas.Children.Remove(wrapper.UiElement);
-                    designCanvas.Children.Remove(wrapper.SelectionBorder);
-                    
-                    // 从列表中移除
-                    _elementWrappers.Remove(wrapper);
-                }
-                
-                // 重置选择
-                _selectedElements.Clear();
-                _primarySelectedElement = null;
-                
-                // 更新UI
-                selectionInfoText.Text = "未选择任何元素";
-                statusText.Text = string.Format("已删除 {0} 个元素", _selectedElements.Count);
-            }
-        }
-
-        /// <summary>
-        /// 显示网格
-        /// </summary>
-        private void ShowGrid_Click(object sender, RoutedEventArgs e)
-        {
-            _showGrid = !_showGrid;
-            gridCanvas.Visibility = _showGrid ? Visibility.Visible : Visibility.Collapsed;
-            
-            // 更新菜单项状态
-            ((MenuItem)sender).IsChecked = _showGrid;
-        }
-
-        /// <summary>
-        /// 对齐到网格
-        /// </summary>
-        private void SnapToGrid_Click(object sender, RoutedEventArgs e)
-        {
-            _snapToGrid = !_snapToGrid;
-            
-            // 更新菜单项状态
-            ((MenuItem)sender).IsChecked = _snapToGrid;
-        }
-
-        /// <summary>
-        /// 当前缩放比例
-        /// </summary>
-        private double _currentScale = 1.0;
-        
-        /// <summary>
-        /// 50% 缩放
-        /// </summary>
-        private void Zoom50_Click(object sender, RoutedEventArgs e)
-        {
-            zoomSlider.Value = 50;
-        }
-
-        /// <summary>
-        /// 75% 缩放
-        /// </summary>
-        private void Zoom75_Click(object sender, RoutedEventArgs e)
-        {
-            zoomSlider.Value = 75;
-        }
-
-        /// <summary>
-        /// 100% 缩放
-        /// </summary>
-        private void Zoom100_Click(object sender, RoutedEventArgs e)
-        {
-            zoomSlider.Value = 100;
-        }
-
-        /// <summary>
-        /// 150% 缩放
-        /// </summary>
-        private void Zoom150_Click(object sender, RoutedEventArgs e)
-        {
-            zoomSlider.Value = 150;
-        }
-
-        /// <summary>
-        /// 200% 缩放
-        /// </summary>
-        private void Zoom200_Click(object sender, RoutedEventArgs e)
-        {
-            zoomSlider.Value = 200;
-        }
-        
-        /// <summary>
-        /// 缩放滑块值变化事件
-        /// </summary>
-        private void zoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            // 更新缩放比例
-            _currentScale = e.NewValue / 100;
-            
-            // 使用RenderTransform替代LayoutTransform，避免影响布局
-            designCanvas.RenderTransform = new ScaleTransform(_currentScale, _currentScale, 0, 0);
-            
-            // 更新缩放文本
-            zoomText.Text = $"{e.NewValue:F0}%";
-            
-            // 更新状态栏
-            statusText.Text = $"缩放: {e.NewValue:F0}%";
-        }
-        
-        /// <summary>
-        /// 画布鼠标滚轮事件，实现缩放功能
-        /// </summary>
-        private void designCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            // 检查是否按住Ctrl键进行缩放
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                // 计算新的缩放比例
-                double zoomIncrement = e.Delta > 0 ? 10 : -10;
-                double newZoomValue = Math.Max(10, Math.Min(500, zoomSlider.Value + zoomIncrement));
-                
-                // 更新缩放滑块
-                zoomSlider.Value = newZoomValue;
-                
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// 纸张尺寸选择变化事件
-        /// </summary>
-        private void paperSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_currentTemplate == null)
-            {
-                return;
-            }
-            
-            // 获取选中的纸张尺寸
-            if (paperSizeComboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                string paperSize = selectedItem.Tag as string;
-                ChangePaperSize(paperSize, _currentTemplate.Orientation);
-            }
-        }
-        
-        /// <summary>
-        /// 页面方向切换事件（横向）
-        /// </summary>
-        private void orientationToggle_Checked(object sender, RoutedEventArgs e)
-        {
-            if (_currentTemplate == null)
-            {
-                return;
-            }
-            
-            // 切换为横向
-            ChangePaperSize(_currentTemplate.PageWidth == 297 && _currentTemplate.PageHeight == 210 ? "A4" : "A5", "Landscape");
-        }
-        
-        /// <summary>
-        /// 页面方向切换事件（纵向）
-        /// </summary>
-        private void orientationToggle_Unchecked(object sender, RoutedEventArgs e)
-        {
-            if (_currentTemplate == null)
-            {
-                return;
-            }
-            
-            // 切换为纵向
-            ChangePaperSize(_currentTemplate.PageWidth == 210 && _currentTemplate.PageHeight == 297 ? "A4" : "A5", "Portrait");
-        }
-        
-        /// <summary>
-        /// 更改纸张尺寸
-        /// </summary>
-        /// <param name="paperSize">纸张尺寸（A4/A5）</param>
-        /// <param name="orientation">页面方向（Portrait/Landscape）</param>
-        private void ChangePaperSize(string paperSize, string orientation)
-        {
-            if (_currentTemplate == null)
-            {
-                return;
-            }
-            
-            double width, height;
-            
-            // 设置纸张尺寸
-            switch (paperSize)
-            {
-                case "A4":
-                    width = 210;
-                    height = 297;
-                    break;
-                case "A5":
-                    width = 148;
-                    height = 210;
-                    break;
-                default:
-                    width = 210;
-                    height = 297;
-                    break;
-            }
-            
-            // 根据页面方向调整宽高
-            if (orientation == "Landscape")
-            {
-                double temp = width;
-                width = height;
-                height = temp;
-            }
-            
-            // 更新模板设置
-            _currentTemplate.PageWidth = width;
-            _currentTemplate.PageHeight = height;
-            _currentTemplate.Orientation = orientation;
-            
-            // 更新画布尺寸
-            UpdateCanvasSize();
-            
-            // 更新页面方向按钮文本
-            orientationToggle.Content = orientation == "Portrait" ? "横向" : "纵向";
-        }
-        
-        /// <summary>
-        /// 模板属性
-        /// </summary>
-        private void TemplateProperties_Click(object sender, RoutedEventArgs e)
-        {
-            statusText.Text = "模板属性功能未实现";
-        }
-
-        /// <summary>
-        /// 预览模板
-        /// </summary>
-        private void PreviewTemplate_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // 创建预览窗口
-                var previewWindow = new Window
-                {
-                    Title = "模板预览",
-                    Width = 800,
-                    Height = 600,
-                    WindowStartupLocation = WindowStartupLocation.CenterScreen
-                };
-
-                // 渲染模板
-                var renderedElement = _renderer.RenderToFrameworkElement(_currentTemplate);
-                
-                // 添加到预览窗口
-                var scrollViewer = new ScrollViewer
-                {
-                    Content = renderedElement,
-                    HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto
-                };
-                
-                previewWindow.Content = scrollViewer;
-                previewWindow.ShowDialog();
-
-                statusText.Text = "模板预览已显示";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format("预览失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-
-        
-        /// <summary>
-        /// 导出为JSON
-        /// </summary>
-        private void ExportJson_Click(object sender, RoutedEventArgs e)
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "JSON 文件 (*.json)|*.json|所有文件 (*.*)|*.*",
-                Title = "导出为JSON文件",
-                FileName = string.Format("{0}_export.json", _currentTemplate.Name)
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
-                    System.IO.File.WriteAllText(saveFileDialog.FileName, jsonContent);
-                    statusText.Text = string.Format("已导出JSON到: {0}", saveFileDialog.FileName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(string.Format("导出失败: {0}", ex.Message), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        #endregion
-
-        // UI元素包装类，用于关联模型和UI元素
-        private class UIElementWrapper
-        {
-            public TemplateElements.ElementBase ModelElement { get; set; }
-            public UIElement UiElement { get; set; }
-            public Border SelectionBorder { get; set; }
         }
     }
 }
