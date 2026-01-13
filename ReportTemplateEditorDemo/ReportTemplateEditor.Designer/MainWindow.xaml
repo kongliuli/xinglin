@@ -110,6 +110,14 @@
                 <Button Content="水平分布" Click="DistributeHorizontal_Click" ToolTip="水平均匀分布选中元素"/>
                 <Button Content="垂直分布" Click="DistributeVertical_Click" ToolTip="垂直均匀分布选中元素"/>
                 <Separator/>
+                <!-- 纸张设置 -->
+                <TextBlock Text="纸张: " Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="paperSizeComboBox" Width="60" VerticalAlignment="Center" SelectionChanged="paperSizeComboBox_SelectionChanged">
+                    <ComboBoxItem Content="A4" Tag="A4" IsSelected="True"/>
+                    <ComboBoxItem Content="A5" Tag="A5"/>
+                </ComboBox>
+                <ToggleButton x:Name="orientationToggle" Content="横向" ToolTip="切换页面方向" Margin="5,0,0,0" Checked="orientationToggle_Checked" Unchecked="orientationToggle_Unchecked"/>
+                <Separator/>
                 <Button Content="预览" Click="PreviewTemplate_Click" ToolTip="预览模板"/>
                 <Button Content="导出" Click="ExportJson_Click" ToolTip="导出为JSON"/>
             </ToolBar>
@@ -197,10 +205,11 @@
                 
                 <!-- 画布标题 -->
                 <Border Grid.Row="0" Padding="10" Background="#F5F5F5">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="设计画布" FontWeight="Bold"/>
-                        <TextBlock Text=" - A4 (210×297 mm)" Margin="5,0,0,0" Foreground="#666666"/>
-                        <TextBlock Text=" | 100%" Margin="5,0,0,0" Foreground="#666666"/>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="canvasTitleText" Text="设计画布" FontWeight="Bold"/>
+                        <TextBlock Text=" | " Margin="5,0,0,0" Foreground="#666666"/>
+                        <TextBlock x:Name="zoomText" Text="100%" Margin="0,0,5,0" Foreground="#666666" Width="40"/>
+                        <Slider x:Name="zoomSlider" Minimum="10" Maximum="500" Value="100" Width="150" VerticalAlignment="Center" ValueChanged="zoomSlider_ValueChanged"/>
                     </StackPanel>
                 </Border>
                 
@@ -211,7 +220,8 @@
                             DragOver="DesignCanvas_DragOver" 
                             PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
                             PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
-                            PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp">
+                            PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
+                            PreviewMouseWheel="designCanvas_PreviewMouseWheel">
                         <!-- 网格背景 -->
                         <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False">
                             <!-- 水平网格线 -->
@@ -375,26 +385,87 @@
                         
                         <!-- 外观属性 -->
                         <Expander Header="外观" Style="{StaticResource PropertyGroupStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+                            <StackPanel>
+                                <!-- 基本外观 -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5"/>
+                                    <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5"/>
+                                    <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False"/>
+                                </Grid>
                                 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5"/>
-                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False"/>
+                                <!-- 背景和边框 -->
+                                <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="backgroundColorTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="边框颜色:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="#000000" x:Name="borderColorTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="边框宽度:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="borderWidthTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="边框样式:" Margin="5,5,0,5"/>
+                                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="borderStyleComboBox" IsEnabled="False">
+                                        <ComboBoxItem Content="Solid" IsSelected="True"/>
+                                        <ComboBoxItem Content="Dashed"/>
+                                        <ComboBoxItem Content="Dotted"/>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="圆角半径:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="0" x:Name="cornerRadiusTextBox" IsEnabled="False"/>
+                                </Grid>
                                 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False"/>
-                                
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False"/>
-                            </Grid>
+                                <!-- 阴影效果 -->
+                                <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="阴影颜色:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#000000" x:Name="shadowColorTextBox" IsEnabled="False"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="阴影深度:" Margin="5,5,0,5"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="shadowDepthTextBox" IsEnabled="False"/>
+                                </Grid>
+                            </StackPanel>
                         </Expander>
                         
                         <!-- 文本属性 -->
@@ -413,10 +484,10 @@
                                 </Grid.RowDefinitions>
                                 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
                                 
                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False">
+                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Microsoft YaHei"/>
                                     <ComboBoxItem Content="SimSun"/>
                                     <ComboBoxItem Content="SimHei"/>
@@ -425,16 +496,16 @@
                                 </ComboBox>
                                 
                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
                                 
                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False">
+                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Normal"/>
                                     <ComboBoxItem Content="Bold"/>
                                 </ComboBox>
                                 
                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
-                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False">
+                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Normal"/>
                                     <ComboBoxItem Content="Italic"/>
                                 </ComboBox>
@@ -453,11 +524,8 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="路径:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="False"/>
-                                
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="格式:" Margin="5,5,0,5"/>
-                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="False"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="路径:" Margin="5,5,0,5"/>                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="False" TextChanged="dataPathTextBox_TextChanged"/>                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="格式:" Margin="5,5,0,5"/>                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="False" TextChanged="formatStringTextBox_TextChanged"/>
                             </Grid>
                         </Expander>
                     </StackPanel>
@@ -467,6 +535,8 @@
         </Grid>
         </Border>
         </Grid>
+        
+
         
         <!-- 状态栏 -->
         <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="#E0E0E0">

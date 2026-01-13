@@ -8,7 +8,9 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using TemplateElements = ReportTemplateEditor.Core.Models.Elements;
 using ReportTemplateEditor.Core.Models;
+using ReportTemplateEditor.Core.Models.Commands;
 using ReportTemplateEditor.Engine;
+using ReportTemplateEditor.Core.Models.TestData;
 
 namespace ReportTemplateEditor.Designer
 {
@@ -22,6 +24,15 @@ namespace ReportTemplateEditor.Designer
         
         // 渲染引擎
         private ITemplateRenderer _renderer;
+        
+        // 数据绑定引擎
+        private DataBindingEngine _dataBindingEngine = new DataBindingEngine();
+        
+        // 命令管理器，用于撤销/重做功能
+        private ReportTemplateEditor.Core.Models.Commands.CommandManager _commandManager = new ReportTemplateEditor.Core.Models.Commands.CommandManager();
+        
+        // 当前绑定的数据对象（用于测试）
+        private object _boundData;
         
         // 当前选中的元素列表，支持多选
         private List<UIElementWrapper> _selectedElements = new List<UIElementWrapper>();
@@ -59,6 +70,9 @@ namespace ReportTemplateEditor.Designer
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.TextWidget());
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.TableWidget());
             registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.TestItemWidget());
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.LineWidget());
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.RectangleWidget());
+            registry.RegisterWidget(new ReportTemplateEditor.Core.Models.Widgets.EllipseWidget());
             
             // TODO: 可以从配置文件或插件目录加载更多控件
             
@@ -101,6 +115,31 @@ namespace ReportTemplateEditor.Designer
                 Orientation = "Portrait",
                 BackgroundColor = "#FFFFFF"
             };
+            
+            // 更新画布尺寸以匹配模板设置
+            UpdateCanvasSize();
+        }
+        
+        /// <summary>
+        /// 根据模板设置更新画布尺寸
+        /// </summary>
+        private void UpdateCanvasSize()
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 根据模板的页面设置调整画布尺寸
+            designCanvas.Width = _currentTemplate.PageWidth;
+            designCanvas.Height = _currentTemplate.PageHeight;
+            gridCanvas.Width = _currentTemplate.PageWidth;
+            gridCanvas.Height = _currentTemplate.PageHeight;
+            
+            // 更新画布标题
+            string orientationText = _currentTemplate.Orientation == "Portrait" ? "纵向" : "横向";
+            string sizeText = $"{_currentTemplate.PageWidth}×{_currentTemplate.PageHeight} mm";
+            canvasTitleText.Text = $"设计画布 - {sizeText} ({orientationText})";
         }
 
         /// <summary>
@@ -164,6 +203,21 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 使用命令管理器添加元素
+        /// </summary>
+        private void AddElementWithCommand(TemplateElements.ElementBase element)
+        {
+            // 创建添加元素命令
+            var command = new AddElementCommand(_currentTemplate, element);
+            
+            // 执行命令
+            _commandManager.ExecuteCommand(command);
+            
+            // 添加到画布
+            AddElementToCanvas(element);
+        }
+
+        /// <summary>
         /// 创建UI元素
         /// </summary>
         private UIElement CreateUIElement(TemplateElements.ElementBase element)
@@ -178,6 +232,12 @@ namespace ReportTemplateEditor.Designer
                     return CreateTableUIElement((TemplateElements.TableElement)element);;
                 case "TestItem":
                     return CreateTestItemUIElement((TemplateElements.TestItemElement)element);;
+                case "Line":
+                    return CreateLineUIElement((TemplateElements.LineElement)element);;
+                case "Rectangle":
+                    return CreateRectangleUIElement((TemplateElements.RectangleElement)element);;
+                case "Ellipse":
+                    return CreateEllipseUIElement((TemplateElements.EllipseElement)element);;
                 default:
                     return null;
             }
@@ -190,7 +250,6 @@ namespace ReportTemplateEditor.Designer
         {
             var textBlock = new TextBlock
             {
-                Text = textElement.Text,
                 FontFamily = new FontFamily(textElement.FontFamily),
                 FontSize = textElement.FontSize,
                 FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(textElement.FontWeight),
@@ -201,6 +260,9 @@ namespace ReportTemplateEditor.Designer
                 Padding = new Thickness(2),
                 Cursor = Cursors.Hand
             };
+
+            // 设置文本内容，支持数据绑定
+            SetTextElementContent(textBlock, textElement);
 
             // 添加鼠标事件
             textBlock.MouseDown += Element_MouseDown;
@@ -312,7 +374,6 @@ namespace ReportTemplateEditor.Designer
             // 项目名称
             TextBlock itemNameText = new TextBlock
             {
-                Text = testItem.ItemName,
                 FontFamily = new FontFamily("Microsoft YaHei"),
                 FontSize = 12,
                 FontWeight = FontWeights.Normal,
@@ -326,7 +387,6 @@ namespace ReportTemplateEditor.Designer
             // 检验结果
             TextBlock resultText = new TextBlock
             {
-                Text = testItem.Result,
                 FontFamily = new FontFamily("Microsoft YaHei"),
                 FontSize = 12,
                 FontWeight = FontWeights.Bold,
@@ -340,7 +400,6 @@ namespace ReportTemplateEditor.Designer
             // 单位
             TextBlock unitText = new TextBlock
             {
-                Text = testItem.Unit,
                 FontFamily = new FontFamily("Microsoft YaHei"),
                 FontSize = 12,
                 FontWeight = FontWeights.Normal,
@@ -354,7 +413,6 @@ namespace ReportTemplateEditor.Designer
             // 参考值范围
             TextBlock referenceText = new TextBlock
             {
-                Text = testItem.ReferenceRange,
                 FontFamily = new FontFamily("Microsoft YaHei"),
                 FontSize = 11,
                 FontWeight = FontWeights.Normal,
@@ -366,10 +424,191 @@ namespace ReportTemplateEditor.Designer
             Grid.SetColumn(referenceText, 3);
             grid.Children.Add(referenceText);
 
+            // 设置内容，支持数据绑定
+            SetTestItemElementContent(testItem, itemNameText, resultText, unitText, referenceText);
+
             // 添加鼠标事件
             grid.MouseDown += Element_MouseDown;
 
             return grid;
+        }
+
+        /// <summary>
+        /// 创建线条UI元素
+        /// </summary>
+        private UIElement CreateLineUIElement(TemplateElements.LineElement lineElement)
+        {
+            var line = new Line
+            {
+                X1 = lineElement.StartX,
+                Y1 = lineElement.StartY,
+                X2 = lineElement.EndX,
+                Y2 = lineElement.EndY,
+                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(lineElement.LineColor)),
+                StrokeThickness = lineElement.LineWidth,
+                Cursor = Cursors.Hand
+            };
+            
+            // 设置线条样式
+            switch (lineElement.LineStyle)
+            {
+                case "Dashed":
+                    line.StrokeDashArray = new DoubleCollection { 5, 2 };
+                    break;
+                case "Dotted":
+                    line.StrokeDashArray = new DoubleCollection { 1, 2 };
+                    break;
+                default:
+                    line.StrokeDashArray = null;
+                    break;
+            }
+            
+            // 设置线条起点和终点样式
+            line.StrokeStartLineCap = (PenLineCap)Enum.Parse(typeof(PenLineCap), lineElement.StartLineCap);
+            line.StrokeEndLineCap = (PenLineCap)Enum.Parse(typeof(PenLineCap), lineElement.EndLineCap);
+            
+            // 添加鼠标事件
+            line.MouseDown += Element_MouseDown;
+            
+            return line;
+        }
+        
+        /// <summary>
+        /// 创建矩形UI元素
+        /// </summary>
+        private UIElement CreateRectangleUIElement(TemplateElements.RectangleElement rectangleElement)
+        {
+            var rectangle = new Rectangle
+            {
+                Width = rectangleElement.Width,
+                Height = rectangleElement.Height,
+                Fill = (SolidColorBrush)(new BrushConverter().ConvertFrom(rectangleElement.FillColor)),
+                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(rectangleElement.StrokeColor)),
+                StrokeThickness = rectangleElement.StrokeWidth,
+                Cursor = Cursors.Hand
+            };
+            
+            // 设置矩形样式
+            switch (rectangleElement.StrokeStyle)
+            {
+                case "Dashed":
+                    rectangle.StrokeDashArray = new DoubleCollection { 5, 2 };
+                    break;
+                case "Dotted":
+                    rectangle.StrokeDashArray = new DoubleCollection { 1, 2 };
+                    break;
+                default:
+                    rectangle.StrokeDashArray = null;
+                    break;
+            }
+            
+            // 设置圆角半径
+            if (rectangleElement.CornerRadius > 0)
+            {
+                rectangle.RadiusX = rectangleElement.CornerRadius;
+                rectangle.RadiusY = rectangleElement.CornerRadius;
+            }
+            
+            // 添加鼠标事件
+            rectangle.MouseDown += Element_MouseDown;
+            
+            return rectangle;
+        }
+        
+        /// <summary>
+        /// 创建椭圆UI元素
+        /// </summary>
+        private UIElement CreateEllipseUIElement(TemplateElements.EllipseElement ellipseElement)
+        {
+            var ellipse = new Ellipse
+            {
+                Width = ellipseElement.Width,
+                Height = ellipseElement.Height,
+                Fill = (SolidColorBrush)(new BrushConverter().ConvertFrom(ellipseElement.FillColor)),
+                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(ellipseElement.StrokeColor)),
+                StrokeThickness = ellipseElement.StrokeWidth,
+                Cursor = Cursors.Hand
+            };
+            
+            // 设置椭圆样式
+            switch (ellipseElement.StrokeStyle)
+            {
+                case "Dashed":
+                    ellipse.StrokeDashArray = new DoubleCollection { 5, 2 };
+                    break;
+                case "Dotted":
+                    ellipse.StrokeDashArray = new DoubleCollection { 1, 2 };
+                    break;
+                default:
+                    ellipse.StrokeDashArray = null;
+                    break;
+            }
+            
+            // 添加鼠标事件
+            ellipse.MouseDown += Element_MouseDown;
+            
+            return ellipse;
+        }
+        
+        /// <summary>
+        /// 设置检验项目元素内容，支持数据绑定
+        /// </summary>
+        private void SetTestItemElementContent(TemplateElements.TestItemElement testItem, TextBlock itemNameText, TextBlock resultText, TextBlock unitText, TextBlock referenceText)
+        {
+            if (_boundData != null)
+            {
+                // 设置项目名称
+                if (!string.IsNullOrEmpty(testItem.ItemNameDataPath))
+                {
+                    object value = _dataBindingEngine.GetValue(_boundData, testItem.ItemNameDataPath);
+                    itemNameText.Text = value?.ToString() ?? testItem.ItemName;
+                }
+                else
+                {
+                    itemNameText.Text = testItem.ItemName;
+                }
+
+                // 设置检验结果
+                if (!string.IsNullOrEmpty(testItem.ResultDataPath))
+                {
+                    object value = _dataBindingEngine.GetValue(_boundData, testItem.ResultDataPath);
+                    resultText.Text = value?.ToString() ?? testItem.Result;
+                }
+                else
+                {
+                    resultText.Text = testItem.Result;
+                }
+
+                // 设置单位
+                if (!string.IsNullOrEmpty(testItem.UnitDataPath))
+                {
+                    object value = _dataBindingEngine.GetValue(_boundData, testItem.UnitDataPath);
+                    unitText.Text = value?.ToString() ?? testItem.Unit;
+                }
+                else
+                {
+                    unitText.Text = testItem.Unit;
+                }
+
+                // 设置参考值范围
+                if (!string.IsNullOrEmpty(testItem.ReferenceRangeDataPath))
+                {
+                    object value = _dataBindingEngine.GetValue(_boundData, testItem.ReferenceRangeDataPath);
+                    referenceText.Text = value?.ToString() ?? testItem.ReferenceRange;
+                }
+                else
+                {
+                    referenceText.Text = testItem.ReferenceRange;
+                }
+            }
+            else
+            {
+                // 使用默认值
+                itemNameText.Text = testItem.ItemName;
+                resultText.Text = testItem.Result;
+                unitText.Text = testItem.Unit;
+                referenceText.Text = testItem.ReferenceRange;
+            }
         }
 
         /// <summary>
@@ -452,6 +691,37 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 更新所有元素的绑定内容
+        /// </summary>
+        private void UpdateAllBindings()
+        {
+            foreach (var wrapper in _elementWrappers)
+            {
+                if (wrapper.ModelElement is TemplateElements.TextElement textElement && wrapper.UiElement is TextBlock textBlock)
+                {
+                    // 更新文本元素
+                    SetTextElementContent(textBlock, textElement);
+                }
+                else if (wrapper.ModelElement is TemplateElements.TestItemElement testItem && wrapper.UiElement is Grid grid)
+                {
+                    // 更新检验项目元素
+                    if (grid.Children.Count >= 4)
+                    {
+                        TextBlock itemNameText = grid.Children[0] as TextBlock;
+                        TextBlock resultText = grid.Children[1] as TextBlock;
+                        TextBlock unitText = grid.Children[2] as TextBlock;
+                        TextBlock referenceText = grid.Children[3] as TextBlock;
+                        
+                        if (itemNameText != null && resultText != null && unitText != null && referenceText != null)
+                        {
+                            SetTestItemElementContent(testItem, itemNameText, resultText, unitText, referenceText);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 更新属性面板
         /// </summary>
         private void UpdatePropertyPanel(TemplateElements.ElementBase element)
@@ -467,6 +737,14 @@ namespace ReportTemplateEditor.Designer
             visibleCheckBox.IsEnabled = true;
             rotationTextBox.IsEnabled = true;
             zIndexTextBox.IsEnabled = true;
+            opacitySlider.IsEnabled = true;
+            backgroundColorTextBox.IsEnabled = true;
+            borderColorTextBox.IsEnabled = true;
+            borderWidthTextBox.IsEnabled = true;
+            borderStyleComboBox.IsEnabled = true;
+            cornerRadiusTextBox.IsEnabled = true;
+            shadowColorTextBox.IsEnabled = true;
+            shadowDepthTextBox.IsEnabled = true;
 
             // 更新位置和大小
             posXTextBox.Text = element.X.ToString();
@@ -476,6 +754,14 @@ namespace ReportTemplateEditor.Designer
             visibleCheckBox.IsChecked = element.IsVisible;
             rotationTextBox.Text = element.Rotation.ToString();
             zIndexTextBox.Text = element.ZIndex.ToString();
+            opacitySlider.Value = element.Opacity;
+            backgroundColorTextBox.Text = element.BackgroundColor;
+            borderColorTextBox.Text = element.BorderColor;
+            borderWidthTextBox.Text = element.BorderWidth.ToString();
+            borderStyleComboBox.Text = element.BorderStyle;
+            cornerRadiusTextBox.Text = element.CornerRadius.ToString();
+            shadowColorTextBox.Text = element.ShadowColor;
+            shadowDepthTextBox.Text = element.ShadowDepth.ToString();
 
             // 根据元素类型更新特定属性
             if (element is TemplateElements.TextElement textElement)
@@ -555,9 +841,8 @@ namespace ReportTemplateEditor.Designer
                     element.X = mousePoint.X;
                     element.Y = mousePoint.Y;
                     
-                    // 添加到模板和画布
-                    _currentTemplate.Elements.Add(element);
-                    AddElementToCanvas(element);
+                    // 使用命令管理器添加元素
+                    AddElementWithCommand(element);
                 }
             }
             catch (Exception ex)
@@ -628,16 +913,15 @@ namespace ReportTemplateEditor.Designer
                         var element = registry.CreateWidgetInstance(widgetType);
                         
                         if (element != null)
-                        {
-                            // 设置位置为鼠标释放位置
-                            Point dropPoint = e.GetPosition(designCanvas);
-                            element.X = dropPoint.X;
-                            element.Y = dropPoint.Y;
-                            
-                            // 添加到模板和画布
-                            _currentTemplate.Elements.Add(element);
-                            AddElementToCanvas(element);
-                        }
+                            {
+                                // 设置位置为鼠标释放位置
+                                Point dropPoint = e.GetPosition(designCanvas);
+                                element.X = dropPoint.X;
+                                element.Y = dropPoint.Y;
+                                
+                                // 使用命令管理器添加元素
+                                AddElementWithCommand(element);
+                            }
                     }
                 }
                 else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -656,6 +940,303 @@ namespace ReportTemplateEditor.Designer
                 statusText.Text = $"放置失败: {ex.Message}";
             }
         }
+
+        #region 属性面板事件处理
+
+        /// <summary>
+        /// 文本内容变化事件
+        /// </summary>
+        private void textContentTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "Text", textContentTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    textBlock.Text = textElement.Text;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 字体变化事件
+        /// </summary>
+        private void fontFamilyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "FontFamily", fontFamilyComboBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    textBlock.FontFamily = new FontFamily(textElement.FontFamily);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 字体大小变化事件
+        /// </summary>
+        private void fontSizeTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                if (double.TryParse(fontSizeTextBox.Text, out double fontSize))
+                {
+                    // 创建并执行修改属性命令
+                    var command = new ModifyElementPropertyCommand(textElement, "FontSize", fontSize);
+                    _commandManager.ExecuteCommand(command);
+                    
+                    if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                    {
+                        textBlock.FontSize = fontSize;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 字体粗细变化事件
+        /// </summary>
+        private void fontWeightComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "FontWeight", fontWeightComboBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    textBlock.FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(textElement.FontWeight);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 字体样式变化事件
+        /// </summary>
+        private void fontStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "FontStyle", fontStyleComboBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    textBlock.FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(textElement.FontStyle);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 数据绑定路径变化事件
+        /// </summary>
+        private void dataPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "DataBindingPath", dataPathTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新绑定内容
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    SetTextElementContent(textBlock, textElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 格式字符串变化事件
+        /// </summary>
+        private void formatStringTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.TextElement textElement)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(textElement, "FormatString", formatStringTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新绑定内容
+                if (_primarySelectedElement.UiElement is TextBlock textBlock)
+                {
+                    SetTextElementContent(textBlock, textElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 不透明度变化事件
+        /// </summary>
+        private void opacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(element, "Opacity", e.NewValue);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI元素
+                if (_primarySelectedElement.UiElement is FrameworkElement frameworkElement)
+                {
+                    frameworkElement.Opacity = e.NewValue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 背景颜色变化事件
+        /// </summary>
+        private void backgroundColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(element, "BackgroundColor", backgroundColorTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI元素
+                UpdateElementAppearance(_primarySelectedElement);
+            }
+        }
+
+        /// <summary>
+        /// 边框颜色变化事件
+        /// </summary>
+        private void borderColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(element, "BorderColor", borderColorTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI元素
+                UpdateElementAppearance(_primarySelectedElement);
+            }
+        }
+
+        /// <summary>
+        /// 边框宽度变化事件
+        /// </summary>
+        private void borderWidthTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                if (double.TryParse(borderWidthTextBox.Text, out double borderWidth))
+                {
+                    // 创建并执行修改属性命令
+                    var command = new ModifyElementPropertyCommand(element, "BorderWidth", borderWidth);
+                    _commandManager.ExecuteCommand(command);
+                    
+                    // 更新UI元素
+                    UpdateElementAppearance(_primarySelectedElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 边框样式变化事件
+        /// </summary>
+        private void borderStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(element, "BorderStyle", borderStyleComboBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI元素
+                UpdateElementAppearance(_primarySelectedElement);
+            }
+        }
+
+        /// <summary>
+        /// 圆角半径变化事件
+        /// </summary>
+        private void cornerRadiusTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                if (double.TryParse(cornerRadiusTextBox.Text, out double cornerRadius))
+                {
+                    // 创建并执行修改属性命令
+                    var command = new ModifyElementPropertyCommand(element, "CornerRadius", cornerRadius);
+                    _commandManager.ExecuteCommand(command);
+                    
+                    // 更新UI元素
+                    UpdateElementAppearance(_primarySelectedElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 阴影颜色变化事件
+        /// </summary>
+        private void shadowColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                // 创建并执行修改属性命令
+                var command = new ModifyElementPropertyCommand(element, "ShadowColor", shadowColorTextBox.Text);
+                _commandManager.ExecuteCommand(command);
+                
+                // 更新UI元素
+                UpdateElementAppearance(_primarySelectedElement);
+            }
+        }
+
+        /// <summary>
+        /// 阴影深度变化事件
+        /// </summary>
+        private void shadowDepthTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.ElementBase element)
+            {
+                if (double.TryParse(shadowDepthTextBox.Text, out double shadowDepth))
+                {
+                    // 创建并执行修改属性命令
+                    var command = new ModifyElementPropertyCommand(element, "ShadowDepth", shadowDepth);
+                    _commandManager.ExecuteCommand(command);
+                    
+                    // 更新UI元素
+                    UpdateElementAppearance(_primarySelectedElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 更新元素外观
+        /// </summary>
+        private void UpdateElementAppearance(UIElementWrapper wrapper)
+        {
+            // 这里需要根据元素类型和属性更新UI外观
+            // 由于不同元素类型的UI结构不同，这里只做简单示例
+            if (wrapper.UiElement is Border border)
+            {
+                // 更新边框属性
+                border.BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BorderColor));
+                border.BorderThickness = new Thickness(wrapper.ModelElement.BorderWidth);
+                border.CornerRadius = new CornerRadius(wrapper.ModelElement.CornerRadius);
+                border.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BackgroundColor));
+            }
+            else if (wrapper.UiElement is TextBlock textBlock)
+            {
+                // 更新文本块属性
+                textBlock.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(wrapper.ModelElement.BackgroundColor));
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// 设计画布鼠标按下事件
@@ -696,6 +1277,13 @@ namespace ReportTemplateEditor.Designer
                 _isDragging = true;
                 _dragStartPoint = clickPoint;
 
+                // 记录元素原始位置，用于创建移动命令
+                _elementOriginalPositions.Clear();
+                foreach (var wrapper in _selectedElements)
+                {
+                    _elementOriginalPositions[wrapper.ModelElement] = new Point(wrapper.ModelElement.X, wrapper.ModelElement.Y);
+                }
+
                 // 捕获鼠标
                 designCanvas.CaptureMouse();
             }
@@ -720,8 +1308,10 @@ namespace ReportTemplateEditor.Designer
 
             // 计算新位置
             Point currentPoint = e.GetPosition(designCanvas);
-            double deltaX = currentPoint.X - _dragStartPoint.X;
-            double deltaY = currentPoint.Y - _dragStartPoint.Y;
+            
+            // 考虑缩放因素，计算实际移动距离
+            double deltaX = (currentPoint.X - _dragStartPoint.X) / _currentScale;
+            double deltaY = (currentPoint.Y - _dragStartPoint.Y) / _currentScale;
 
             // 拖拽所有选中元素
             foreach (var wrapper in _selectedElements)
@@ -753,6 +1343,11 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 元素移动前的位置信息，用于创建移动命令
+        /// </summary>
+        private Dictionary<TemplateElements.ElementBase, Point> _elementOriginalPositions = new Dictionary<TemplateElements.ElementBase, Point>();
+
+        /// <summary>
         /// 设计画布鼠标释放事件
         /// </summary>
         private void DesignCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -761,6 +1356,22 @@ namespace ReportTemplateEditor.Designer
             {
                 _isDragging = false;
                 designCanvas.ReleaseMouseCapture();
+                
+                // 执行移动元素命令
+                foreach (var wrapper in _selectedElements)
+                {
+                    if (_elementOriginalPositions.TryGetValue(wrapper.ModelElement, out Point originalPos))
+                    {
+                        // 检查位置是否发生变化
+                        if (Math.Abs(wrapper.ModelElement.X - originalPos.X) > 0.1 || Math.Abs(wrapper.ModelElement.Y - originalPos.Y) > 0.1)
+                        {
+                            // 创建并执行移动命令
+                            var command = new MoveElementCommand(wrapper.ModelElement, wrapper.ModelElement.X, wrapper.ModelElement.Y);
+                            _commandManager.ExecuteCommand(command);
+                        }
+                    }
+                }
+                
                 statusText.Text = "元素已移动";
             }
         }
@@ -833,6 +1444,9 @@ namespace ReportTemplateEditor.Designer
                     _elementWrappers.Clear();
                     _selectedElements.Clear();
                     _primarySelectedElement = null;
+
+                    // 更新画布尺寸以匹配模板设置
+                    UpdateCanvasSize();
 
                     // 重新添加所有元素
                     foreach (var element in _currentTemplate.Elements)
@@ -1200,6 +1814,24 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 设置文本元素内容，支持数据绑定
+        /// </summary>
+        private void SetTextElementContent(TextBlock textBlock, TemplateElements.TextElement textElement)
+        {
+            if (!string.IsNullOrEmpty(textElement.DataBindingPath) && _boundData != null)
+            {
+                // 使用数据绑定引擎获取值
+                object value = _dataBindingEngine.GetValue(_boundData, textElement.DataBindingPath, textElement.FormatString);
+                textBlock.Text = value?.ToString() ?? textElement.Text;
+            }
+            else
+            {
+                // 使用默认文本
+                textBlock.Text = textElement.Text;
+            }
+        }
+
+        /// <summary>
         /// 更新图层列表
         /// </summary>
         private void UpdateLayerList()
@@ -1237,7 +1869,17 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Undo_Click(object sender, RoutedEventArgs e)
         {
-            statusText.Text = "撤销功能未实现";
+            if (_commandManager.CanUndo)
+            {
+                _commandManager.Undo();
+                // 重新构建画布
+                RebuildCanvas();
+                statusText.Text = $"撤销: {_commandManager.UndoCommandDescription}";
+            }
+            else
+            {
+                statusText.Text = "没有可撤销的操作";
+            }
         }
 
         /// <summary>
@@ -1245,7 +1887,39 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Redo_Click(object sender, RoutedEventArgs e)
         {
-            statusText.Text = "重做功能未实现";
+            if (_commandManager.CanRedo)
+            {
+                _commandManager.Redo();
+                // 重新构建画布
+                RebuildCanvas();
+                statusText.Text = $"重做: {_commandManager.RedoCommandDescription}";
+            }
+            else
+            {
+                statusText.Text = "没有可重做的操作";
+            }
+        }
+
+        /// <summary>
+        /// 重新构建画布
+        /// </summary>
+        private void RebuildCanvas()
+        {
+            // 清空画布
+            designCanvas.Children.Clear();
+            designCanvas.Children.Add(gridCanvas);
+            _elementWrappers.Clear();
+            _selectedElements.Clear();
+            _primarySelectedElement = null;
+
+            // 重新添加所有元素
+            foreach (var element in _currentTemplate.Elements)
+            {
+                AddElementToCanvas(element);
+            }
+
+            // 更新图层列表
+            UpdateLayerList();
         }
 
         /// <summary>
@@ -1279,12 +1953,14 @@ namespace ReportTemplateEditor.Designer
         {
             if (_selectedElements.Count > 0)
             {
-                // 从模板和画布中移除所有选中元素
-                var elementsToRemove = _selectedElements.ToList();
-                foreach (var wrapper in elementsToRemove)
+                // 使用命令管理器执行删除操作
+                foreach (var wrapper in _selectedElements.ToList())
                 {
-                    // 从模板中移除
-                    _currentTemplate.Elements.Remove(wrapper.ModelElement);
+                    // 创建删除命令
+                    var command = new DeleteElementCommand(_currentTemplate, wrapper.ModelElement);
+                    
+                    // 执行命令
+                    _commandManager.ExecuteCommand(command);
                     
                     // 从画布中移除
                     designCanvas.Children.Remove(wrapper.UiElement);
@@ -1300,7 +1976,7 @@ namespace ReportTemplateEditor.Designer
                 
                 // 更新UI
                 selectionInfoText.Text = "未选择任何元素";
-                statusText.Text = string.Format("已删除 {0} 个元素", elementsToRemove.Count);
+                statusText.Text = string.Format("已删除 {0} 个元素", _selectedElements.Count);
             }
         }
 
@@ -1328,11 +2004,16 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 当前缩放比例
+        /// </summary>
+        private double _currentScale = 1.0;
+        
+        /// <summary>
         /// 50% 缩放
         /// </summary>
         private void Zoom50_Click(object sender, RoutedEventArgs e)
         {
-            designCanvas.LayoutTransform = new ScaleTransform(0.5, 0.5);
+            zoomSlider.Value = 50;
         }
 
         /// <summary>
@@ -1340,7 +2021,7 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Zoom75_Click(object sender, RoutedEventArgs e)
         {
-            designCanvas.LayoutTransform = new ScaleTransform(0.75, 0.75);
+            zoomSlider.Value = 75;
         }
 
         /// <summary>
@@ -1348,7 +2029,7 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Zoom100_Click(object sender, RoutedEventArgs e)
         {
-            designCanvas.LayoutTransform = new ScaleTransform(1, 1);
+            zoomSlider.Value = 100;
         }
 
         /// <summary>
@@ -1356,7 +2037,7 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Zoom150_Click(object sender, RoutedEventArgs e)
         {
-            designCanvas.LayoutTransform = new ScaleTransform(1.5, 1.5);
+            zoomSlider.Value = 150;
         }
 
         /// <summary>
@@ -1364,9 +2045,143 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void Zoom200_Click(object sender, RoutedEventArgs e)
         {
-            designCanvas.LayoutTransform = new ScaleTransform(2, 2);
+            zoomSlider.Value = 200;
+        }
+        
+        /// <summary>
+        /// 缩放滑块值变化事件
+        /// </summary>
+        private void zoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // 更新缩放比例
+            _currentScale = e.NewValue / 100;
+            
+            // 使用RenderTransform替代LayoutTransform，避免影响布局
+            designCanvas.RenderTransform = new ScaleTransform(_currentScale, _currentScale, 0, 0);
+            
+            // 更新缩放文本
+            zoomText.Text = $"{e.NewValue:F0}%";
+            
+            // 更新状态栏
+            statusText.Text = $"缩放: {e.NewValue:F0}%";
+        }
+        
+        /// <summary>
+        /// 画布鼠标滚轮事件，实现缩放功能
+        /// </summary>
+        private void designCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // 检查是否按住Ctrl键进行缩放
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                // 计算新的缩放比例
+                double zoomIncrement = e.Delta > 0 ? 10 : -10;
+                double newZoomValue = Math.Max(10, Math.Min(500, zoomSlider.Value + zoomIncrement));
+                
+                // 更新缩放滑块
+                zoomSlider.Value = newZoomValue;
+                
+                e.Handled = true;
+            }
         }
 
+        /// <summary>
+        /// 纸张尺寸选择变化事件
+        /// </summary>
+        private void paperSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 获取选中的纸张尺寸
+            if (paperSizeComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                string paperSize = selectedItem.Tag as string;
+                ChangePaperSize(paperSize, _currentTemplate.Orientation);
+            }
+        }
+        
+        /// <summary>
+        /// 页面方向切换事件（横向）
+        /// </summary>
+        private void orientationToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 切换为横向
+            ChangePaperSize(_currentTemplate.PageWidth == 297 && _currentTemplate.PageHeight == 210 ? "A4" : "A5", "Landscape");
+        }
+        
+        /// <summary>
+        /// 页面方向切换事件（纵向）
+        /// </summary>
+        private void orientationToggle_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 切换为纵向
+            ChangePaperSize(_currentTemplate.PageWidth == 210 && _currentTemplate.PageHeight == 297 ? "A4" : "A5", "Portrait");
+        }
+        
+        /// <summary>
+        /// 更改纸张尺寸
+        /// </summary>
+        /// <param name="paperSize">纸张尺寸（A4/A5）</param>
+        /// <param name="orientation">页面方向（Portrait/Landscape）</param>
+        private void ChangePaperSize(string paperSize, string orientation)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            double width, height;
+            
+            // 设置纸张尺寸
+            switch (paperSize)
+            {
+                case "A4":
+                    width = 210;
+                    height = 297;
+                    break;
+                case "A5":
+                    width = 148;
+                    height = 210;
+                    break;
+                default:
+                    width = 210;
+                    height = 297;
+                    break;
+            }
+            
+            // 根据页面方向调整宽高
+            if (orientation == "Landscape")
+            {
+                double temp = width;
+                width = height;
+                height = temp;
+            }
+            
+            // 更新模板设置
+            _currentTemplate.PageWidth = width;
+            _currentTemplate.PageHeight = height;
+            _currentTemplate.Orientation = orientation;
+            
+            // 更新画布尺寸
+            UpdateCanvasSize();
+            
+            // 更新页面方向按钮文本
+            orientationToggle.Content = orientation == "Portrait" ? "横向" : "纵向";
+        }
+        
         /// <summary>
         /// 模板属性
         /// </summary>
@@ -1413,6 +2228,8 @@ namespace ReportTemplateEditor.Designer
             }
         }
 
+
+        
         /// <summary>
         /// 导出为JSON
         /// </summary>
