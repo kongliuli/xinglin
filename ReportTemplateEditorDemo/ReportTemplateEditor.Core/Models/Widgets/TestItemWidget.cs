@@ -39,8 +39,8 @@ namespace ReportTemplateEditor.Core.Models.Widgets
             {
                 X = 0,
                 Y = 0,
-                Width = 200,
-                Height = 30,
+                Width = 150,
+                Height = 25,
                 ItemName = "检验项目",
                 Result = "--",
                 ReferenceRange = "--",

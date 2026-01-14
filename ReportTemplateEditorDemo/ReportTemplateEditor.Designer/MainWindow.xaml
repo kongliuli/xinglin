@@ -101,7 +101,7 @@
                     <ComboBoxItem Content="A4" Tag="A4" IsSelected="True"/>
                     <ComboBoxItem Content="A5" Tag="A5"/>
                 </ComboBox>
-                <ToggleButton x:Name="orientationToggle" Content="横向" ToolTip="切换页面方向" Margin="5,0,0,0" Checked="orientationToggle_Checked" Unchecked="orientationToggle_Unchecked"/>
+                <ToggleButton x:Name="orientationToggle" Content="纵向" ToolTip="切换页面方向" Margin="5,0,0,0" Checked="orientationToggle_Checked" Unchecked="orientationToggle_Unchecked"/>
                 <Separator/>
                 <Button Content="预览" Click="PreviewTemplate_Click" ToolTip="预览模板"/>
                 <Button Content="导出" Click="ExportJson_Click" ToolTip="导出为JSON"/>
@@ -139,6 +139,12 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="T" FontWeight="Bold" FontSize="16" Margin="0,0,5,0"/>
                             <TextBlock Text="文本"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="Label">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="L" FontWeight="Bold" FontSize="16" Margin="0,0,5,0"/>
+                            <TextBlock Text="标签"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="Image">
@@ -204,6 +210,8 @@
                             AllowDrop="True" Drop="DesignCanvas_Drop" 
                             DragOver="DesignCanvas_DragOver" 
                             PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
+                            PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
+                            PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
                             PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
                             PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
                             PreviewMouseWheel="designCanvas_PreviewMouseWheel">

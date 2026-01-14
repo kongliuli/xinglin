@@ -1,3 +1,26 @@
 .trae/
 documents/
 .vs/
+
+# 编译输出目录
+bin/
+obj/
+
+# Visual Studio 临时文件
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet 包目录
+packages/
+
+# 构建日志
+*.log
+BuildLog.*
+
+# 测试结果
+TestResults/
+
+# 调试符号文件
+*.pdb

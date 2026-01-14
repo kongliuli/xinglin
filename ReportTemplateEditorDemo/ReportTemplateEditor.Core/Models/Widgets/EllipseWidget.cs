@@ -39,8 +39,8 @@ namespace ReportTemplateEditor.Core.Models.Widgets
             {
                 X = 0,
                 Y = 0,
-                Width = 100,
-                Height = 100,
+                Width = 80,
+                Height = 60,
                 FillColor = "#FFFFFF",
                 StrokeColor = "#000000",
                 StrokeWidth = 1,

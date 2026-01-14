@@ -9,7 +9,7 @@ namespace ReportTemplateEditor.Core.Models.Commands
     {
         private readonly ReportTemplateDefinition _template;
         private readonly ElementBase _element;
-        private readonly int _index;
+        private int _index;
         
         /// <summary>
         /// 构造函数
@@ -20,7 +20,6 @@ namespace ReportTemplateEditor.Core.Models.Commands
         {
             _template = template;
             _element = element;
-            _index = template.Elements.IndexOf(element);
         }
         
         /// <summary>
@@ -28,7 +27,11 @@ namespace ReportTemplateEditor.Core.Models.Commands
         /// </summary>
         public override void Execute()
         {
-            _template.Elements.Remove(_element);
+            _index = _template.Elements.IndexOf(_element);
+            if (_index >= 0)
+            {
+                _template.Elements.RemoveAt(_index);
+            }
         }
         
         /// <summary>

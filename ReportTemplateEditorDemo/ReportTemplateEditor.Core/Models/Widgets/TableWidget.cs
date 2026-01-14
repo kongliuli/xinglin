@@ -39,8 +39,8 @@ namespace ReportTemplateEditor.Core.Models.Widgets
             {
                 X = 0,
                 Y = 0,
-                Width = 200,
-                Height = 100,
+                Width = 150,
+                Height = 80,
                 Rows = 3,
                 Columns = 3,
                 BorderColor = "#000000",
