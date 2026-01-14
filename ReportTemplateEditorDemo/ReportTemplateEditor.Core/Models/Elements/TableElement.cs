@@ -130,5 +130,10 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 格式化字符串
         /// </summary>
         public string FormatString { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// 是否可编辑
+        /// </summary>
+        public bool IsEditable { get; set; } = false;
     }
 }

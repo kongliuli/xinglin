@@ -11,6 +11,9 @@
         WindowStartupLocation="CenterScreen"
         PreviewKeyDown="MainWindow_PreviewKeyDown">
     <Window.Resources>
+        <!-- 纸张阴影效果 -->
+        <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+        
         <!-- 工具箱项样式 -->
         <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
             <Setter Property="Padding" Value="5"/>
@@ -37,6 +40,11 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="0,5,0,0"/>
         </Style>
+        
+        <!-- 表格控件上下文菜单 -->
+        <ContextMenu x:Key="TableContextMenu">
+            <MenuItem Header="设计表格内容" Click="DesignTableContent_Click"/>
+        </ContextMenu>
     </Window.Resources>
     
     <Grid>
@@ -199,92 +207,100 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock x:Name="canvasTitleText" Text="设计画布" FontWeight="Bold"/>
                         <TextBlock Text=" | " Margin="5,0,0,0" Foreground="#666666"/>
+                        <Button Content="实际尺寸" Click="ActualSize_Click" Margin="0,0,5,0" Padding="5,2" Background="#E8F4FF" BorderBrush="#4A90E2" Foreground="#2C5AA0" FontWeight="Medium"/>
                         <TextBlock x:Name="zoomText" Text="100%" Margin="0,0,5,0" Foreground="#666666" Width="40"/>
                         <Slider x:Name="zoomSlider" Minimum="10" Maximum="500" Value="100" Width="150" VerticalAlignment="Center" ValueChanged="zoomSlider_ValueChanged"/>
                     </StackPanel>
                 </Border>
                 
                 <!-- 画布滚动视图 -->
-                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <Canvas x:Name="designCanvas" Width="210" Height="297" Background="#FFFFFF" 
-                            AllowDrop="True" Drop="DesignCanvas_Drop" 
-                            DragOver="DesignCanvas_DragOver" 
-                            PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
-                            PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
-                            PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
-                            PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
-                            PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
-                            PreviewMouseWheel="designCanvas_PreviewMouseWheel">
-                        <!-- 网格背景 -->
-                        <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False">
-                            <!-- 水平网格线 -->
-                            <Path Stroke="#EEEEEE" StrokeThickness="0.5">
-                                <Path.Data>
-                                    <GeometryGroup>
-                                        <LineGeometry StartPoint="0,10" EndPoint="210,10"/>
-                                        <LineGeometry StartPoint="0,20" EndPoint="210,20"/>
-                                        <LineGeometry StartPoint="0,30" EndPoint="210,30"/>
-                                        <LineGeometry StartPoint="0,40" EndPoint="210,40"/>
-                                        <LineGeometry StartPoint="0,50" EndPoint="210,50"/>
-                                        <LineGeometry StartPoint="0,60" EndPoint="210,60"/>
-                                        <LineGeometry StartPoint="0,70" EndPoint="210,70"/>
-                                        <LineGeometry StartPoint="0,80" EndPoint="210,80"/>
-                                        <LineGeometry StartPoint="0,90" EndPoint="210,90"/>
-                                        <LineGeometry StartPoint="0,100" EndPoint="210,100"/>
-                                        <LineGeometry StartPoint="0,110" EndPoint="210,110"/>
-                                        <LineGeometry StartPoint="0,120" EndPoint="210,120"/>
-                                        <LineGeometry StartPoint="0,130" EndPoint="210,130"/>
-                                        <LineGeometry StartPoint="0,140" EndPoint="210,140"/>
-                                        <LineGeometry StartPoint="0,150" EndPoint="210,150"/>
-                                        <LineGeometry StartPoint="0,160" EndPoint="210,160"/>
-                                        <LineGeometry StartPoint="0,170" EndPoint="210,170"/>
-                                        <LineGeometry StartPoint="0,180" EndPoint="210,180"/>
-                                        <LineGeometry StartPoint="0,190" EndPoint="210,190"/>
-                                        <LineGeometry StartPoint="0,200" EndPoint="210,200"/>
-                                        <LineGeometry StartPoint="0,210" EndPoint="210,210"/>
-                                        <LineGeometry StartPoint="0,220" EndPoint="210,220"/>
-                                        <LineGeometry StartPoint="0,230" EndPoint="210,230"/>
-                                        <LineGeometry StartPoint="0,240" EndPoint="210,240"/>
-                                        <LineGeometry StartPoint="0,250" EndPoint="210,250"/>
-                                        <LineGeometry StartPoint="0,260" EndPoint="210,260"/>
-                                        <LineGeometry StartPoint="0,270" EndPoint="210,270"/>
-                                        <LineGeometry StartPoint="0,280" EndPoint="210,280"/>
-                                        <LineGeometry StartPoint="0,290" EndPoint="210,290"/>
-                                    </GeometryGroup>
-                                </Path.Data>
-                            </Path>
-                            
-                            <!-- 垂直网格线 -->
-                            <Path Stroke="#EEEEEE" StrokeThickness="0.5">
-                                <Path.Data>
-                                    <GeometryGroup>
-                                        <LineGeometry StartPoint="10,0" EndPoint="10,297"/>
-                                        <LineGeometry StartPoint="20,0" EndPoint="20,297"/>
-                                        <LineGeometry StartPoint="30,0" EndPoint="30,297"/>
-                                        <LineGeometry StartPoint="40,0" EndPoint="40,297"/>
-                                        <LineGeometry StartPoint="50,0" EndPoint="50,297"/>
-                                        <LineGeometry StartPoint="60,0" EndPoint="60,297"/>
-                                        <LineGeometry StartPoint="70,0" EndPoint="70,297"/>
-                                        <LineGeometry StartPoint="80,0" EndPoint="80,297"/>
-                                        <LineGeometry StartPoint="90,0" EndPoint="90,297"/>
-                                        <LineGeometry StartPoint="100,0" EndPoint="100,297"/>
-                                        <LineGeometry StartPoint="110,0" EndPoint="110,297"/>
-                                        <LineGeometry StartPoint="120,0" EndPoint="120,297"/>
-                                        <LineGeometry StartPoint="130,0" EndPoint="130,297"/>
-                                        <LineGeometry StartPoint="140,0" EndPoint="140,297"/>
-                                        <LineGeometry StartPoint="150,0" EndPoint="150,297"/>
-                                        <LineGeometry StartPoint="160,0" EndPoint="160,297"/>
-                                        <LineGeometry StartPoint="170,0" EndPoint="170,297"/>
-                                        <LineGeometry StartPoint="180,0" EndPoint="180,297"/>
-                                        <LineGeometry StartPoint="190,0" EndPoint="190,297"/>
-                                        <LineGeometry StartPoint="200,0" EndPoint="200,297"/>
-                                    </GeometryGroup>
-                                </Path.Data>
-                            </Path>
-                        </Canvas>
-                        
-                        <!-- 模板元素将动态添加到这里 -->
-                    </Canvas>
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#F0F0F0">
+                    <Viewbox x:Name="designViewbox" Stretch="Uniform" UseLayoutRounding="True" SnapsToDevicePixels="True">
+                        <Grid>
+                            <!-- 打印纸背景 -->
+                            <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{DynamicResource PaperShadow}">
+                                <Canvas x:Name="designCanvas" Width="210" Height="297" Background="#FFFFFF" 
+                                        AllowDrop="True" Drop="DesignCanvas_Drop" 
+                                        DragOver="DesignCanvas_DragOver" 
+                                        PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
+                                        PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
+                                        PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
+                                        PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
+                                        PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
+                                        PreviewMouseWheel="designCanvas_PreviewMouseWheel">
+                                    <!-- 网格背景 -->
+                                    <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False">
+                                        <!-- 水平网格线 -->
+                                        <Path Stroke="#EEEEEE" StrokeThickness="0.5">
+                                            <Path.Data>
+                                                <GeometryGroup>
+                                                    <LineGeometry StartPoint="0,10" EndPoint="210,10"/>
+                                                    <LineGeometry StartPoint="0,20" EndPoint="210,20"/>
+                                                    <LineGeometry StartPoint="0,30" EndPoint="210,30"/>
+                                                    <LineGeometry StartPoint="0,40" EndPoint="210,40"/>
+                                                    <LineGeometry StartPoint="0,50" EndPoint="210,50"/>
+                                                    <LineGeometry StartPoint="0,60" EndPoint="210,60"/>
+                                                    <LineGeometry StartPoint="0,70" EndPoint="210,70"/>
+                                                    <LineGeometry StartPoint="0,80" EndPoint="210,80"/>
+                                                    <LineGeometry StartPoint="0,90" EndPoint="210,90"/>
+                                                    <LineGeometry StartPoint="0,100" EndPoint="210,100"/>
+                                                    <LineGeometry StartPoint="0,110" EndPoint="210,110"/>
+                                                    <LineGeometry StartPoint="0,120" EndPoint="210,120"/>
+                                                    <LineGeometry StartPoint="0,130" EndPoint="210,130"/>
+                                                    <LineGeometry StartPoint="0,140" EndPoint="210,140"/>
+                                                    <LineGeometry StartPoint="0,150" EndPoint="210,150"/>
+                                                    <LineGeometry StartPoint="0,160" EndPoint="210,160"/>
+                                                    <LineGeometry StartPoint="0,170" EndPoint="210,170"/>
+                                                    <LineGeometry StartPoint="0,180" EndPoint="210,180"/>
+                                                    <LineGeometry StartPoint="0,190" EndPoint="210,190"/>
+                                                    <LineGeometry StartPoint="0,200" EndPoint="210,200"/>
+                                                    <LineGeometry StartPoint="0,210" EndPoint="210,210"/>
+                                                    <LineGeometry StartPoint="0,220" EndPoint="210,220"/>
+                                                    <LineGeometry StartPoint="0,230" EndPoint="210,230"/>
+                                                    <LineGeometry StartPoint="0,240" EndPoint="210,240"/>
+                                                    <LineGeometry StartPoint="0,250" EndPoint="210,250"/>
+                                                    <LineGeometry StartPoint="0,260" EndPoint="210,260"/>
+                                                    <LineGeometry StartPoint="0,270" EndPoint="210,270"/>
+                                                    <LineGeometry StartPoint="0,280" EndPoint="210,280"/>
+                                                    <LineGeometry StartPoint="0,290" EndPoint="210,290"/>
+                                                </GeometryGroup>
+                                            </Path.Data>
+                                        </Path>
+                                        
+                                        <!-- 垂直网格线 -->
+                                        <Path Stroke="#EEEEEE" StrokeThickness="0.5">
+                                            <Path.Data>
+                                                <GeometryGroup>
+                                                    <LineGeometry StartPoint="10,0" EndPoint="10,297"/>
+                                                    <LineGeometry StartPoint="20,0" EndPoint="20,297"/>
+                                                    <LineGeometry StartPoint="30,0" EndPoint="30,297"/>
+                                                    <LineGeometry StartPoint="40,0" EndPoint="40,297"/>
+                                                    <LineGeometry StartPoint="50,0" EndPoint="50,297"/>
+                                                    <LineGeometry StartPoint="60,0" EndPoint="60,297"/>
+                                                    <LineGeometry StartPoint="70,0" EndPoint="70,297"/>
+                                                    <LineGeometry StartPoint="80,0" EndPoint="80,297"/>
+                                                    <LineGeometry StartPoint="90,0" EndPoint="90,297"/>
+                                                    <LineGeometry StartPoint="100,0" EndPoint="100,297"/>
+                                                    <LineGeometry StartPoint="110,0" EndPoint="110,297"/>
+                                                    <LineGeometry StartPoint="120,0" EndPoint="120,297"/>
+                                                    <LineGeometry StartPoint="130,0" EndPoint="130,297"/>
+                                                    <LineGeometry StartPoint="140,0" EndPoint="140,297"/>
+                                                    <LineGeometry StartPoint="150,0" EndPoint="150,297"/>
+                                                    <LineGeometry StartPoint="160,0" EndPoint="160,297"/>
+                                                    <LineGeometry StartPoint="170,0" EndPoint="170,297"/>
+                                                    <LineGeometry StartPoint="180,0" EndPoint="180,297"/>
+                                                    <LineGeometry StartPoint="190,0" EndPoint="190,297"/>
+                                                    <LineGeometry StartPoint="200,0" EndPoint="200,297"/>
+                                                </GeometryGroup>
+                                            </Path.Data>
+                                        </Path>
+                                    </Canvas>
+                                    
+                                    <!-- 模板元素将动态添加到这里 -->
+                                </Canvas>
+                            </Border>
+                        </Grid>
+                    </Viewbox>
                 </ScrollViewer>
             </Grid>
             
@@ -304,41 +320,69 @@
                     </Grid.RowDefinitions>
                     
                     <!-- 图层管理标题 -->
-                    <TextBlock Grid.Row="0" Text="图层管理" FontWeight="Bold" Padding="10" Background="#F0F0F0"/>
+                    <Border Grid.Row="0" Background="#4A90E2" Padding="12" CornerRadius="4,4,0,0">
+                        <TextBlock Text="图层管理" FontWeight="Bold" Foreground="#FFFFFF" FontSize="14"/>
+                    </Border>
                     
                     <!-- 图层列表 -->
-                    <DockPanel Grid.Row="1" Margin="5">
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
-                            <Button Content="上移" Click="MoveLayerUp_Click" ToolTip="将选中元素上移一层" Margin="0,0,5,0"/>
-                            <Button Content="下移" Click="MoveLayerDown_Click" ToolTip="将选中元素下移一层" Margin="0,0,5,0"/>
-                            <Button Content="置顶" Click="BringToFront_Click" ToolTip="将选中元素置于顶层" Margin="0,0,5,0"/>
-                            <Button Content="置底" Click="SendToBack_Click" ToolTip="将选中元素置于底层"/>
-                        </StackPanel>
-                        <ListBox x:Name="layerList" ItemsSource="{Binding ElementWrappers}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="5">
-                                        <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0"/>
-                                        <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="10" Foreground="#666666"/>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
+                    <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
+                        <DockPanel Margin="5">
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                                <Button Content="上移" Click="MoveLayerUp_Click" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
+                                        Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                        Padding="8,4" FontWeight="Medium"/>
+                                <Button Content="下移" Click="MoveLayerDown_Click" ToolTip="将选中元素下移一层" Margin="0,0,5,0" 
+                                        Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                        Padding="8,4" FontWeight="Medium"/>
+                                <Button Content="置顶" Click="BringToFront_Click" ToolTip="将选中元素置于顶层" Margin="0,0,5,0" 
+                                        Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                        Padding="8,4" FontWeight="Medium"/>
+                                <Button Content="置底" Click="SendToBack_Click" ToolTip="将选中元素置于底层" 
+                                        Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                        Padding="8,4" FontWeight="Medium"/>
+                            </StackPanel>
+                            <ListBox x:Name="layerList" ItemsSource="{Binding ElementWrappers}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged"
+                                     Background="#FFFFFF" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="2" Padding="8" CornerRadius="3"
+                                                Background="#F8F9FA"
+                                                BorderBrush="#E0E0E0"
+                                                BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0" FontWeight="Medium"/>
+                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="12" Foreground="#666666"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </Border>
                 </Grid>
                 
                 <!-- 分隔线 -->
                 <GridSplitter Grid.Row="1" Height="5" Background="#E0E0E0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
                 
                 <!-- 属性和预览面板 -->
-                <Grid Grid.Row="2">
+                <Grid Grid.Row="2" Margin="0,5,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     
-                    <TabControl Grid.Row="1">
+                    <!-- 属性面板标题 -->
+                    <Border Grid.Row="0" Background="#4A90E2" Padding="12" CornerRadius="4,4,0,0">
+                        <TextBlock Text="属性" FontWeight="Bold" Foreground="#FFFFFF" FontSize="14"/>
+                    </Border>
+                    
+                    <TabControl Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" TabStripPlacement="Top">
                         <TabItem Header="属性">
+                            <TabItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Padding="12,6" FontWeight="Medium"/>
+                                </DataTemplate>
+                            </TabItem.HeaderTemplate>
                             <ScrollViewer Margin="5">
                                 <StackPanel>
                                     <!-- 选择信息 -->
@@ -358,17 +402,25 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="0" x:Name="posXTextBox" IsEnabled="False"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="0" x:Name="posXTextBox" IsEnabled="False" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="posYTextBox" IsEnabled="False"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="posYTextBox" IsEnabled="False" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="widthTextBox" IsEnabled="False"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="widthTextBox" IsEnabled="False" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="0" x:Name="heightTextBox" IsEnabled="False"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="0" x:Name="heightTextBox" IsEnabled="False" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                         </Grid>
                                     </Expander>
                                     
@@ -388,17 +440,23 @@
                                                     <RowDefinition Height="Auto"/>
                                                 </Grid.RowDefinitions>
                                                 
-                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5"/>
-                                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False" 
+                                                          Foreground="#333333" FontWeight="Medium"/>
                                                 
-                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False" 
+                                                         Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                         Padding="8" FontWeight="Medium"/>
                                                 
-                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False" 
+                                                         Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                         Padding="8" FontWeight="Medium"/>
                                                 
-                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5"/>
-                                                <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                                <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False" 
+                                                        Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1"/>
                                             </Grid>
                                             
                                             <!-- 背景和边框 -->
@@ -459,46 +517,85 @@
                                     
                                     <!-- 文本属性 -->
                                     <Expander Header="文本" Style="{StaticResource PropertyGroupStyle}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                        <StackPanel>
+                                            <!-- 基本文本属性 -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="Microsoft YaHei"/>
+                                                    <ComboBoxItem Content="SimSun"/>
+                                                    <ComboBoxItem Content="SimHei"/>
+                                                    <ComboBoxItem Content="Arial"/>
+                                                    <ComboBoxItem Content="Times New Roman"/>
+                                                </ComboBox>
+                                                
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
+                                                
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="Normal"/>
+                                                    <ComboBoxItem Content="Bold"/>
+                                                </ComboBox>
+                                                
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="Normal"/>
+                                                    <ComboBoxItem Content="Italic"/>
+                                                </ComboBox>
+                                            </Grid>
                                             
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
-                                            
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
-                                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="Microsoft YaHei"/>
-                                                <ComboBoxItem Content="SimSun"/>
-                                                <ComboBoxItem Content="SimHei"/>
-                                                <ComboBoxItem Content="Arial"/>
-                                                <ComboBoxItem Content="Times New Roman"/>
-                                            </ComboBox>
-                                            
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
-                                            
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
-                                            <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="Normal"/>
-                                                <ComboBoxItem Content="Bold"/>
-                                            </ComboBox>
-                                            
-                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
-                                            <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
-                                                <ComboBoxItem Content="Normal"/>
-                                                <ComboBoxItem Content="Italic"/>
-                                            </ComboBox>
-                                        </Grid>
+                                            <!-- 文本对齐和颜色属性 -->
+                                            <Border BorderThickness="0,1,0,0" BorderBrush="#E0E0E0" Margin="0,10,0,0"/>
+                                            <Grid Margin="0,10,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="文本对齐:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textAlignmentComboBox" IsEnabled="False" SelectionChanged="textAlignmentComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="左对齐" Tag="Left"/>
+                                                    <ComboBoxItem Content="居中" Tag="Center"/>
+                                                    <ComboBoxItem Content="右对齐" Tag="Right"/>
+                                                    <ComboBoxItem Content="两端对齐" Tag="Justify"/>
+                                                </ComboBox>
+                                                
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="垂直对齐:" Margin="5,5,0,5"/>
+                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="verticalAlignmentComboBox" IsEnabled="False" SelectionChanged="verticalAlignmentComboBox_SelectionChanged">
+                                                    <ComboBoxItem Content="顶部" Tag="Top"/>
+                                                    <ComboBoxItem Content="居中" Tag="Center"/>
+                                                    <ComboBoxItem Content="底部" Tag="Bottom"/>
+                                                </ComboBox>
+                                                
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="文本颜色:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="#000000" x:Name="foregroundColorTextBox" IsEnabled="False" TextChanged="foregroundColorTextBox_TextChanged"/>
+                                                
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
+                                                <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="textBackgroundColorTextBox" IsEnabled="False" TextChanged="textBackgroundColorTextBox_TextChanged"/>
+                                            </Grid>
+                                        </StackPanel>
                                     </Expander>
                                     
                                     <!-- 数据绑定属性 -->
