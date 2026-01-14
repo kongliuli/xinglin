@@ -8,7 +8,8 @@
         Title="报告模板编辑器"
         Height="800"
         Width="1200"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="MainWindow_PreviewKeyDown">
     <Window.Resources>
         <!-- 工具箱项样式 -->
         <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
@@ -59,10 +60,11 @@
                 <MenuItem Header="撤销" Click="Undo_Click"/>
                 <MenuItem Header="重做" Click="Redo_Click"/>
                 <Separator/>
-                <MenuItem Header="剪切" Click="Cut_Click"/>
+                <!-- 剪切/复制/粘贴/删除功能待实现 -->
+                <!-- <MenuItem Header="剪切" Click="Cut_Click"/>
                 <MenuItem Header="复制" Click="Copy_Click"/>
                 <MenuItem Header="粘贴" Click="Paste_Click"/>
-                <MenuItem Header="删除" Click="Delete_Click"/>
+                <MenuItem Header="删除" Click="Delete_Click"/> -->
             </MenuItem>
             <MenuItem Header="视图">
                 <MenuItem Header="显示网格" Click="ShowGrid_Click" IsCheckable="True" IsChecked="True"/>
@@ -92,23 +94,6 @@
                 <Separator/>
                 <Button Content="撤销" Click="Undo_Click" ToolTip="撤销"/>
                 <Button Content="重做" Click="Redo_Click" ToolTip="重做"/>
-                <Separator/>
-                <Button Content="剪切" Click="Cut_Click" ToolTip="剪切"/>
-                <Button Content="复制" Click="Copy_Click" ToolTip="复制"/>
-                <Button Content="粘贴" Click="Paste_Click" ToolTip="粘贴"/>
-                <Button Content="删除" Click="Delete_Click" ToolTip="删除"/>
-                <Separator/>
-                <!-- 对齐功能 -->
-                <Button Content="左对齐" Click="AlignLeft_Click" ToolTip="左对齐选中元素"/>
-                <Button Content="居中对齐" Click="AlignCenter_Click" ToolTip="水平居中对齐选中元素"/>
-                <Button Content="右对齐" Click="AlignRight_Click" ToolTip="右对齐选中元素"/>
-                <Button Content="顶对齐" Click="AlignTop_Click" ToolTip="顶部对齐选中元素"/>
-                <Button Content="垂直居中" Click="AlignMiddle_Click" ToolTip="垂直居中对齐选中元素"/>
-                <Button Content="底对齐" Click="AlignBottom_Click" ToolTip="底部对齐选中元素"/>
-                <Separator/>
-                <!-- 分布功能 -->
-                <Button Content="水平分布" Click="DistributeHorizontal_Click" ToolTip="水平均匀分布选中元素"/>
-                <Button Content="垂直分布" Click="DistributeVertical_Click" ToolTip="垂直均匀分布选中元素"/>
                 <Separator/>
                 <!-- 纸张设置 -->
                 <TextBlock Text="纸张: " Margin="0,0,5,0" VerticalAlignment="Center"/>

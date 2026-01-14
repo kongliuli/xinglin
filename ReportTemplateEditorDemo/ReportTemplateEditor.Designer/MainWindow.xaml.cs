@@ -46,6 +46,10 @@ namespace ReportTemplateEditor.Designer
         private bool _isDragging;
         private Point _dragStartPoint;
 
+        // 画布平移状态
+        private bool _isPanning;
+        private Point _panStartPoint;
+
         // 网格相关设置
         private bool _showGrid = true;
         private bool _snapToGrid = true;
@@ -1069,6 +1073,39 @@ namespace ReportTemplateEditor.Designer
             }
             return value;
         }
+        
+        /// <summary>
+        /// 更新画布上的元素，确保UI与模型保持一致
+        /// </summary>
+        private void UpdateCanvas()
+        {
+            // 清除当前元素
+            designCanvas.Children.Clear();
+            _elementWrappers.Clear();
+            
+            // 重新绘制网格
+            DrawGrid();
+            
+            // 重新添加所有元素
+            if (_currentTemplate != null && _currentTemplate.Elements != null)
+            {
+                foreach (var element in _currentTemplate.Elements)
+                {
+                    AddElementToCanvas(element);
+                }
+            }
+            
+            // 如果有选中元素，重新选中
+            if (_primarySelectedElement != null)
+            {
+                // 查找并重新选中元素
+                var element = _elementWrappers.FirstOrDefault(w => w.ModelElement == _primarySelectedElement.ModelElement);
+                if (element != null)
+                {
+                    SelectElement(element);
+                }
+            }
+        }
 
         #region 事件处理
 
@@ -1634,8 +1671,18 @@ namespace ReportTemplateEditor.Designer
         private void Exit_Click(object sender, RoutedEventArgs e) {}
         
         // 编辑菜单事件
-        private void Undo_Click(object sender, RoutedEventArgs e) {}
-        private void Redo_Click(object sender, RoutedEventArgs e) {}
+        private void Undo_Click(object sender, RoutedEventArgs e)
+        {
+            _commandManager.Undo();
+            UpdateCanvas();
+        }
+        
+        private void Redo_Click(object sender, RoutedEventArgs e)
+        {
+            _commandManager.Redo();
+            UpdateCanvas();
+        }
+        
         private void Cut_Click(object sender, RoutedEventArgs e) {}
         private void Copy_Click(object sender, RoutedEventArgs e) {}
         private void Paste_Click(object sender, RoutedEventArgs e) {}
@@ -1864,15 +1911,16 @@ namespace ReportTemplateEditor.Designer
             // 更新缩放文本
             zoomText.Text = $"{zoomPercentage}%";
 
-            // 应用缩放变换
-            ApplyZoom(scale);
+            // 应用缩放变换（以画布中心为中心）
+            Point centerPoint = new Point(designCanvas.ActualWidth / 2, designCanvas.ActualHeight / 2);
+            ApplyZoom(scale, centerPoint);
         }
 
         /// <summary>
         /// 应用缩放变换
         /// </summary>
         /// <param name="scale">缩放比例</param>
-        private void ApplyZoom(double scale)
+        private void ApplyZoom(double scale, Point? centerPoint = null)
         {
             if(designCanvas == null)
                 return;
@@ -1884,25 +1932,51 @@ namespace ReportTemplateEditor.Designer
                 designCanvas.RenderTransform = transformGroup;
             }
 
-            // 移除现有的缩放变换
+            // 获取现有变换
             var existingScaleTransform = transformGroup.Children.OfType<ScaleTransform>().FirstOrDefault();
+            var existingTranslateTransform = transformGroup.Children.OfType<TranslateTransform>().FirstOrDefault();
+
+            // 保存当前变换状态
+            double currentScale = existingScaleTransform?.ScaleX ?? 1.0;
+            double currentTranslateX = existingTranslateTransform?.X ?? 0.0;
+            double currentTranslateY = existingTranslateTransform?.Y ?? 0.0;
+
+            // 移除现有变换
             if (existingScaleTransform != null)
             {
                 transformGroup.Children.Remove(existingScaleTransform);
             }
+            if (existingTranslateTransform != null)
+            {
+                transformGroup.Children.Remove(existingTranslateTransform);
+            }
 
-            // 创建新的缩放变换
+            // 计算新的缩放中心
+            Point scaleCenter = centerPoint ?? new Point(0, 0);
+            
+            // 调整平移量，使缩放围绕指定中心点进行
+            double deltaScale = scale / currentScale;
+            double newTranslateX = currentTranslateX - (scaleCenter.X * (deltaScale - 1));
+            double newTranslateY = currentTranslateY - (scaleCenter.Y * (deltaScale - 1));
+
+            // 创建新的变换
+            var translateTransform = new TranslateTransform(newTranslateX, newTranslateY);
             var scaleTransform = new ScaleTransform(scale, scale, 0, 0);
+            
+            // 添加到变换组（平移先于缩放）
+            transformGroup.Children.Add(translateTransform);
             transformGroup.Children.Add(scaleTransform);
         }
         private void DesignCanvas_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // 记录拖拽起始点
-            _dragStartPoint = e.GetPosition(designCanvas);
-            _isDragging = true;
+            // 确保不是右键拖拽
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                return;
+            }
             
             // 获取当前鼠标下的元素
-            HitTestResult result = VisualTreeHelper.HitTest(designCanvas, _dragStartPoint);
+            HitTestResult result = VisualTreeHelper.HitTest(designCanvas, e.GetPosition(designCanvas));
             if (result != null)
             {
                 // 查找元素包装器
@@ -1912,29 +1986,195 @@ namespace ReportTemplateEditor.Designer
                     // 选中元素
                     SelectElement(element);
                     
+                    // 记录拖拽起始点
+                    _dragStartPoint = e.GetPosition(designCanvas);
+                    _isDragging = true;
+                    
                     // 捕获鼠标
                     designCanvas.CaptureMouse();
                 }
             }
+            
+            e.Handled = true;
         }
         
         private void DesignCanvas_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (!_isDragging || _primarySelectedElement == null)
+            // 右键拖拽画布
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                if (!_isPanning)
+                {
+                    _panStartPoint = e.GetPosition(designCanvas);
+                    _isPanning = true;
+                    designCanvas.CaptureMouse();
+                }
+                else
+                {
+                    // 计算平移偏移
+                    Point currentPoint = e.GetPosition(designCanvas);
+                    double deltaX = currentPoint.X - _panStartPoint.X;
+                    double deltaY = currentPoint.Y - _panStartPoint.Y;
+                    
+                    // 获取画布的变换组
+                    TransformGroup transformGroup = designCanvas.RenderTransform as TransformGroup;
+                    if (transformGroup != null)
+                    {
+                        // 获取现有平移变换
+                        var translateTransform = transformGroup.Children.OfType<TranslateTransform>().FirstOrDefault();
+                        
+                        // 移除现有平移变换
+                        if (translateTransform != null)
+                        {
+                            transformGroup.Children.Remove(translateTransform);
+                        }
+                        
+                        // 创建新的平移变换
+                        double newTranslateX = (translateTransform?.X ?? 0) + deltaX;
+                        double newTranslateY = (translateTransform?.Y ?? 0) + deltaY;
+                        translateTransform = new TranslateTransform(newTranslateX, newTranslateY);
+                        
+                        // 添加到变换组（在缩放变换之前）
+                        int scaleIndex = transformGroup.Children.IndexOf(transformGroup.Children.OfType<ScaleTransform>().FirstOrDefault());
+                        if (scaleIndex >= 0)
+                        {
+                            transformGroup.Children.Insert(scaleIndex, translateTransform);
+                        }
+                        else
+                        {
+                            transformGroup.Children.Add(translateTransform);
+                        }
+                    }
+                    
+                    // 更新平移起始点
+                    _panStartPoint = currentPoint;
+                }
+                e.Handled = true;
+                return;
+            }
+            
+            // 左键拖拽控件
+            if (_isDragging && _primarySelectedElement != null)
+            {
+                // 计算拖拽偏移
+                Point currentPoint = e.GetPosition(designCanvas);
+                double deltaX = currentPoint.X - _dragStartPoint.X;
+                double deltaY = currentPoint.Y - _dragStartPoint.Y;
+                
+                // 更新元素位置
+                foreach (var element in _selectedElements)
+                {
+                    double newX = Canvas.GetLeft(element.UiElement) + deltaX;
+                    double newY = Canvas.GetTop(element.UiElement) + deltaY;
+                    
+                    // 应用网格对齐
+                    newX = SnapToGrid(newX);
+                    newY = SnapToGrid(newY);
+                    
+                    // 更新模型
+                    element.ModelElement.X = newX;
+                    element.ModelElement.Y = newY;
+                    
+                    // 更新UI
+                    Canvas.SetLeft(element.UiElement, newX);
+                    Canvas.SetTop(element.UiElement, newY);
+                    Canvas.SetLeft(element.SelectionBorder, newX);
+                    Canvas.SetTop(element.SelectionBorder, newY);
+                }
+                
+                // 更新拖拽起始点
+                _dragStartPoint = currentPoint;
+                e.Handled = true;
+            }
+        }
+        
+        private void DesignCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isDragging)
+            {
+                _isDragging = false;
+                designCanvas.ReleaseMouseCapture();
+                
+                // 更新属性面板
+                if (_primarySelectedElement != null)
+                {
+                    UpdatePropertyPanel(_primarySelectedElement.ModelElement);
+                }
+            }
+            
+            e.Handled = true;
+        }
+        
+        private void DesignCanvas_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (_isPanning)
+            {
+                _isPanning = false;
+                designCanvas.ReleaseMouseCapture();
+            }
+            
+            e.Handled = true;
+        }
+        
+        private void designCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // 支持鼠标滚轮缩放
+            double delta = e.Delta > 0 ? 5 : -5;
+            double newZoom = zoomSlider.Value + delta;
+            
+            // 限制缩放范围
+            newZoom = Math.Max(10, Math.Min(300, newZoom));
+            
+            // 更新缩放滑块
+            zoomSlider.Value = newZoom;
+            
+            // 使用鼠标位置作为缩放中心
+            Point mousePoint = e.GetPosition(designCanvas);
+            double scale = newZoom / 100.0;
+            ApplyZoom(scale, mousePoint);
+            
+            e.Handled = true;
+        }
+        
+        /// <summary>
+        /// 处理键盘事件，支持方向键移动选中的元素
+        /// </summary>
+        private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (_primarySelectedElement == null || _selectedElements.Count == 0)
             {
                 return;
             }
             
-            // 计算拖拽偏移
-            Point currentPoint = e.GetPosition(designCanvas);
-            double deltaX = currentPoint.X - _dragStartPoint.X;
-            double deltaY = currentPoint.Y - _dragStartPoint.Y;
+            double step = _snapToGrid ? _gridSize : 1.0;
             
-            // 更新元素位置
+            // 根据方向键调整位置
+            double deltaX = 0;
+            double deltaY = 0;
+            
+            switch (e.Key)
+            {
+                case Key.Left:
+                    deltaX = -step;
+                    break;
+                case Key.Right:
+                    deltaX = step;
+                    break;
+                case Key.Up:
+                    deltaY = -step;
+                    break;
+                case Key.Down:
+                    deltaY = step;
+                    break;
+                default:
+                    return; // 忽略其他键
+            }
+            
+            // 更新选中元素的位置
             foreach (var element in _selectedElements)
             {
-                double newX = Canvas.GetLeft(element.UiElement) + deltaX;
-                double newY = Canvas.GetTop(element.UiElement) + deltaY;
+                double newX = element.ModelElement.X + deltaX;
+                double newY = element.ModelElement.Y + deltaY;
                 
                 // 应用网格对齐
                 newX = SnapToGrid(newX);
@@ -1951,36 +2191,8 @@ namespace ReportTemplateEditor.Designer
                 Canvas.SetTop(element.SelectionBorder, newY);
             }
             
-            // 更新拖拽起始点
-            _dragStartPoint = currentPoint;
-        }
-        
-        private void DesignCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_isDragging)
-            {
-                _isDragging = false;
-                designCanvas.ReleaseMouseCapture();
-                
-                // 更新属性面板
-                if (_primarySelectedElement != null)
-                {
-                    UpdatePropertyPanel(_primarySelectedElement.ModelElement);
-                }
-            }
-        }
-        
-        private void designCanvas_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            // 支持鼠标滚轮缩放
-            double delta = e.Delta > 0 ? 5 : -5;
-            double newZoom = zoomSlider.Value + delta;
-            
-            // 限制缩放范围
-            newZoom = Math.Max(10, Math.Min(300, newZoom));
-            
-            // 更新缩放滑块
-            zoomSlider.Value = newZoom;
+            // 更新属性面板
+            UpdatePropertyPanel(_primarySelectedElement.ModelElement);
             
             e.Handled = true;
         }
