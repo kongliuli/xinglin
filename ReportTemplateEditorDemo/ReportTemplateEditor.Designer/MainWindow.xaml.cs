@@ -13,6 +13,7 @@ using ReportTemplateEditor.Core.Models;
 using ReportTemplateEditor.Core.Models.Commands;
 using ReportTemplateEditor.Engine;
 using ReportTemplateEditor.Core.Models.TestData;
+using ReportTemplateEditor.Core.Models.Elements;
 
 namespace ReportTemplateEditor.Designer
 {
@@ -428,13 +429,26 @@ namespace ReportTemplateEditor.Designer
                 return;
             }
 
-            // 设置位置和大小
+            // 设置位置
             Canvas.SetLeft(uiElement, element.X);
             Canvas.SetTop(uiElement, element.Y);
+            
+            // 判断是否为文本或标签控件，这些控件需要根据内容自动调整大小
+            bool isAutoSizeElement = element is TemplateElements.TextElement || element is TemplateElements.LabelElement;
+            
             if (uiElement is FrameworkElement frameworkElement)
             {
-                frameworkElement.Width = element.Width;
-                frameworkElement.Height = element.Height;
+                if (isAutoSizeElement)
+                {
+                    // 对于文本和标签控件，不设置固定大小，让它们根据内容自动调整
+                    // 大小会在SizeChanged事件中更新
+                }
+                else
+                {
+                    // 对于其他控件，设置固定大小
+                    frameworkElement.Width = element.Width;
+                    frameworkElement.Height = element.Height;
+                }
             }
             Canvas.SetZIndex(uiElement, element.ZIndex);
 
@@ -444,8 +458,27 @@ namespace ReportTemplateEditor.Designer
             // 设置选择边框的位置和大小
             Canvas.SetLeft(selectionBorder, element.X);
             Canvas.SetTop(selectionBorder, element.Y);
-            selectionBorder.Width = element.Width;
-            selectionBorder.Height = element.Height;
+            
+            if (isAutoSizeElement)
+            {
+                // 对于文本和标签控件，选择边框的大小会在SizeChanged事件中更新
+                // 这里先使用模型中的大小作为初始值
+                if (uiElement is FrameworkElement fe && fe.ActualWidth > 0 && fe.ActualHeight > 0)
+                {
+                    selectionBorder.Width = fe.ActualWidth;
+                    selectionBorder.Height = fe.ActualHeight;
+                }
+                else
+                {
+                    selectionBorder.Width = element.Width;
+                    selectionBorder.Height = element.Height;
+                }
+            }
+            else
+            {
+                selectionBorder.Width = element.Width;
+                selectionBorder.Height = element.Height;
+            }
             Canvas.SetZIndex(selectionBorder, element.ZIndex + 1);
 
             // 创建包装类
@@ -743,6 +776,29 @@ namespace ReportTemplateEditor.Designer
                 Cursor = Cursors.Hand
             };
 
+            // 确保ColumnsConfig已初始化
+            if (tableElement.ColumnsConfig == null)
+            {
+                tableElement.ColumnsConfig = new List<TemplateElements.TableColumn>();
+            }
+
+            // 为所有列创建默认配置（如果不存在）
+            for (int col = 0; col < tableElement.Columns; col++)
+            {
+                var existingConfig = tableElement.ColumnsConfig.FirstOrDefault(c => c.ColumnIndex == col);
+                if (existingConfig == null)
+                {
+                    tableElement.ColumnsConfig.Add(new TemplateElements.TableColumn
+                    {
+                        ColumnIndex = col,
+                        Type = TemplateElements.ColumnType.TextBox,
+                        IsEditable = true,
+                        DefaultValue = string.Empty,
+                        DropdownOptions = new List<string>()
+                    });
+                }
+            }
+
             // 设置行列
             for (int i = 0; i < tableElement.Rows; i++)
             {
@@ -758,25 +814,210 @@ namespace ReportTemplateEditor.Designer
             {
                 for (int col = 0; col < tableElement.Columns; col++)
                 {
+                    // 查找对应的单元格数据
+                    var cellData = tableElement.Cells?.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                    
+                    // 如果找不到单元格数据，创建一个默认的
+                    if (cellData == null)
+                    {
+                        cellData = new TemplateElements.TableCell
+                        {
+                            RowIndex = row,
+                            ColumnIndex = col,
+                            Content = string.Format("单元格 {0},{1}", row + 1, col + 1),
+                            FontSize = 12,
+                            FontWeight = "Normal",
+                            ForegroundColor = "#000000",
+                            BackgroundColor = "#FFFFFF",
+                            TextAlignment = "Left",
+                            VerticalAlignment = "Top"
+                        };
+                        // 添加到Cells集合中
+                        if (tableElement.Cells == null)
+                        {
+                            tableElement.Cells = new List<TemplateElements.TableCell>();
+                        }
+                        tableElement.Cells.Add(cellData);
+                    }
+
+                    // 安全转换颜色
+                    BrushConverter brushConverter = new BrushConverter();
+                    Brush backgroundBrush = null;
+                    Brush foregroundBrush = null;
+                    try
+                    {
+                        backgroundBrush = (Brush)brushConverter.ConvertFrom(cellData.BackgroundColor);
+                    }
+                    catch { backgroundBrush = Brushes.White; }
+                    try
+                    {
+                        foregroundBrush = (Brush)brushConverter.ConvertFrom(cellData.ForegroundColor);
+                    }
+                    catch { foregroundBrush = Brushes.Black; }
+
                     var cell = new Border
                     {
                         BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(tableElement.BorderColor)),
                         BorderThickness = new Thickness(tableElement.BorderWidth),
                         Margin = new Thickness(tableElement.CellSpacing / 2),
-                        Background = Brushes.White
+                        Background = backgroundBrush ?? Brushes.White
                     };
 
-                    var textBlock = new TextBlock
+                    // 解析字体粗细
+                    FontWeight fontWeight = FontWeights.Normal;
+                    if (cellData.FontWeight == "Bold")
                     {
-                        Text = string.Format("单元格 {0},{1}", row + 1, col + 1),
-                        Padding = new Thickness(tableElement.CellPadding),
-                        FontSize = 12
-                    };
+                        fontWeight = FontWeights.Bold;
+                    }
+                    else if (!string.IsNullOrEmpty(cellData.FontWeight))
+                    {
+                        try
+                        {
+                            fontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(cellData.FontWeight);
+                        }
+                        catch { }
+                    }
 
-                    cell.Child = textBlock;
+                    // 解析文本对齐方式
+                    TextAlignment textAlignment = TextAlignment.Left;
+                    if (!string.IsNullOrEmpty(cellData.TextAlignment))
+                    {
+                        try
+                        {
+                            textAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cellData.TextAlignment);
+                        }
+                        catch { }
+                    }
+
+                    // 解析垂直对齐方式
+                    VerticalAlignment verticalAlignment = VerticalAlignment.Top;
+                    if (!string.IsNullOrEmpty(cellData.VerticalAlignment))
+                    {
+                        try
+                        {
+                            verticalAlignment = (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), cellData.VerticalAlignment);
+                        }
+                        catch { }
+                    }
+
+                    // 获取列配置，确定列类型
+                    // 注意：列头（第一行）不应应用列类型配置，始终显示为文本
+                    var columnConfig = tableElement.ColumnsConfig?.FirstOrDefault(c => c.ColumnIndex == col);
+                    TemplateElements.ColumnType columnType = TemplateElements.ColumnType.TextBox;
+                    bool isHeaderRow = (row == 0);
+                    
+                    // 只有非列头行才应用列类型配置
+                    if (!isHeaderRow)
+                    {
+                        columnType = columnConfig?.Type ?? TemplateElements.ColumnType.TextBox;
+                    }
+                    
+                    UIElement cellContent = null;
+                    
+                    // 根据列类型创建不同的控件（列头始终使用TextBlock）
+                    if (!isHeaderRow && columnType == ColumnType.ComboBox)
+                    {
+                        // 创建下拉选择框
+                        var comboBox = new ComboBox
+                        {
+                            FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
+                            FontWeight = fontWeight,
+                            Foreground = foregroundBrush ?? Brushes.Black,
+                            VerticalAlignment = verticalAlignment,
+                            VerticalContentAlignment = verticalAlignment == VerticalAlignment.Center ? VerticalAlignment.Center : VerticalAlignment.Top,
+                            Padding = new Thickness(2),
+                            IsEditable = columnConfig?.IsEditable ?? true,
+                            IsHitTestVisible = false, // 设计模式下不可交互
+                            Focusable = false // 防止获取焦点，允许拖拽
+                        };
+                        
+                        // 添加下拉选项
+                        if (columnConfig?.DropdownOptions != null && columnConfig.DropdownOptions.Count > 0)
+                        {
+                            foreach (var option in columnConfig.DropdownOptions)
+                            {
+                                comboBox.Items.Add(option);
+                            }
+                        }
+                        
+                        // 设置当前值：优先使用单元格原始内容，不使用默认值
+                        if (!string.IsNullOrEmpty(cellData.Content))
+                        {
+                            comboBox.Text = cellData.Content;
+                        }
+                        else
+                        {
+                            comboBox.Text = string.Empty;
+                        }
+                        
+                        cellContent = comboBox;
+                    }
+                    else if (!isHeaderRow && columnType == ColumnType.CheckBox)
+                    {
+                        // 创建复选框
+                        bool isChecked = false;
+                        // 优先使用单元格原始内容，不使用默认值
+                        if (!string.IsNullOrEmpty(cellData.Content))
+                        {
+                            bool.TryParse(cellData.Content, out isChecked);
+                        }
+                        
+                        var checkBox = new CheckBox
+                        {
+                            IsChecked = isChecked,
+                            FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
+                            FontWeight = fontWeight,
+                            Foreground = foregroundBrush ?? Brushes.Black,
+                            VerticalAlignment = verticalAlignment,
+                            HorizontalAlignment = textAlignment == TextAlignment.Center ? HorizontalAlignment.Center : 
+                                                 (textAlignment == TextAlignment.Right ? HorizontalAlignment.Right : HorizontalAlignment.Left),
+                            IsHitTestVisible = false, // 设计模式下不可交互
+                            Focusable = false, // 防止获取焦点，允许拖拽
+                            Padding = new Thickness(2)
+                        };
+                        
+                        cellContent = checkBox;
+                    }
+                    else
+                    {
+                        // 默认创建文本输入框（显示为TextBlock）
+                        var textBlock = new TextBlock
+                        {
+                            Text = cellData.Content ?? string.Empty,
+                            Padding = new Thickness(tableElement.CellPadding),
+                            FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
+                            FontWeight = fontWeight,
+                            Foreground = foregroundBrush ?? Brushes.Black,
+                            TextAlignment = textAlignment,
+                            VerticalAlignment = verticalAlignment,
+                            TextWrapping = TextWrapping.Wrap
+                        };
+                        
+                        cellContent = textBlock;
+                    }
+
+                    cell.Child = cellContent;
                     Grid.SetRow(cell, row);
                     Grid.SetColumn(cell, col);
                     grid.Children.Add(cell);
+                    
+                    // 为单元格边框添加鼠标事件，确保可以拖拽整个表格
+                    cell.MouseDown += (sender, e) =>
+                    {
+                        // 将事件传递给父Grid，确保可以拖拽
+                        Element_MouseDown(grid, e);
+                    };
+                    
+                    // 如果单元格内容是可交互控件，确保它们不会阻止拖拽
+                    if (cellContent != null)
+                    {
+                        cellContent.MouseDown += (sender, e) =>
+                        {
+                            // 将事件传递给父Grid，确保可以拖拽
+                            Element_MouseDown(grid, e);
+                            e.Handled = true;
+                        };
+                    }
                 }
             }
 
@@ -1223,7 +1464,8 @@ namespace ReportTemplateEditor.Designer
                 BorderThickness = new Thickness(1),
                 Visibility = Visibility.Hidden,
                 SnapsToDevicePixels = true,
-                UseLayoutRounding = true
+                UseLayoutRounding = true,
+                IsHitTestVisible = false  // 不拦截鼠标事件，让事件传递到元素本身
             };
 
             return border;
@@ -2381,21 +2623,43 @@ namespace ReportTemplateEditor.Designer
         {
             try
             {
+                // 获取当前系统DPI
+                var dpiScale = VisualTreeHelper.GetDpi(this);
+                double dpi = dpiScale.PixelsPerInchX;
+                double mmToPixel = dpi / 25.4;
+
+                // 将模板尺寸从毫米转换为像素
+                double pageWidthPixels = _currentTemplate.PageWidth * mmToPixel;
+                double pageHeightPixels = _currentTemplate.PageHeight * mmToPixel;
+
+                // 计算预览窗口大小，留出边距和滚动条空间
+                // 窗口大小 = 页面大小 + 边距(40) + 滚动条宽度(约20)
+                // 确保窗口至少能显示完整的A4/A5页面，但不超过屏幕的90%
+                double minWindowWidth = pageWidthPixels + 60;
+                double minWindowHeight = pageHeightPixels + 80;
+                double maxWindowWidth = SystemParameters.WorkArea.Width * 0.95;
+                double maxWindowHeight = SystemParameters.WorkArea.Height * 0.95;
+                
+                double windowWidth = Math.Max(minWindowWidth, Math.Min(maxWindowWidth, pageWidthPixels + 60));
+                double windowHeight = Math.Max(minWindowHeight, Math.Min(maxWindowHeight, pageHeightPixels + 80));
+
                 // 创建预览窗口
                 var previewWindow = new Window
                 {
-                    Title = "模板预览",
-                    Width = 800,
-                    Height = 600,
+                    Title = $"模板预览 - {_currentTemplate.PageWidth}×{_currentTemplate.PageHeight} mm",
+                    Width = windowWidth,
+                    Height = windowHeight,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                    Background = Brushes.White
+                    Background = Brushes.White,
+                    WindowStyle = WindowStyle.SingleBorderWindow,
+                    ResizeMode = ResizeMode.CanResize
                 };
 
-                // 创建预览画布
+                // 创建预览画布，使用像素尺寸
                 var previewCanvas = new Canvas
                 {
-                    Width = _currentTemplate.PageWidth,
-                    Height = _currentTemplate.PageHeight,
+                    Width = pageWidthPixels,
+                    Height = pageHeightPixels,
                     Background = Brushes.White,
                     Margin = new Thickness(20)
                 };
@@ -2403,8 +2667,8 @@ namespace ReportTemplateEditor.Designer
                 // 添加白色背景
                 var background = new Rectangle
                 {
-                    Width = _currentTemplate.PageWidth,
-                    Height = _currentTemplate.PageHeight,
+                    Width = pageWidthPixels,
+                    Height = pageHeightPixels,
                     Fill = Brushes.White,
                     Stroke = Brushes.LightGray,
                     StrokeThickness = 1
@@ -2429,12 +2693,13 @@ namespace ReportTemplateEditor.Designer
                     }
                 }
 
-                // 创建滚动视图
+                // 创建滚动视图，确保可以滚动查看完整内容
                 var scrollViewer = new ScrollViewer
                 {
                     HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
                     VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                    Content = previewCanvas
+                    Content = previewCanvas,
+                    Background = Brushes.LightGray
                 };
 
                 // 设置窗口内容
@@ -2668,11 +2933,42 @@ namespace ReportTemplateEditor.Designer
                 double deltaX = currentPoint.X - _dragStartPoint.X;
                 double deltaY = currentPoint.Y - _dragStartPoint.Y;
                 
+                // 获取页边距宽度（用于边界限制）
+                var dpiScale = VisualTreeHelper.GetDpi(this);
+                double mmToPixel = dpiScale.PixelsPerInchX / 25.4;
+                double marginWidth = 2.5 * mmToPixel;
+                
+                // 计算可拖拽区域边界
+                double minX = marginWidth; // 左边界
+                double minY = marginWidth; // 上边界
+                double maxX = designCanvas.Width - marginWidth; // 右边界
+                double maxY = designCanvas.Height - marginWidth; // 下边界
+                
                 // 更新元素位置
                 foreach (var element in _selectedElements)
                 {
                     double newX = Canvas.GetLeft(element.UiElement) + deltaX;
                     double newY = Canvas.GetTop(element.UiElement) + deltaY;
+                    
+                    // 获取元素尺寸
+                    double elementWidth = element.ModelElement.Width > 0 ? element.ModelElement.Width : element.UiElement.RenderSize.Width;
+                    double elementHeight = element.ModelElement.Height > 0 ? element.ModelElement.Height : element.UiElement.RenderSize.Height;
+                    
+                    // 应用边界限制：确保元素不超出页边距范围
+                    if (newX < minX)
+                        newX = minX;
+                    if (newY < minY)
+                        newY = minY;
+                    if (newX + elementWidth > maxX)
+                        newX = maxX - elementWidth;
+                    if (newY + elementHeight > maxY)
+                        newY = maxY - elementHeight;
+                    
+                    // 确保元素不会完全移出画布（至少保留一部分可见）
+                    if (newX + elementWidth < minX)
+                        newX = minX - elementWidth + 10; // 保留10像素可见
+                    if (newY + elementHeight < minY)
+                        newY = minY - elementHeight + 10;
                     
                     // 应用网格对齐（仅当开启网格吸附时）
                     newX = SnapToGrid(newX);
@@ -2849,6 +3145,12 @@ namespace ReportTemplateEditor.Designer
             var wrapper = _elementWrappers.FirstOrDefault(w => w.ModelElement == tableElement);
             if (wrapper != null)
             {
+                // 保存原有的位置和大小
+                double originalX = tableElement.X;
+                double originalY = tableElement.Y;
+                double originalWidth = tableElement.Width;
+                double originalHeight = tableElement.Height;
+                
                 // 移除旧的UI元素
                 designCanvas.Children.Remove(wrapper.UiElement);
                 designCanvas.Children.Remove(wrapper.SelectionBorder);
@@ -2859,15 +3161,22 @@ namespace ReportTemplateEditor.Designer
                 // 更新UI元素包装器
                 wrapper.UiElement = newUIElement;
                 
+                // 设置UI元素的位置（保持原有位置）
+                Canvas.SetLeft(newUIElement, originalX);
+                Canvas.SetTop(newUIElement, originalY);
+                
                 // 添加新的UI元素到画布
                 designCanvas.Children.Add(newUIElement);
                 designCanvas.Children.Add(wrapper.SelectionBorder);
                 
-                // 更新选择边框位置和尺寸
-                Canvas.SetLeft(wrapper.SelectionBorder, tableElement.X);
-                Canvas.SetTop(wrapper.SelectionBorder, tableElement.Y);
-                wrapper.SelectionBorder.Width = tableElement.Width;
-                wrapper.SelectionBorder.Height = tableElement.Height;
+                // 更新选择边框位置和尺寸（保持原有位置）
+                Canvas.SetLeft(wrapper.SelectionBorder, originalX);
+                Canvas.SetTop(wrapper.SelectionBorder, originalY);
+                wrapper.SelectionBorder.Width = originalWidth;
+                wrapper.SelectionBorder.Height = originalHeight;
+                
+                // 确保元素仍然可以被选中和拖拽
+                // CreateTableUIElement已经添加了MouseDown事件，这里不需要额外处理
             }
         }
         

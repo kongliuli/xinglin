@@ -92,7 +92,7 @@ namespace ReportTemplateEditor.Designer.Controls {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ReportTemplateEditor.Designer;component/controls/datapathselector.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ReportTemplateEditor.Designer;V1.0.0.0;component/controls/datapathselector.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Controls\DataPathSelector.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
