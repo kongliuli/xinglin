@@ -63,27 +63,47 @@ namespace ReportTemplateEditor.Designer
             
             // 深拷贝单元格
             copy.Cells = new List<TableCell>();
-            foreach (var cell in source.Cells)
+            if (source.Cells != null)
             {
-                copy.Cells.Add(new TableCell
+                foreach (var cell in source.Cells)
                 {
-                    Id = cell.Id,
-                    RowIndex = cell.RowIndex,
-                    ColumnIndex = cell.ColumnIndex,
-                    RowSpan = cell.RowSpan,
-                    ColumnSpan = cell.ColumnSpan,
-                    Content = cell.Content,
-                    FontFamily = cell.FontFamily,
-                    FontSize = cell.FontSize,
-                    FontWeight = cell.FontWeight,
-                    ForegroundColor = cell.ForegroundColor,
-                    BackgroundColor = cell.BackgroundColor,
-                    TextAlignment = cell.TextAlignment,
-                    VerticalAlignment = cell.VerticalAlignment,
-                    DataBindingPath = cell.DataBindingPath,
-                    FormatString = cell.FormatString,
-                    IsEditable = cell.IsEditable
-                });
+                    copy.Cells.Add(new TableCell
+                    {
+                        Id = cell.Id,
+                        RowIndex = cell.RowIndex,
+                        ColumnIndex = cell.ColumnIndex,
+                        RowSpan = cell.RowSpan,
+                        ColumnSpan = cell.ColumnSpan,
+                        Content = cell.Content,
+                        FontFamily = cell.FontFamily,
+                        FontSize = cell.FontSize,
+                        FontWeight = cell.FontWeight,
+                        ForegroundColor = cell.ForegroundColor,
+                        BackgroundColor = cell.BackgroundColor,
+                        TextAlignment = cell.TextAlignment,
+                        VerticalAlignment = cell.VerticalAlignment,
+                        DataBindingPath = cell.DataBindingPath,
+                        FormatString = cell.FormatString,
+                        IsEditable = cell.IsEditable
+                    });
+                }
+            }
+            
+            // 深拷贝列配置
+            copy.ColumnsConfig = new List<TableColumn>();
+            if (source.ColumnsConfig != null)
+            {
+                foreach (var column in source.ColumnsConfig)
+                {
+                    copy.ColumnsConfig.Add(new TableColumn
+                    {
+                        ColumnIndex = column.ColumnIndex,
+                        Type = column.Type,
+                        DropdownOptions = new List<string>(column.DropdownOptions),
+                        IsEditable = column.IsEditable,
+                        DefaultValue = column.DefaultValue
+                    });
+                }
             }
             
             return copy;
@@ -122,9 +142,15 @@ namespace ReportTemplateEditor.Designer
                 }
             }
             
-            // 初始选中第一个单元格
-            if (_tableElement.Rows > 0 && _tableElement.Columns > 0)
+            // 恢复之前的选中状态（如果有效）
+            if (_selectedRowIndex >= 0 && _selectedColumnIndex >= 0 && 
+                _selectedRowIndex < _tableElement.Rows && _selectedColumnIndex < _tableElement.Columns)
             {
+                SelectCell(_selectedRowIndex, _selectedColumnIndex);
+            }
+            else if (_tableElement.Rows > 0 && _tableElement.Columns > 0)
+            {
+                // 初始选中第一个单元格
                 SelectCell(0, 0);
             }
         }
@@ -152,12 +178,18 @@ namespace ReportTemplateEditor.Designer
                 _tableElement.Cells.Add(cell);
             }
             
+            // 安全转换颜色，避免null引用
+            BrushConverter brushConverter = new BrushConverter();
+            Brush borderBrush = (Brush)brushConverter.ConvertFrom(_tableElement.BorderColor) ?? Brushes.Black;
+            Brush backgroundBrush = (Brush)brushConverter.ConvertFrom(cell.BackgroundColor) ?? Brushes.White;
+            Brush foregroundBrush = (Brush)brushConverter.ConvertFrom(cell.ForegroundColor) ?? Brushes.Black;
+            
             // 创建单元格边框
             Border cellBorder = new Border
             {
-                BorderBrush = (Brush)(new BrushConverter().ConvertFrom(_tableElement.BorderColor)),
+                BorderBrush = borderBrush,
                 BorderThickness = new Thickness(_tableElement.BorderWidth),
-                Background = (Brush)(new BrushConverter().ConvertFrom(cell.BackgroundColor)),
+                Background = backgroundBrush,
                 Padding = new Thickness(_tableElement.CellPadding),
                 Margin = new Thickness(_tableElement.CellSpacing / 2),
                 Cursor = Cursors.Hand,
@@ -167,12 +199,12 @@ namespace ReportTemplateEditor.Designer
             // 创建文本块显示单元格内容
             TextBlock textBlock = new TextBlock
             {
-                Text = cell.Content,
+                Text = cell.Content ?? string.Empty,
                 FontSize = cell.FontSize,
                 FontWeight = cell.FontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal,
-                Foreground = (Brush)(new BrushConverter().ConvertFrom(cell.ForegroundColor)),
-                TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
-                VerticalAlignment = (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), cell.VerticalAlignment),
+                Foreground = foregroundBrush,
+                TextAlignment = Enum.TryParse<TextAlignment>(cell.TextAlignment, out var textAlignment) ? textAlignment : TextAlignment.Left,
+                VerticalAlignment = Enum.TryParse<VerticalAlignment>(cell.VerticalAlignment, out var verticalAlignment) ? verticalAlignment : VerticalAlignment.Top,
                 Width = 100, // 固定宽度，方便编辑
                 TextWrapping = TextWrapping.Wrap,
                 Style = row == 0 ? (Style)Resources["HeaderTextStyle"] : null
@@ -240,7 +272,7 @@ namespace ReportTemplateEditor.Designer
             chkIsEditable.IsChecked = _selectedCell.IsEditable;
             
             // 更新字体大小
-            var fontSizeItem = cmbFontSize.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (double)item.Tag == _selectedCell.FontSize);
+            var fontSizeItem = cmbFontSize.Items.Cast<ComboBoxItem>().FirstOrDefault(item => double.Parse( item .Tag.ToString() )== _selectedCell.FontSize);
             if (fontSizeItem != null)
             {
                 cmbFontSize.SelectedItem = fontSizeItem;
@@ -270,6 +302,62 @@ namespace ReportTemplateEditor.Designer
             // 更新颜色
             txtForegroundColor.Text = _selectedCell.ForegroundColor;
             txtBackgroundColor.Text = _selectedCell.BackgroundColor;
+            
+            // 更新列类型配置
+            UpdateColumnTypePanel();
+        }
+        
+        /// <summary>
+        /// 更新列类型配置面板
+        /// </summary>
+        private void UpdateColumnTypePanel()
+        {
+            // 获取当前列的配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig == null)
+            {
+                // 创建默认配置
+                columnConfig = new TableColumn
+                {
+                    ColumnIndex = _selectedColumnIndex,
+                    Type = ColumnType.TextBox,
+                    IsEditable = true,
+                    DefaultValue = string.Empty
+                };
+                _tableElement.ColumnsConfig.Add(columnConfig);
+            }
+            
+            // 更新列类型
+            var columnTypeItem = cmbColumnType.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == columnConfig.Type.ToString());
+            if (columnTypeItem != null)
+            {
+                cmbColumnType.SelectedItem = columnTypeItem;
+            }
+            
+            // 更新可编辑状态
+            chkColumnEditable.IsChecked = columnConfig.IsEditable;
+            
+            // 更新默认值
+            txtDefaultValue.Text = columnConfig.DefaultValue;
+            
+            // 更新下拉选项面板可见性
+            dropdownOptionsPanel.Visibility = columnConfig.Type == ColumnType.ComboBox ? Visibility.Visible : Visibility.Collapsed;
+            
+            // 更新下拉选项列表
+            UpdateDropdownOptionsList(columnConfig);
+        }
+        
+        /// <summary>
+        /// 更新下拉选项列表
+        /// </summary>
+        /// <param name="columnConfig">列配置</param>
+        private void UpdateDropdownOptionsList(TableColumn columnConfig)
+        {
+            lstDropdownOptions.Items.Clear();
+            foreach (var option in columnConfig.DropdownOptions)
+            {
+                lstDropdownOptions.Items.Add(option);
+            }
         }
         
         /// <summary>
@@ -560,6 +648,153 @@ namespace ReportTemplateEditor.Designer
         private void btnBackgroundColor_Click(object sender, RoutedEventArgs e)
         {
             // 这里可以添加颜色选择器，简化实现暂时省略
+        }
+        
+        // ========== 列类型配置事件 ==========
+        
+        /// <summary>
+        /// 列类型选择变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cmbColumnType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_selectedCell == null)
+            {
+                return;
+            }
+            
+            // 获取选择的列类型
+            var selectedItem = cmbColumnType.SelectedItem as ComboBoxItem;
+            if (selectedItem == null)
+            {
+                return;
+            }
+            
+            // 更新列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig != null)
+            {
+                columnConfig.Type = (ColumnType)Enum.Parse(typeof(ColumnType), (string)selectedItem.Tag);
+                
+                // 更新下拉选项面板可见性
+                dropdownOptionsPanel.Visibility = columnConfig.Type == ColumnType.ComboBox ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+        
+        /// <summary>
+        /// 列可编辑状态变化事件（选中）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkColumnEditable_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_selectedCell == null)
+            {
+                return;
+            }
+            
+            // 更新列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig != null)
+            {
+                columnConfig.IsEditable = true;
+            }
+        }
+        
+        /// <summary>
+        /// 列可编辑状态变化事件（取消选中）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkColumnEditable_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_selectedCell == null)
+            {
+                return;
+            }
+            
+            // 更新列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig != null)
+            {
+                columnConfig.IsEditable = false;
+            }
+        }
+        
+        /// <summary>
+        /// 默认值变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txtDefaultValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_selectedCell == null)
+            {
+                return;
+            }
+            
+            // 更新列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig != null)
+            {
+                columnConfig.DefaultValue = txtDefaultValue.Text;
+            }
+        }
+        
+        /// <summary>
+        /// 添加下拉选项按钮点击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnAddOption_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedCell == null || string.IsNullOrWhiteSpace(txtNewOption.Text))
+            {
+                return;
+            }
+            
+            // 获取当前列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig == null || columnConfig.Type != ColumnType.ComboBox)
+            {
+                return;
+            }
+            
+            // 添加新选项
+            columnConfig.DropdownOptions.Add(txtNewOption.Text);
+            
+            // 更新选项列表
+            UpdateDropdownOptionsList(columnConfig);
+            
+            // 清空输入框
+            txtNewOption.Text = string.Empty;
+        }
+        
+        /// <summary>
+        /// 删除下拉选项按钮点击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnRemoveOption_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedCell == null || lstDropdownOptions.SelectedItem == null)
+            {
+                return;
+            }
+            
+            // 获取当前列配置
+            var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
+            if (columnConfig == null || columnConfig.Type != ColumnType.ComboBox)
+            {
+                return;
+            }
+            
+            // 删除选中的选项
+            columnConfig.DropdownOptions.Remove(lstDropdownOptions.SelectedItem.ToString());
+            
+            // 更新选项列表
+            UpdateDropdownOptionsList(columnConfig);
         }
     }
 }

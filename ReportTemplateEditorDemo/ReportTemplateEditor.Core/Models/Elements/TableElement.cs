@@ -1,6 +1,56 @@
 namespace ReportTemplateEditor.Core.Models.Elements
 {
     /// <summary>
+    /// 列类型枚举
+    /// </summary>
+    public enum ColumnType
+    {
+        /// <summary>
+        /// 文本输入框
+        /// </summary>
+        TextBox,
+        /// <summary>
+        /// 下拉选择框
+        /// </summary>
+        ComboBox,
+        /// <summary>
+        /// 复选框
+        /// </summary>
+        CheckBox
+    }
+
+    /// <summary>
+    /// 表格列配置
+    /// </summary>
+    public class TableColumn
+    {
+        /// <summary>
+        /// 列索引
+        /// </summary>
+        public int ColumnIndex { get; set; }
+
+        /// <summary>
+        /// 列类型
+        /// </summary>
+        public ColumnType Type { get; set; } = ColumnType.TextBox;
+
+        /// <summary>
+        /// 下拉选项列表（仅当Type为ComboBox时使用）
+        /// </summary>
+        public List<string> DropdownOptions { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 是否可编辑
+        /// </summary>
+        public bool IsEditable { get; set; } = true;
+
+        /// <summary>
+        /// 不可修改状态下的默认值
+        /// </summary>
+        public string DefaultValue { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// 表格元素
     /// </summary>
     public class TableElement : ElementBase
@@ -24,6 +74,11 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 单元格集合
         /// </summary>
         public List<TableCell> Cells { get; set; } = new List<TableCell>();
+
+        /// <summary>
+        /// 列配置集合
+        /// </summary>
+        public List<TableColumn> ColumnsConfig { get; set; } = new List<TableColumn>();
 
         /// <summary>
         /// 边框颜色

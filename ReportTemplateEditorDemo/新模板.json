@@ -1,0 +1,59 @@
+{
+  "$type": "ReportTemplateEditor.Core.Models.ReportTemplateDefinition, ReportTemplateEditor.Core",
+  "Id": "89fb70bd-2c03-460e-81f6-66515f4157e6",
+  "Name": "新模板",
+  "FilePath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\新模板.json",
+  "Version": "1.0",
+  "Type": "病理报告",
+  "HospitalId": "",
+  "PageWidth": 210.0,
+  "PageHeight": 297.0,
+  "MarginLeft": 10.0,
+  "MarginRight": 10.0,
+  "MarginTop": 10.0,
+  "MarginBottom": 10.0,
+  "Orientation": "Portrait",
+  "BackgroundColor": "#FFFFFF",
+  "Elements": {
+    "$type": "System.Collections.Generic.List`1[[ReportTemplateEditor.Core.Models.Elements.ElementBase, ReportTemplateEditor.Core]], System.Private.CoreLib",
+    "$values": [
+      {
+        "$type": "ReportTemplateEditor.Core.Models.Elements.LabelElement, ReportTemplateEditor.Core",
+        "Type": "Label",
+        "Text": "新标签",
+        "FontFamily": "Microsoft YaHei",
+        "FontSize": 12.0,
+        "FontWeight": "Normal",
+        "FontStyle": "Normal",
+        "ForegroundColor": "#000000",
+        "TextAlignment": "Left",
+        "Id": "f74f1f36-e3fb-4ee0-bcfc-23694882b195",
+        "X": 61.66666666666663,
+        "Y": 19.28,
+        "Width": 80.0,
+        "Height": 25.333333333333332,
+        "IsVisible": true,
+        "Rotation": 0.0,
+        "ZIndex": 0,
+        "BackgroundColor": "#FFFFFF",
+        "BorderColor": "#000000",
+        "BorderWidth": 0.0,
+        "BorderStyle": "Solid",
+        "CornerRadius": 0.0,
+        "Opacity": 1.0,
+        "ShadowColor": "#000000",
+        "ShadowDepth": 0.0,
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Top"
+      }
+    ]
+  },
+  "DataBindings": {
+    "$type": "System.Collections.Generic.List`1[[ReportTemplateEditor.Core.Models.TemplateDataBinding, ReportTemplateEditor.Core]], System.Private.CoreLib",
+    "$values": []
+  },
+  "IsDefault": false,
+  "IsForceUpdate": false,
+  "CreateTime": "2026-01-15T10:52:49.6397687+08:00",
+  "UpdateTime": "2026-01-15T10:52:49.6439837+08:00"
+}

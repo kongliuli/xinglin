@@ -14,6 +14,45 @@
         <!-- 纸张阴影效果 -->
         <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
         
+        <!-- 打印纸纹理画笔 -->
+        <VisualBrush x:Key="PaperTextureBrush" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute" Viewbox="0,0,20,20" ViewboxUnits="Absolute">
+            <VisualBrush.Visual>
+                <Grid Width="20" Height="20" Background="#FFFFFF">
+                    <!-- 轻微的纹理效果 -->
+                    <Path Stroke="#F0F0F0" StrokeThickness="0.5">
+                        <Path.Data>
+                            <GeometryGroup>
+                                <LineGeometry StartPoint="0,0" EndPoint="20,20"/>
+                                <LineGeometry StartPoint="0,5" EndPoint="20,25"/>
+                                <LineGeometry StartPoint="0,10" EndPoint="20,30"/>
+                                <LineGeometry StartPoint="0,15" EndPoint="20,35"/>
+                                <LineGeometry StartPoint="-5,0" EndPoint="15,20"/>
+                                <LineGeometry StartPoint="-10,0" EndPoint="10,20"/>
+                                <LineGeometry StartPoint="5,0" EndPoint="25,20"/>
+                                <LineGeometry StartPoint="10,0" EndPoint="30,20"/>
+                            </GeometryGroup>
+                        </Path.Data>
+                    </Path>
+                </Grid>
+            </VisualBrush.Visual>
+        </VisualBrush>
+        
+        <!-- 设计画布背景画笔 - 结合网格和纸张纹理 -->
+        <DrawingBrush x:Key="DesignCanvasBackground" TileMode="Tile" Viewport="0,0,10,10" ViewportUnits="Absolute" Viewbox="0,0,10,10" ViewboxUnits="Absolute">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <!-- 纸张纹理背景 -->
+                    <GeometryDrawing Brush="{StaticResource PaperTextureBrush}">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,10,10"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <!-- 网格线 -->
+                    <GeometryDrawing Brush="#EEEEEE" Geometry="M0,10 L10,10 M10,0 L10,10"/>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+        
         <!-- 工具箱项样式 -->
         <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
             <Setter Property="Padding" Value="5"/>
@@ -218,8 +257,8 @@
                     <Viewbox x:Name="designViewbox" Stretch="Uniform" UseLayoutRounding="True" SnapsToDevicePixels="True">
                         <Grid>
                             <!-- 打印纸背景 -->
-                            <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{DynamicResource PaperShadow}">
-                                <Canvas x:Name="designCanvas" Width="210" Height="297" Background="#FFFFFF" 
+                            <Border Background="{StaticResource DesignCanvasBackground}" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{DynamicResource PaperShadow}">
+                                <Canvas x:Name="designCanvas" Width="210" Height="297" Background="Transparent" 
                                         AllowDrop="True" Drop="DesignCanvas_Drop" 
                                         DragOver="DesignCanvas_DragOver" 
                                         PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
@@ -229,72 +268,14 @@
                                         PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
                                         PreviewMouseWheel="designCanvas_PreviewMouseWheel">
                                     <!-- 网格背景 -->
-                                    <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False">
-                                        <!-- 水平网格线 -->
-                                        <Path Stroke="#EEEEEE" StrokeThickness="0.5">
-                                            <Path.Data>
-                                                <GeometryGroup>
-                                                    <LineGeometry StartPoint="0,10" EndPoint="210,10"/>
-                                                    <LineGeometry StartPoint="0,20" EndPoint="210,20"/>
-                                                    <LineGeometry StartPoint="0,30" EndPoint="210,30"/>
-                                                    <LineGeometry StartPoint="0,40" EndPoint="210,40"/>
-                                                    <LineGeometry StartPoint="0,50" EndPoint="210,50"/>
-                                                    <LineGeometry StartPoint="0,60" EndPoint="210,60"/>
-                                                    <LineGeometry StartPoint="0,70" EndPoint="210,70"/>
-                                                    <LineGeometry StartPoint="0,80" EndPoint="210,80"/>
-                                                    <LineGeometry StartPoint="0,90" EndPoint="210,90"/>
-                                                    <LineGeometry StartPoint="0,100" EndPoint="210,100"/>
-                                                    <LineGeometry StartPoint="0,110" EndPoint="210,110"/>
-                                                    <LineGeometry StartPoint="0,120" EndPoint="210,120"/>
-                                                    <LineGeometry StartPoint="0,130" EndPoint="210,130"/>
-                                                    <LineGeometry StartPoint="0,140" EndPoint="210,140"/>
-                                                    <LineGeometry StartPoint="0,150" EndPoint="210,150"/>
-                                                    <LineGeometry StartPoint="0,160" EndPoint="210,160"/>
-                                                    <LineGeometry StartPoint="0,170" EndPoint="210,170"/>
-                                                    <LineGeometry StartPoint="0,180" EndPoint="210,180"/>
-                                                    <LineGeometry StartPoint="0,190" EndPoint="210,190"/>
-                                                    <LineGeometry StartPoint="0,200" EndPoint="210,200"/>
-                                                    <LineGeometry StartPoint="0,210" EndPoint="210,210"/>
-                                                    <LineGeometry StartPoint="0,220" EndPoint="210,220"/>
-                                                    <LineGeometry StartPoint="0,230" EndPoint="210,230"/>
-                                                    <LineGeometry StartPoint="0,240" EndPoint="210,240"/>
-                                                    <LineGeometry StartPoint="0,250" EndPoint="210,250"/>
-                                                    <LineGeometry StartPoint="0,260" EndPoint="210,260"/>
-                                                    <LineGeometry StartPoint="0,270" EndPoint="210,270"/>
-                                                    <LineGeometry StartPoint="0,280" EndPoint="210,280"/>
-                                                    <LineGeometry StartPoint="0,290" EndPoint="210,290"/>
-                                                </GeometryGroup>
-                                            </Path.Data>
-                                        </Path>
-                                        
-                                        <!-- 垂直网格线 -->
-                                        <Path Stroke="#EEEEEE" StrokeThickness="0.5">
-                                            <Path.Data>
-                                                <GeometryGroup>
-                                                    <LineGeometry StartPoint="10,0" EndPoint="10,297"/>
-                                                    <LineGeometry StartPoint="20,0" EndPoint="20,297"/>
-                                                    <LineGeometry StartPoint="30,0" EndPoint="30,297"/>
-                                                    <LineGeometry StartPoint="40,0" EndPoint="40,297"/>
-                                                    <LineGeometry StartPoint="50,0" EndPoint="50,297"/>
-                                                    <LineGeometry StartPoint="60,0" EndPoint="60,297"/>
-                                                    <LineGeometry StartPoint="70,0" EndPoint="70,297"/>
-                                                    <LineGeometry StartPoint="80,0" EndPoint="80,297"/>
-                                                    <LineGeometry StartPoint="90,0" EndPoint="90,297"/>
-                                                    <LineGeometry StartPoint="100,0" EndPoint="100,297"/>
-                                                    <LineGeometry StartPoint="110,0" EndPoint="110,297"/>
-                                                    <LineGeometry StartPoint="120,0" EndPoint="120,297"/>
-                                                    <LineGeometry StartPoint="130,0" EndPoint="130,297"/>
-                                                    <LineGeometry StartPoint="140,0" EndPoint="140,297"/>
-                                                    <LineGeometry StartPoint="150,0" EndPoint="150,297"/>
-                                                    <LineGeometry StartPoint="160,0" EndPoint="160,297"/>
-                                                    <LineGeometry StartPoint="170,0" EndPoint="170,297"/>
-                                                    <LineGeometry StartPoint="180,0" EndPoint="180,297"/>
-                                                    <LineGeometry StartPoint="190,0" EndPoint="190,297"/>
-                                                    <LineGeometry StartPoint="200,0" EndPoint="200,297"/>
-                                                </GeometryGroup>
-                                            </Path.Data>
-                                        </Path>
+                                    <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False" Background="Transparent">
                                     </Canvas>
+                                    
+                                    <!-- 页边距显示 - 上下左右四个边距区域 -->
+                                    <Border x:Name="leftMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                    <Border x:Name="topMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                    <Border x:Name="rightMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                    <Border x:Name="bottomMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
                                     
                                     <!-- 模板元素将动态添加到这里 -->
                                 </Canvas>

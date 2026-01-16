@@ -61,7 +61,7 @@ namespace ReportTemplateEditor.Designer {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ReportTemplateEditor.Designer;V1.0.0.0;component/datapathselectorwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ReportTemplateEditor.Designer;component/datapathselectorwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\DataPathSelectorWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

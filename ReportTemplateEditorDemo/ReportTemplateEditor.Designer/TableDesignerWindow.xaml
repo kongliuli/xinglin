@@ -226,6 +226,52 @@
                                 </Grid>
                             </StackPanel>
                         </GroupBox>
+                        
+                        <!-- 列类型配置 -->
+                        <GroupBox Header="列类型配置" Margin="0,10,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="列类型：" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" x:Name="cmbColumnType" Margin="5" SelectionChanged="cmbColumnType_SelectionChanged">
+                                        <ComboBoxItem Content="文本输入框" Tag="TextBox" IsSelected="True"/>
+                                        <ComboBoxItem Content="下拉选择框" Tag="ComboBox"/>
+                                        <ComboBoxItem Content="复选框" Tag="CheckBox"/>
+                                    </ComboBox>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="可编辑：" VerticalAlignment="Center"/>
+                                    <CheckBox Grid.Row="1" Grid.Column="1" x:Name="chkColumnEditable" Margin="5" Checked="chkColumnEditable_Checked" Unchecked="chkColumnEditable_Unchecked"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="默认值：" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtDefaultValue" Margin="5" TextChanged="txtDefaultValue_TextChanged"/>
+                                </Grid>
+                                
+                                <!-- 下拉选项配置 -->
+                                <StackPanel Margin="5" Visibility="Collapsed" x:Name="dropdownOptionsPanel">
+                                    <TextBlock Text="下拉选项：" FontWeight="Medium" Margin="0,5,0,0"/>
+                                    <Grid Margin="0,5,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="txtNewOption" Grid.Column="0" Margin="0,0,5,0"/>
+                                        <Button x:Name="btnAddOption" Grid.Column="1" Content="添加" Margin="0,0,5,0" Click="btnAddOption_Click"/>
+                                        <Button x:Name="btnRemoveOption" Grid.Column="2" Content="删除" Click="btnRemoveOption_Click"/>
+                                    </Grid>
+                                    <ListBox x:Name="lstDropdownOptions" Margin="0,5,0,0" Height="100" SelectionMode="Single"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

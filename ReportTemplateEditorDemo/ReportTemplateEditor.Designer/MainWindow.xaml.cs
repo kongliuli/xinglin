@@ -56,7 +56,7 @@ namespace ReportTemplateEditor.Designer
         private double _gridSize = 10;
         
         // 上次使用的模板路径
-        private string _lastTemplatePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        private string _lastTemplatePath = @"D:\Code\杏林\ReportTemplateEditorDemo";
 
         // 元素包装类，用于关联UI元素和模型
         private List<UIElementWrapper> _elementWrappers = new List<UIElementWrapper>();
@@ -345,6 +345,67 @@ namespace ReportTemplateEditor.Designer
             string orientationText = _currentTemplate.Orientation == "Portrait" ? "纵向" : "横向";
             string sizeText = $"{_currentTemplate.PageWidth}×{_currentTemplate.PageHeight} mm";
             canvasTitleText.Text = $"设计画布 - {sizeText} ({orientationText})";
+            
+            // 更新页边距显示
+            UpdatePageMargins();
+        }
+        
+        /// <summary>
+        /// 更新页面页边距显示
+        /// </summary>
+        private void UpdatePageMargins()
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 获取当前系统DPI
+            var dpiScale = VisualTreeHelper.GetDpi(this);
+            double mmToPixel = dpiScale.PixelsPerInchX / 25.4;
+            
+            // 设置固定页边距宽度为2.5mm
+            double marginWidth = 2.5 * mmToPixel;
+            
+            // 更新左页边距
+            if (leftMargin != null)
+            {
+                Canvas.SetLeft(leftMargin, 0);
+                Canvas.SetTop(leftMargin, 0);
+                leftMargin.Width = marginWidth;
+                leftMargin.Height = designCanvas.Height;
+                Canvas.SetZIndex(leftMargin, 0);
+            }
+            
+            // 更新上页边距
+            if (topMargin != null)
+            {
+                Canvas.SetLeft(topMargin, marginWidth);
+                Canvas.SetTop(topMargin, 0);
+                topMargin.Width = designCanvas.Width - 2 * marginWidth;
+                topMargin.Height = marginWidth;
+                Canvas.SetZIndex(topMargin, 0);
+            }
+            
+            // 更新右页边距
+            if (rightMargin != null)
+            {
+                Canvas.SetLeft(rightMargin, designCanvas.Width - marginWidth);
+                Canvas.SetTop(rightMargin, 0);
+                rightMargin.Width = marginWidth;
+                rightMargin.Height = designCanvas.Height;
+                Canvas.SetZIndex(rightMargin, 0);
+            }
+            
+            // 更新下页边距
+            if (bottomMargin != null)
+            {
+                Canvas.SetLeft(bottomMargin, marginWidth);
+                Canvas.SetTop(bottomMargin, designCanvas.Height - marginWidth);
+                bottomMargin.Width = designCanvas.Width - 2 * marginWidth;
+                bottomMargin.Height = marginWidth;
+                Canvas.SetZIndex(bottomMargin, 0);
+            }
         }
 
         /// <summary>
@@ -464,15 +525,18 @@ namespace ReportTemplateEditor.Designer
             if (textElement.IsRichText && !string.IsNullOrEmpty(textElement.RichText))
             {
                 // 创建富文本控件
-                var richTextBox = new RichTextBox
-                {
-                    Width = textElement.Width,
-                    Height = textElement.Height,
-                    IsReadOnly = true,
-                    Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(textElement.BackgroundColor)),
-                    Cursor = Cursors.Hand,
-                    Padding = new Thickness(2)
-                };
+            var richTextBox = new RichTextBox
+            {
+                IsReadOnly = true,
+                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(textElement.BackgroundColor)),
+                Cursor = Cursors.Hand,
+                Padding = new Thickness(2),
+                // 不设置固定宽度和高度，让控件根据内容和字号自动调整大小
+                Width = double.NaN,
+                Height = double.NaN,
+                MinWidth = 50,
+                MinHeight = 20
+            };
 
                 // 加载富文本内容
                 try
@@ -492,6 +556,12 @@ namespace ReportTemplateEditor.Designer
 
                 // 添加鼠标事件
                 richTextBox.MouseDown += Element_MouseDown;
+                
+                // 添加大小变化的事件处理
+                richTextBox.SizeChanged += (sender, e) => UpdateRichTextSize(richTextBox, textElement);
+                
+                // 初始化时更新大小
+                UpdateRichTextSize(richTextBox, textElement);
 
                 return richTextBox;
             }
@@ -507,7 +577,12 @@ namespace ReportTemplateEditor.Designer
                 Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(textElement.BackgroundColor)),
                 TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), textElement.TextAlignment),
                 Padding = new Thickness(2),
-                Cursor = Cursors.Hand
+                Cursor = Cursors.Hand,
+                // 不设置固定宽度和高度，让控件根据内容和字号自动调整大小
+                Width = double.NaN,
+                Height = double.NaN,
+                MinWidth = 50,
+                MinHeight = 20
             };
 
             // 设置文本内容，支持数据绑定
@@ -515,6 +590,12 @@ namespace ReportTemplateEditor.Designer
 
             // 添加鼠标事件
             textBlock.MouseDown += Element_MouseDown;
+            
+            // 添加大小变化的事件处理
+            textBlock.SizeChanged += (sender, e) => UpdateTextSize(textBlock, textElement);
+            
+            // 初始化时更新大小
+            UpdateTextSize(textBlock, textElement);
 
             return textBlock;
         }
@@ -572,6 +653,52 @@ namespace ReportTemplateEditor.Designer
                 {
                     wrapper.SelectionBorder.Width = textBlock.ActualWidth;
                     wrapper.SelectionBorder.Height = textBlock.ActualHeight;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 更新文本元素大小
+        /// </summary>
+        /// <param name="textBlock">文本块</param>
+        /// <param name="textElement">文本元素</param>
+        private void UpdateTextSize(TextBlock textBlock, TemplateElements.TextElement textElement)
+        {
+            if (textBlock.ActualWidth > 0 && textBlock.ActualHeight > 0)
+            {
+                // 更新模型中的大小
+                textElement.Width = textBlock.ActualWidth;
+                textElement.Height = textBlock.ActualHeight;
+
+                // 更新选择边框的大小
+                var wrapper = _elementWrappers.FirstOrDefault(w => w.ModelElement == textElement);
+                if (wrapper != null)
+                {
+                    wrapper.SelectionBorder.Width = textBlock.ActualWidth;
+                    wrapper.SelectionBorder.Height = textBlock.ActualHeight;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 更新富文本元素大小
+        /// </summary>
+        /// <param name="richTextBox">富文本框</param>
+        /// <param name="textElement">文本元素</param>
+        private void UpdateRichTextSize(RichTextBox richTextBox, TemplateElements.TextElement textElement)
+        {
+            if (richTextBox.ActualWidth > 0 && richTextBox.ActualHeight > 0)
+            {
+                // 更新模型中的大小
+                textElement.Width = richTextBox.ActualWidth;
+                textElement.Height = richTextBox.ActualHeight;
+
+                // 更新选择边框的大小
+                var wrapper = _elementWrappers.FirstOrDefault(w => w.ModelElement == textElement);
+                if (wrapper != null)
+                {
+                    wrapper.SelectionBorder.Width = richTextBox.ActualWidth;
+                    wrapper.SelectionBorder.Height = richTextBox.ActualHeight;
                 }
             }
         }
@@ -992,11 +1119,24 @@ namespace ReportTemplateEditor.Designer
                 {
                     try
                     {
-                        textBlock.Text = string.Format(textElement.FormatString, value);
+                        // 检查值是否为数值类型，确保正确处理
+                        if (value != null)
+                        {
+                            textBlock.Text = string.Format(textElement.FormatString, value);
+                        }
+                        else
+                        {
+                            textBlock.Text = textElement.Text;
+                        }
+                    }
+                    catch (FormatException)
+                    {
+                        // 格式字符串不匹配，尝试直接转换
+                        textBlock.Text = value?.ToString() ?? textElement.Text;
                     }
                     catch
                     {
-                        textBlock.Text = value?.ToString() ?? textElement.Text;
+                        textBlock.Text = textElement.Text;
                     }
                 }
                 else
@@ -1209,6 +1349,15 @@ namespace ReportTemplateEditor.Designer
                 {
                     // 更新文本元素
                     SetTextElementContent(textBlock, textElement);
+                    // 更新文本控件大小
+                    UpdateTextSize(textBlock, textElement);
+                }
+                else if (wrapper.ModelElement is TemplateElements.LabelElement labelElement && wrapper.UiElement is TextBlock labelTextBlock)
+                {
+                    // 更新标签元素
+                    labelTextBlock.Text = labelElement.Text;
+                    // 更新标签控件大小
+                    UpdateLabelSize(labelTextBlock, labelElement);
                 }
                 else if (wrapper.ModelElement is TemplateElements.TestItemElement testItem && wrapper.UiElement is Grid grid)
                 {
@@ -1600,6 +1749,8 @@ namespace ReportTemplateEditor.Designer
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.Text = textElement.Text;
+                    // 更新文本控件大小
+                    UpdateTextSize(textBlock, textElement);
                 }
             }
             else if (_primarySelectedElement?.ModelElement is TemplateElements.LabelElement labelElement)
@@ -1611,6 +1762,8 @@ namespace ReportTemplateEditor.Designer
                 if (_primarySelectedElement.UiElement is TextBlock textBlock)
                 {
                     textBlock.Text = labelElement.Text;
+                    // 更新标签控件大小
+                    UpdateLabelSize(textBlock, labelElement);
                 }
             }
         }
@@ -1660,6 +1813,8 @@ namespace ReportTemplateEditor.Designer
                     if (_primarySelectedElement.UiElement is TextBlock textBlock)
                     {
                         textBlock.FontSize = fontSize;
+                        // 更新文本控件大小
+                        UpdateTextSize(textBlock, textElement);
                     }
 
                     // 更新选择边框粗细
@@ -1678,6 +1833,8 @@ namespace ReportTemplateEditor.Designer
                     if (_primarySelectedElement.UiElement is TextBlock textBlock)
                     {
                         textBlock.FontSize = fontSize;
+                        // 更新标签控件大小
+                        UpdateLabelSize(textBlock, labelElement);
                     }
 
                     // 更新选择边框粗细
@@ -1985,8 +2142,12 @@ namespace ReportTemplateEditor.Designer
                     // 读取模板文件
                     string json = File.ReadAllText(openFileDialog.FileName);
                     
-                    // 反序列化模板
-                    var template = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportTemplateDefinition>(json);
+                    // 反序列化模板，包含类型信息以便正确处理抽象类
+                    var template = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportTemplateDefinition>(json, 
+                        new Newtonsoft.Json.JsonSerializerSettings 
+                        { 
+                            TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All 
+                        });
                     if (template == null)
                     {
                         MessageBox.Show("模板文件格式无效", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -2064,8 +2225,12 @@ namespace ReportTemplateEditor.Designer
             // 更新模板的元素列表
             _currentTemplate.Elements = _elementWrappers.Select(w => w.ModelElement).ToList();
 
-            // 序列化模板
-            string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
+            // 序列化模板，包含类型信息以便反序列化时正确处理抽象类
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented, 
+                new Newtonsoft.Json.JsonSerializerSettings 
+                { 
+                    TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All 
+                });
 
             // 保存到文件
             File.WriteAllText(filePath, json);
@@ -2304,8 +2469,12 @@ namespace ReportTemplateEditor.Designer
                     // 更新模板的元素列表
                     _currentTemplate.Elements = _elementWrappers.Select(w => w.ModelElement).ToList();
 
-                    // 序列化模板
-                    string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented);
+                    // 序列化模板，包含类型信息以便反序列化时正确处理抽象类
+                    string json = Newtonsoft.Json.JsonConvert.SerializeObject(_currentTemplate, Newtonsoft.Json.Formatting.Indented, 
+                        new Newtonsoft.Json.JsonSerializerSettings 
+                        { 
+                            TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All 
+                        });
 
                     // 保存到文件
                     File.WriteAllText(saveFileDialog.FileName, json);
@@ -2641,15 +2810,28 @@ namespace ReportTemplateEditor.Designer
                     // 获取设计结果
                     TemplateElements.TableElement designedTable = designerWindow.GetDesignResult();
                     
-                    // 更新原表格元素的属性
+                    // 保存原表格元素的位置和大小属性
+                    double originalX = tableElement.X;
+                    double originalY = tableElement.Y;
+                    double originalWidth = tableElement.Width;
+                    double originalHeight = tableElement.Height;
+                    
+                    // 更新原表格元素的属性（保留位置和大小）
                     tableElement.Rows = designedTable.Rows;
                     tableElement.Columns = designedTable.Columns;
                     tableElement.Cells = designedTable.Cells;
+                    tableElement.ColumnsConfig = designedTable.ColumnsConfig; // 新增：更新列配置
                     tableElement.BorderColor = designedTable.BorderColor;
                     tableElement.BorderWidth = designedTable.BorderWidth;
                     tableElement.CellSpacing = designedTable.CellSpacing;
                     tableElement.CellPadding = designedTable.CellPadding;
                     tableElement.BackgroundColor = designedTable.BackgroundColor;
+                    
+                    // 恢复原表格元素的位置和大小
+                    tableElement.X = originalX;
+                    tableElement.Y = originalY;
+                    tableElement.Width = originalWidth;
+                    tableElement.Height = originalHeight;
                     
                     // 更新画布上的表格UI元素
                     UpdateTableUIElement(tableElement);
@@ -2920,7 +3102,31 @@ namespace ReportTemplateEditor.Designer
         }
         
         // 元素事件
-        private void Element_MouseDown(object sender, MouseButtonEventArgs e) {}
+        private void Element_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.RightButton == MouseButtonState.Pressed)
+            {
+                return;
+            }
+            
+            // 查找元素包装器
+            var element = FindElementWrapper(sender as DependencyObject);
+            if (element != null)
+            {
+                // 选中元素
+                SelectElement(element);
+                
+                // 记录拖拽起始点
+                _dragStartPoint = e.GetPosition(designCanvas);
+                _isDragging = true;
+                
+                // 设置拖动光标
+                this.Cursor = Cursors.SizeAll;
+                
+                // 捕获鼠标
+                designCanvas.CaptureMouse();
+            }
+        }
         
         // 位置和大小属性变化事件处理程序（仅添加真正缺失的）
         private void posXTextBox_TextChanged(object sender, TextChangedEventArgs e)
