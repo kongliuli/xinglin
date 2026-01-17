@@ -98,6 +98,16 @@ namespace ReportTemplateEditor.Core.Models
         public bool IsForceUpdate { get; set; } = false;
 
         /// <summary>
+        /// 全局字体大小
+        /// </summary>
+        public double GlobalFontSize { get; set; } = 12;
+
+        /// <summary>
+        /// 是否启用全局字体设置
+        /// </summary>
+        public bool EnableGlobalFontSize { get; set; } = false;
+    
+        /// <summary>
         /// 创建时间
         /// </summary>
         public DateTime CreateTime { get; set; } = DateTime.Now;

@@ -81,6 +81,16 @@ namespace ReportTemplateEditor.Core.Models.Elements
         public List<TableColumn> ColumnsConfig { get; set; } = new List<TableColumn>();
 
         /// <summary>
+        /// 列宽集合（毫米）
+        /// </summary>
+        public List<double> ColumnWidths { get; set; } = new List<double>();
+
+        /// <summary>
+        /// 行高集合（毫米）
+        /// </summary>
+        public List<double> RowHeights { get; set; } = new List<double>();
+
+        /// <summary>
         /// 边框颜色
         /// </summary>
         public string BorderColor { get; set; } = "#000000";

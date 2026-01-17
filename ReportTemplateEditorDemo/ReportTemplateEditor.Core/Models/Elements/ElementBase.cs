@@ -101,5 +101,10 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 垂直对齐方式
         /// </summary>
         public string VerticalAlignment { get; set; } = "Top";
+
+        /// <summary>
+        /// 是否忽略全局字体设置
+        /// </summary>
+        public bool IgnoreGlobalFontSize { get; set; } = false;
     }
 }

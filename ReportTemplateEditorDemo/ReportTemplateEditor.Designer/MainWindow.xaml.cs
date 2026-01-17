@@ -287,14 +287,27 @@ namespace ReportTemplateEditor.Designer
                 BackgroundColor = "#FFFFFF"
             };
 
-            // 根据纸张尺寸计算并设置合适的网格大小
             CalculateAndSetGridSize();
-
-            // 更新画布尺寸以匹配模板设置
-            UpdateCanvasSize();
+            
+            string specificTemplatePath = @"d:\Code\杏林\ReportTemplateEditorDemo\郑州美视美康眼科医院检验报告单.json";
+            if (File.Exists(specificTemplatePath))
+            {
+                LoadSpecificTemplate(specificTemplatePath);
+            }
+            else
+            {
+                UpdateCanvasSize();
+            }
 
             // 确保方向按钮状态与模板方向一致
             orientationToggle.IsChecked = _currentTemplate.Orientation == "Landscape";
+            
+            // 初始化页边距输入框
+            txtMargin.Text = _currentTemplate.MarginLeft.ToString("F1");
+            
+            // 初始化全局字体设置
+            txtGlobalFontSize.Text = _currentTemplate.GlobalFontSize.ToString();
+            chkEnableGlobalFontSize.IsChecked = _currentTemplate.EnableGlobalFontSize;
         }
 
         /// <summary>
@@ -349,6 +362,71 @@ namespace ReportTemplateEditor.Designer
             
             // 更新页边距显示
             UpdatePageMargins();
+        }
+        
+        /// <summary>
+        /// 适配所有控件元素到当前纸张尺寸
+        /// </summary>
+        private void AdaptElementsToPageSize()
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            // 计算纸张尺寸变化比例
+            double widthRatio = _currentTemplate.PageWidth / 210.0;
+            double heightRatio = _currentTemplate.PageHeight / 297.0;
+            
+            // 遍历所有元素，调整位置和大小
+            foreach (var wrapper in _elementWrappers)
+            {
+                var element = wrapper.ModelElement;
+                
+                // 调整元素位置
+                element.X = element.X * widthRatio;
+                element.Y = element.Y * heightRatio;
+                
+                // 调整元素大小（对于某些元素类型）
+                if (element is TemplateElements.TextElement textElement)
+                {
+                    textElement.Width = textElement.Width * widthRatio;
+                    textElement.Height = textElement.Height * heightRatio;
+                }
+                else if (element is TemplateElements.TableElement tableElement)
+                {
+                    tableElement.Width = tableElement.Width * widthRatio;
+                    tableElement.Height = tableElement.Height * heightRatio;
+                }
+                else if (element is TemplateElements.LabelElement labelElement)
+                {
+                    labelElement.Width = labelElement.Width * widthRatio;
+                    labelElement.Height = labelElement.Height * heightRatio;
+                }
+                else if (element is TemplateElements.LabelInputBoxElement labelInputBoxElement)
+                {
+                    labelInputBoxElement.X = labelInputBoxElement.X * widthRatio;
+                    labelInputBoxElement.Y = labelInputBoxElement.Y * heightRatio;
+                    labelInputBoxElement.InputWidth = labelInputBoxElement.InputWidth * widthRatio;
+                    labelInputBoxElement.InputHeight = labelInputBoxElement.InputHeight * heightRatio;
+                }
+                
+                // 更新UI元素的位置和大小
+                Canvas.SetLeft(wrapper.UiElement, element.X);
+                Canvas.SetTop(wrapper.UiElement, element.Y);
+                
+                if (wrapper.UiElement is FrameworkElement frameworkElement)
+                {
+                    frameworkElement.Width = element.Width;
+                    frameworkElement.Height = element.Height;
+                }
+                
+                // 更新选择边框的位置和大小
+                wrapper.SelectionBorder.Width = element.Width;
+                wrapper.SelectionBorder.Height = element.Height;
+                Canvas.SetLeft(wrapper.SelectionBorder, element.X);
+                Canvas.SetTop(wrapper.SelectionBorder, element.Y);
+            }
         }
         
         /// <summary>
@@ -766,6 +844,301 @@ namespace ReportTemplateEditor.Designer
         }
 
         /// <summary>
+        /// 创建标签输入框UI元素
+        /// </summary>
+        /// <param name="labelInputBox">标签输入框元素</param>
+        /// <returns>UI元素</returns>
+        private UIElement CreateLabelInputBoxUIElement(TemplateElements.LabelInputBoxElement labelInputBox)
+        {
+            var grid = new Grid
+            {
+                Background = Brushes.Transparent,
+                Cursor = Cursors.Hand
+            };
+
+            // 根据标签位置定义布局
+            switch (labelInputBox.LabelPosition.ToLower())
+            {
+                case "left":
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelInputBox.InputWidth, GridUnitType.Pixel) });
+                    break;
+                case "top":
+                    grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(labelInputBox.InputHeight, GridUnitType.Pixel) });
+                    break;
+                case "right":
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelInputBox.InputWidth, GridUnitType.Pixel) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+                    break;
+                default:
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelInputBox.InputWidth, GridUnitType.Pixel) });
+                    break;
+            }
+
+            // 创建标签
+            var label = new TextBlock
+            {
+                Text = labelInputBox.LabelText,
+                FontSize = labelInputBox.LabelFontSize,
+                FontWeight = labelInputBox.LabelFontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.LabelForegroundColor)),
+                Background = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.LabelBackgroundColor)),
+                Padding = new Thickness(5),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            // 创建输入框
+            var textBox = new TextBox
+            {
+                Text = labelInputBox.DefaultValue,
+                Width = labelInputBox.InputWidth,
+                Height = labelInputBox.InputHeight,
+                Background = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.InputBackgroundColor)),
+                BorderBrush = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.InputBorderColor)),
+                BorderThickness = new Thickness(labelInputBox.InputBorderWidth),
+                Padding = new Thickness(5),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsEnabled = false,
+                Focusable = false
+            };
+
+            // 根据标签位置设置元素位置
+            switch (labelInputBox.LabelPosition.ToLower())
+            {
+                case "left":
+                    Grid.SetColumn(label, 0);
+                    Grid.SetColumn(textBox, 1);
+                    break;
+                case "top":
+                    Grid.SetRow(label, 0);
+                    Grid.SetRow(textBox, 1);
+                    break;
+                case "right":
+                    Grid.SetColumn(textBox, 0);
+                    Grid.SetColumn(label, 1);
+                    break;
+                default:
+                    Grid.SetColumn(label, 0);
+                    Grid.SetColumn(textBox, 1);
+                    break;
+            }
+
+            grid.Children.Add(label);
+            grid.Children.Add(textBox);
+
+            // 设置位置
+            Canvas.SetLeft(grid, labelInputBox.X);
+            Canvas.SetTop(grid, labelInputBox.Y);
+            Canvas.SetZIndex(grid, labelInputBox.ZIndex);
+
+            // 添加鼠标事件
+            grid.MouseDown += Element_MouseDown;
+
+            return grid;
+        }
+
+        /// <summary>
+        /// 应用列宽设置到表格Grid
+        /// </summary>
+        /// <param name="grid">表格Grid</param>
+        /// <param name="tableElement">表格元素</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        private void ApplyColumnWidths(Grid grid, TemplateElements.TableElement tableElement, double mmToPixel)
+        {
+            for (int col = 0; col < tableElement.Columns; col++)
+            {
+                double columnWidth = tableElement.ColumnWidths != null && col < tableElement.ColumnWidths.Count 
+                    ? tableElement.ColumnWidths[col] 
+                    : (tableElement.Width - tableElement.CellSpacing * (tableElement.Columns + 1)) / tableElement.Columns;
+                
+                grid.ColumnDefinitions[col].Width = new GridLength(columnWidth * mmToPixel, GridUnitType.Pixel);
+            }
+        }
+
+        /// <summary>
+        /// 自动计算并应用列宽
+        /// </summary>
+        /// <param name="grid">表格Grid</param>
+        /// <param name="tableElement">表格元素</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        private void AutoCalculateColumnWidths(Grid grid, TableElement tableElement, double mmToPixel)
+        {
+            // 为每列计算最大内容宽度
+            for (int col = 0; col < tableElement.Columns; col++)
+            {
+                double maxContentWidth = 0;
+                
+                // 遍历该列的所有单元格
+                for (int row = 0; row < tableElement.Rows; row++)
+                {
+                    var cell = tableElement.Cells?.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                    if (cell != null)
+                    {
+                        double contentWidth = MeasureCellContentWidth(cell, mmToPixel);
+                        if (contentWidth > maxContentWidth)
+                        {
+                            maxContentWidth = contentWidth;
+                        }
+                    }
+                }
+                
+                // 设置列宽为最大内容宽度（最小10mm）
+                double columnWidth = Math.Max(maxContentWidth, 10);
+                
+                // 确保ColumnWidths集合已初始化
+                if (tableElement.ColumnWidths == null)
+                {
+                    tableElement.ColumnWidths = new List<double>();
+                }
+                
+                // 扩展集合到足够的大小
+                while (tableElement.ColumnWidths.Count <= col)
+                {
+                    tableElement.ColumnWidths.Add(20);
+                }
+                
+                tableElement.ColumnWidths[col] = columnWidth;
+                grid.ColumnDefinitions[col].Width = new GridLength(columnWidth * mmToPixel, GridUnitType.Pixel);
+            }
+        }
+
+        /// <summary>
+        /// 计算并应用行高设置到表格Grid
+        /// </summary>
+        /// <param name="grid">表格Grid</param>
+        /// <param name="tableElement">表格元素</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        /// <param name="cellBorders">单元格边框映射</param>
+        private void CalculateAndApplyRowHeights(Grid grid, TemplateElements.TableElement tableElement, double mmToPixel, Dictionary<(int, int), Border> cellBorders)
+        {
+            for (int row = 0; row < tableElement.Rows; row++)
+            {
+                double rowHeight = tableElement.RowHeights != null && row < tableElement.RowHeights.Count
+                    ? tableElement.RowHeights[row]
+                    : CalculateRowHeight(row, tableElement, cellBorders, mmToPixel);
+                
+                grid.RowDefinitions[row].Height = new GridLength(rowHeight * mmToPixel, GridUnitType.Pixel);
+            }
+        }
+
+        /// <summary>
+        /// 计算指定行的最大高度
+        /// </summary>
+        /// <param name="row">行索引</param>
+        /// <param name="tableElement">表格元素</param>
+        /// <param name="cellBorders">单元格边框映射</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        /// <returns>行高（毫米）</returns>
+        private double CalculateRowHeight(int row, TemplateElements.TableElement tableElement, Dictionary<(int, int), Border> cellBorders, double mmToPixel)
+        {
+            double maxHeight = 0;
+            
+            for (int col = 0; col < tableElement.Columns; col++)
+            {
+                var cellData = tableElement.Cells?.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                if (cellData != null && cellBorders.TryGetValue((row, col), out Border cellBorder))
+                {
+                    var cellContent = cellBorder.Child;
+                    if (cellContent is TextBlock textBlock)
+                    {
+                        textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        double contentHeight = MeasureCellContentHeight(cellData, mmToPixel);
+                        double cellPadding = tableElement.CellPadding * 2;
+                        double cellHeight = contentHeight + cellPadding;
+                        if (cellHeight > maxHeight)
+                        {
+                            maxHeight = cellHeight;
+                        }
+                    }
+                    else if (cellContent is ComboBox comboBox)
+                    {
+                        comboBox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        double contentHeight = MeasureCellContentHeight(cellData, mmToPixel);
+                        double cellPadding = tableElement.CellPadding * 2;
+                        double cellHeight = contentHeight + cellPadding;
+                        if (cellHeight > maxHeight)
+                        {
+                            maxHeight = cellHeight;
+                        }
+                    }
+                    else if (cellContent is CheckBox checkBox)
+                    {
+                        checkBox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        double contentHeight = MeasureCellContentHeight(cellData, mmToPixel);
+                        double cellPadding = tableElement.CellPadding * 2;
+                        double cellHeight = contentHeight + cellPadding;
+                        if (cellHeight > maxHeight)
+                        {
+                            maxHeight = cellHeight;
+                        }
+                    }
+                }
+            }
+            
+            return Math.Max(maxHeight, 10);
+        }
+
+        /// <summary>
+        /// 测量单元格内容的实际宽度
+        /// </summary>
+        /// <param name="cell">单元格数据</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        /// <returns>内容宽度（毫米）</returns>
+        private double MeasureCellContentWidth(TemplateElements.TableCell cell, double mmToPixel)
+        {
+            // 创建临时TextBlock来测量文本宽度
+            var textBlock = new TextBlock
+            {
+                Text = cell.Content ?? string.Empty,
+                FontFamily = new FontFamily(cell.FontFamily),
+                FontSize = cell.FontSize,
+                FontWeight = cell.FontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal,
+                TextWrapping = TextWrapping.NoWrap
+            };
+            
+            // 测量文本宽度
+            textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            double contentWidth = textBlock.DesiredSize.Width / mmToPixel;
+            
+            // 添加单元格内边距
+            double cellPadding = 5;
+            
+            return contentWidth + cellPadding * 2;
+        }
+
+        /// <summary>
+        /// 测量单元格内容的实际高度
+        /// </summary>
+        /// <param name="cell">单元格数据</param>
+        /// <param name="mmToPixel">毫米到像素的转换因子</param>
+        /// <returns>内容高度（毫米）</returns>
+        private double MeasureCellContentHeight(TemplateElements.TableCell cell, double mmToPixel)
+        {
+            // 创建临时TextBlock来测量文本高度
+            var textBlock = new TextBlock
+            {
+                Text = cell.Content ?? string.Empty,
+                FontFamily = new FontFamily(cell.FontFamily),
+                FontSize = cell.FontSize,
+                FontWeight = cell.FontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal,
+                TextWrapping = TextWrapping.Wrap,
+                Width = 100
+            };
+            
+            // 测量文本高度
+            textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            double contentHeight = textBlock.DesiredSize.Height / mmToPixel;
+            
+            // 添加单元格内边距
+            double cellPadding = 5;
+            
+            return contentHeight + cellPadding * 2;
+        }
+
+        /// <summary>
         /// 创建表格UI元素
         /// </summary>
         private UIElement CreateTableUIElement(TemplateElements.TableElement tableElement)
@@ -775,6 +1148,32 @@ namespace ReportTemplateEditor.Designer
                 Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(tableElement.BackgroundColor)),
                 Cursor = Cursors.Hand
             };
+
+            var dpiScale = VisualTreeHelper.GetDpi(this);
+            double mmToPixel = dpiScale.PixelsPerInchX / 25.4;
+            var brushConverter = new BrushConverter();
+            var fontWeightConverter = new FontWeightConverter();
+
+            // 确保ColumnWidths已初始化
+            if (tableElement.ColumnWidths == null || tableElement.ColumnWidths.Count == 0)
+            {
+                tableElement.ColumnWidths = new List<double>();
+                double availableWidth = tableElement.Width - tableElement.CellSpacing * (tableElement.Columns + 1);
+                for (int i = 0; i < tableElement.Columns; i++)
+                {
+                    tableElement.ColumnWidths.Add(availableWidth / tableElement.Columns);
+                }
+            }
+
+            // 确保RowHeights已初始化
+            if (tableElement.RowHeights == null || tableElement.RowHeights.Count == 0)
+            {
+                tableElement.RowHeights = new List<double>();
+                for (int i = 0; i < tableElement.Rows; i++)
+                {
+                    tableElement.RowHeights.Add(20); // 默认20mm行高
+                }
+            }
 
             // 确保ColumnsConfig已初始化
             if (tableElement.ColumnsConfig == null)
@@ -809,6 +1208,9 @@ namespace ReportTemplateEditor.Designer
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             }
 
+            // 单元格边框映射，用于行高计算
+            var cellBorders = new Dictionary<(int, int), Border>();
+
             // 创建单元格
             for (int row = 0; row < tableElement.Rows; row++)
             {
@@ -840,8 +1242,7 @@ namespace ReportTemplateEditor.Designer
                         tableElement.Cells.Add(cellData);
                     }
 
-                    // 安全转换颜色
-                    BrushConverter brushConverter = new BrushConverter();
+                    // 安全转换颜色（使用缓存的转换器）
                     Brush backgroundBrush = null;
                     Brush foregroundBrush = null;
                     try
@@ -863,7 +1264,7 @@ namespace ReportTemplateEditor.Designer
                         Background = backgroundBrush ?? Brushes.White
                     };
 
-                    // 解析字体粗细
+                    // 解析字体粗细（使用缓存的转换器）
                     FontWeight fontWeight = FontWeights.Normal;
                     if (cellData.FontWeight == "Bold")
                     {
@@ -873,7 +1274,7 @@ namespace ReportTemplateEditor.Designer
                     {
                         try
                         {
-                            fontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(cellData.FontWeight);
+                            fontWeight = (FontWeight)fontWeightConverter.ConvertFromString(cellData.FontWeight);
                         }
                         catch { }
                     }
@@ -1001,6 +1402,9 @@ namespace ReportTemplateEditor.Designer
                     Grid.SetColumn(cell, col);
                     grid.Children.Add(cell);
                     
+                    // 保存边框引用用于行高计算
+                    cellBorders[(row, col)] = cell;
+                    
                     // 为单元格边框添加鼠标事件，确保可以拖拽整个表格
                     cell.MouseDown += (sender, e) =>
                     {
@@ -1020,6 +1424,26 @@ namespace ReportTemplateEditor.Designer
                     }
                 }
             }
+
+            // 自动计算列宽和行高（如果未设置）
+            if (tableElement.ColumnWidths == null || tableElement.ColumnWidths.Count == 0 || 
+                tableElement.ColumnWidths.All(w => w <= 0))
+            {
+                AutoCalculateColumnWidths(grid, tableElement, mmToPixel);
+            }
+
+            if (tableElement.RowHeights == null || tableElement.RowHeights.Count == 0 || 
+                tableElement.RowHeights.All(h => h <= 0))
+            {
+                // 重新计算行高（会使用新的列宽）
+                CalculateAndApplyRowHeights(grid, tableElement, mmToPixel, cellBorders);
+            }
+
+            // 应用列宽设置
+            ApplyColumnWidths(grid, tableElement, mmToPixel);
+
+            // 计算并应用行高设置
+            CalculateAndApplyRowHeights(grid, tableElement, mmToPixel, cellBorders);
 
             // 添加鼠标事件
             grid.MouseDown += Element_MouseDown;
@@ -1781,6 +2205,34 @@ namespace ReportTemplateEditor.Designer
                 dataPathTextBox.IsEnabled = false;
                 formatStringTextBox.IsEnabled = true; // 支持格式字符串设置
             }
+            else if (element is TemplateElements.LabelInputBoxElement labelInputBoxElement)
+            {
+                // 启用标签输入框属性
+                posXTextBox.IsEnabled = true;
+                posYTextBox.IsEnabled = true;
+                widthTextBox.IsEnabled = true;
+                heightTextBox.IsEnabled = true;
+                visibleCheckBox.IsEnabled = true;
+                rotationTextBox.IsEnabled = true;
+                zIndexTextBox.IsEnabled = true;
+                opacitySlider.IsEnabled = true;
+                backgroundColorTextBox.IsEnabled = false;
+                borderColorTextBox.IsEnabled = false;
+                borderWidthTextBox.IsEnabled = false;
+                borderStyleComboBox.IsEnabled = false;
+                cornerRadiusTextBox.IsEnabled = false;
+                shadowColorTextBox.IsEnabled = false;
+                shadowDepthTextBox.IsEnabled = false;
+                textAlignmentComboBox.IsEnabled = false;
+                verticalAlignmentComboBox.IsEnabled = false;
+                foregroundColorTextBox.IsEnabled = false;
+                textBackgroundColorTextBox.IsEnabled = false;
+                dataPathTextBox.IsEnabled = false;
+                formatStringTextBox.IsEnabled = false;
+                
+                // 更新标签输入框属性
+                UpdateLabelInputBoxPropertyPanel(labelInputBoxElement);
+            }
             else
             {
                 // 禁用文本属性
@@ -1795,6 +2247,86 @@ namespace ReportTemplateEditor.Designer
                 textBackgroundColorTextBox.IsEnabled = false;
                 dataPathTextBox.IsEnabled = false;
                 formatStringTextBox.IsEnabled = false;
+            }
+        }
+
+        /// <summary>
+        /// 更新标签输入框属性面板
+        /// </summary>
+        /// <param name="labelInputBox">标签输入框元素</param>
+        private void UpdateLabelInputBoxPropertyPanel(TemplateElements.LabelInputBoxElement labelInputBox)
+        {
+            if (txtLabelText != null)
+            {
+                txtLabelText.Text = labelInputBox.LabelText;
+            }
+            
+            if (cmbLabelPosition != null)
+            {
+                var positionItem = cmbLabelPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string?)item.Tag == labelInputBox.LabelPosition);
+                if (positionItem != null)
+                {
+                    cmbLabelPosition.SelectedItem = positionItem;
+                }
+            }
+            
+            if (txtLabelFontSize != null)
+            {
+                txtLabelFontSize.Text = labelInputBox.LabelFontSize.ToString();
+            }
+            
+            if (cmbLabelFontWeight != null)
+            {
+                var fontWeightItem = cmbLabelFontWeight.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string?)item.Tag == labelInputBox.LabelFontWeight);
+                if (fontWeightItem != null)
+                {
+                    cmbLabelFontWeight.SelectedItem = fontWeightItem;
+                }
+            }
+            
+            if (txtLabelForegroundColor != null)
+            {
+                txtLabelForegroundColor.Text = labelInputBox.LabelForegroundColor;
+            }
+            
+            if (txtLabelBackgroundColor != null)
+            {
+                txtLabelBackgroundColor.Text = labelInputBox.LabelBackgroundColor;
+            }
+            
+            if (txtInputWidth != null)
+            {
+                txtInputWidth.Text = labelInputBox.InputWidth.ToString();
+            }
+            
+            if (txtInputHeight != null)
+            {
+                txtInputHeight.Text = labelInputBox.InputHeight.ToString();
+            }
+            
+            if (txtDefaultValue != null)
+            {
+                txtDefaultValue.Text = labelInputBox.DefaultValue;
+            }
+            
+            if (txtPlaceholder != null)
+            {
+                txtPlaceholder.Text = labelInputBox.Placeholder;
+            }
+            
+            if (txtInputBackgroundColor != null)
+            {
+                txtInputBackgroundColor.Text = labelInputBox.InputBackgroundColor;
+            }
+            
+            if (txtInputBorderColor != null)
+            {
+                txtInputBorderColor.Text = labelInputBox.InputBorderColor;
+            }
+            
+            if (txtInputBorderWidth != null)
+            {
+                txtInputBorderWidth.Text = labelInputBox.InputBorderWidth.ToString();
             }
         }
 
@@ -1830,7 +2362,13 @@ namespace ReportTemplateEditor.Designer
                     AddElementToCanvas(element);
                 }
             }
-            
+
+            // 如果启用了全局字体设置，应用全局字体
+            if (_currentTemplate.EnableGlobalFontSize)
+            {
+                ApplyGlobalFontSize();
+            }
+
             // 如果有选中元素，重新选中
             if (_primarySelectedElement != null)
             {
@@ -2325,9 +2863,9 @@ namespace ReportTemplateEditor.Designer
             };
 
             var horizontalGeometryGroup = new GeometryGroup();
-            for (double y = 0; y <= _currentTemplate.PageHeight; y += currentGridSize)
+            for (double y = 0; y <= designCanvas.Height; y += currentGridSize * mmToPixel)
             {
-                horizontalGeometryGroup.Children.Add(new LineGeometry(new Point(0, y), new Point(_currentTemplate.PageWidth, y)));
+                horizontalGeometryGroup.Children.Add(new LineGeometry(new Point(0, y), new Point(designCanvas.Width, y)));
             }
             horizontalLines.Data = horizontalGeometryGroup;
             gridCanvas.Children.Add(horizontalLines);
@@ -2340,9 +2878,9 @@ namespace ReportTemplateEditor.Designer
             };
 
             var verticalGeometryGroup = new GeometryGroup();
-            for (double x = 0; x <= _currentTemplate.PageWidth; x += currentGridSize)
+            for (double x = 0; x <= designCanvas.Width; x += currentGridSize * mmToPixel)
             {
-                verticalGeometryGroup.Children.Add(new LineGeometry(new Point(x, 0), new Point(x, _currentTemplate.PageHeight)));
+                verticalGeometryGroup.Children.Add(new LineGeometry(new Point(x, 0), new Point(x, designCanvas.Height)));
             }
             verticalLines.Data = verticalGeometryGroup;
             gridCanvas.Children.Add(verticalLines);
@@ -2426,7 +2964,14 @@ namespace ReportTemplateEditor.Designer
                         }
                     }
 
+                    // 适配所有控件元素到当前纸张尺寸
+                    AdaptElementsToPageSize();
+
                     statusText.Text = string.Format("已打开模板: {0}", openFileDialog.FileName);
+                    
+                    // 更新全局字体设置UI
+                    txtGlobalFontSize.Text = _currentTemplate.GlobalFontSize.ToString();
+                    chkEnableGlobalFontSize.IsChecked = _currentTemplate.EnableGlobalFontSize;
                 }
                 catch (Exception ex)
                 {
@@ -2434,6 +2979,83 @@ namespace ReportTemplateEditor.Designer
                 }
             }
         }
+        
+        /// <summary>
+        /// 加载指定的模板文件
+        /// </summary>
+        /// <param name="filePath">模板文件路径</param>
+        private void LoadSpecificTemplate(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show($"模板文件不存在: {filePath}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string json = File.ReadAllText(filePath);
+                var template = Newtonsoft.Json.JsonConvert.DeserializeObject<ReportTemplateDefinition>(json,
+                    new Newtonsoft.Json.JsonSerializerSettings
+                    {
+                        TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All
+                    });
+                
+                if (template == null)
+                {
+                    MessageBox.Show("模板文件格式无效", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _currentTemplate = template;
+                _currentTemplate.FilePath = filePath;
+                _lastTemplatePath = System.IO.Path.GetDirectoryName(filePath) ?? _lastTemplatePath;
+
+                UpdateCanvasSize();
+
+                designCanvas.Children.Clear();
+                _elementWrappers.Clear();
+                _selectedElements.Clear();
+                _primarySelectedElement = null;
+
+                DrawGrid();
+
+                if (_currentTemplate.Elements != null)
+                {
+                    foreach (var element in _currentTemplate.Elements)
+                    {
+                        AddElementToCanvas(element);
+                    }
+                }
+
+                // 强制更新布局以确保表格正确渲染
+                Dispatcher.Invoke(() => 
+                {
+                    designCanvas.UpdateLayout();
+                    foreach (var wrapper in _elementWrappers)
+                    {
+                        if (wrapper.UiElement is FrameworkElement fe)
+                        {
+                            fe.UpdateLayout();
+                        }
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Loaded);
+
+                // 适配所有控件元素到当前纸张尺寸
+                AdaptElementsToPageSize();
+
+                statusText.Text = $"已加载模板: {System.IO.Path.GetFileName(filePath)}";
+                
+                // 更新全局字体设置UI
+                txtGlobalFontSize.Text = _currentTemplate.GlobalFontSize.ToString();
+                chkEnableGlobalFontSize.IsChecked = _currentTemplate.EnableGlobalFontSize;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载模板失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         /// <summary>
         /// 保存模板
         /// </summary>
@@ -3116,7 +3738,9 @@ namespace ReportTemplateEditor.Designer
                     tableElement.Rows = designedTable.Rows;
                     tableElement.Columns = designedTable.Columns;
                     tableElement.Cells = designedTable.Cells;
-                    tableElement.ColumnsConfig = designedTable.ColumnsConfig; // 新增：更新列配置
+                    tableElement.ColumnsConfig = designedTable.ColumnsConfig;
+                    tableElement.ColumnWidths = designedTable.ColumnWidths;
+                    tableElement.RowHeights = designedTable.RowHeights;
                     tableElement.BorderColor = designedTable.BorderColor;
                     tableElement.BorderWidth = designedTable.BorderWidth;
                     tableElement.CellSpacing = designedTable.CellSpacing;
@@ -3326,17 +3950,37 @@ namespace ReportTemplateEditor.Designer
         /// </summary>
         private void paperSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if(txtCustomWidth is null || txtCustomHeight is null || customSizeSeparator is null)
+                return;
             if (paperSizeComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 string paperSize = selectedItem.Tag.ToString();
                 bool isLandscape = orientationToggle?.IsChecked == true;
 
+                // 显示/隐藏自定义尺寸输入框
+                bool isCustom = (paperSize == "Custom");
+                txtCustomWidth.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+                txtCustomHeight.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+                customSizeSeparator.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+
                 if(_currentTemplate is null)
                     return;
 
-                // 更新纸张大小
+                // 根据纸张大小更新模板尺寸
                 switch (paperSize)
                 {
+                    case "A3":
+                        if (isLandscape)
+                        {
+                            _currentTemplate.PageWidth = 420;
+                            _currentTemplate.PageHeight = 297;
+                        }
+                        else
+                        {
+                            _currentTemplate.PageWidth = 297;
+                            _currentTemplate.PageHeight = 420;
+                        }
+                        break;
                     case "A4":
                         if (isLandscape)
                         {
@@ -3361,10 +4005,53 @@ namespace ReportTemplateEditor.Designer
                             _currentTemplate.PageHeight = 210;
                         }
                         break;
+                    case "Letter":
+                        if (isLandscape)
+                        {
+                            _currentTemplate.PageWidth = 279;
+                            _currentTemplate.PageHeight = 216;
+                        }
+                        else
+                        {
+                            _currentTemplate.PageWidth = 216;
+                            _currentTemplate.PageHeight = 279;
+                        }
+                        break;
+                    case "Legal":
+                        if (isLandscape)
+                        {
+                            _currentTemplate.PageWidth = 356;
+                            _currentTemplate.PageHeight = 216;
+                        }
+                        else
+                        {
+                            _currentTemplate.PageWidth = 216;
+                            _currentTemplate.PageHeight = 356;
+                        }
+                        break;
+                    case "Custom":
+                        if (double.TryParse(txtCustomWidth.Text, out double customWidth) &&
+                            double.TryParse(txtCustomHeight.Text, out double customHeight))
+                        {
+                            if (isLandscape)
+                            {
+                                _currentTemplate.PageWidth = customHeight;
+                                _currentTemplate.PageHeight = customWidth;
+                            }
+                            else
+                            {
+                                _currentTemplate.PageWidth = customWidth;
+                                _currentTemplate.PageHeight = customHeight;
+                            }
+                        }
+                        break;
                 }
 
                 // 更新画布尺寸
                 UpdateCanvasSize();
+
+                // 适配所有控件元素到当前纸张尺寸
+                AdaptElementsToPageSize();
 
                 // 根据新的纸张尺寸重新计算并设置网格大小
                 CalculateAndSetGridSize();
@@ -3386,6 +4073,9 @@ namespace ReportTemplateEditor.Designer
             // 更新画布尺寸
             UpdateCanvasSize();
 
+            // 适配所有控件元素到当前纸张尺寸
+            AdaptElementsToPageSize();
+
             // 根据新的页面尺寸重新计算并设置网格大小
             CalculateAndSetGridSize();
         }
@@ -3406,10 +4096,220 @@ namespace ReportTemplateEditor.Designer
             // 更新画布尺寸
             UpdateCanvasSize();
 
+            // 适配所有控件元素到当前纸张尺寸
+            AdaptElementsToPageSize();
+
             // 根据新的页面尺寸重新计算并设置网格大小
-            CalculateAndSetGridSize();
+                CalculateAndSetGridSize();
         }
         
+        /// <summary>
+        /// 页边距文本变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txtMargin_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (double.TryParse(txtMargin.Text, out double newMargin))
+            {
+                if (newMargin < 0)
+                {
+                    MessageBox.Show("页边距不能小于0", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    txtMargin.Text = _currentTemplate.MarginLeft.ToString("F1");
+                    return;
+                }
+                
+                if (newMargin > 50)
+                {
+                    MessageBox.Show("页边距不能超过50毫米", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    txtMargin.Text = _currentTemplate.MarginLeft.ToString("F1");
+                    return;
+                }
+                if(_currentTemplate is not null)
+                {
+                    // 统一设置四个边距
+                    _currentTemplate.MarginLeft = newMargin;
+                    _currentTemplate.MarginTop = newMargin;
+                    _currentTemplate.MarginRight = newMargin;
+                    _currentTemplate.MarginBottom = newMargin;
+
+                    // 更新画布尺寸
+                    UpdateCanvasSize();
+                }
+            }
+            else
+            {
+                MessageBox.Show("请输入有效的页边距值", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// 全局字体大小文本变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txtGlobalFontSize_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            if (double.TryParse(txtGlobalFontSize.Text, out double newFontSize))
+            {
+                if (newFontSize < 8 || newFontSize > 72)
+                {
+                    MessageBox.Show("字体大小必须在8-72之间", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    txtGlobalFontSize.Text = _currentTemplate.GlobalFontSize.ToString();
+                    return;
+                }
+
+                _currentTemplate.GlobalFontSize = newFontSize;
+
+                if (chkEnableGlobalFontSize.IsChecked == true)
+                {
+                    ApplyGlobalFontSize();
+                }
+            }
+            else
+            {
+                MessageBox.Show("请输入有效的字体大小值", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// 启用全局字体设置
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkEnableGlobalFontSize_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            _currentTemplate.EnableGlobalFontSize = true;
+            ApplyGlobalFontSize();
+        }
+
+        /// <summary>
+        /// 禁用全局字体设置
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkEnableGlobalFontSize_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            _currentTemplate.EnableGlobalFontSize = false;
+        }
+
+        /// <summary>
+        /// 应用全局字体大小到所有控件
+        /// </summary>
+        private void ApplyGlobalFontSize()
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            foreach (var wrapper in _elementWrappers)
+            {
+                if (wrapper.ModelElement.IgnoreGlobalFontSize)
+                {
+                    continue;
+                }
+
+                if (wrapper.ModelElement is TemplateElements.TextElement textElement)
+                {
+                    textElement.FontSize = _currentTemplate.GlobalFontSize;
+                    if (wrapper.UiElement is TextBlock textBlock)
+                    {
+                        textBlock.FontSize = _currentTemplate.GlobalFontSize;
+                    }
+                }
+                else if (wrapper.ModelElement is TemplateElements.LabelElement labelElement)
+                {
+                    labelElement.FontSize = _currentTemplate.GlobalFontSize;
+                    if (wrapper.UiElement is TextBlock textBlock)
+                    {
+                        textBlock.FontSize = _currentTemplate.GlobalFontSize;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 忽略全局字体设置（选中）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkIgnoreGlobalFontSize_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement != null)
+            {
+                _primarySelectedElement.ModelElement.IgnoreGlobalFontSize = true;
+            }
+        }
+
+        /// <summary>
+        /// 忽略全局字体设置（取消选中）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void chkIgnoreGlobalFontSize_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement != null)
+            {
+                _primarySelectedElement.ModelElement.IgnoreGlobalFontSize = false;
+                
+                // 如果启用了全局字体设置，立即应用
+                if (_currentTemplate.EnableGlobalFontSize)
+                {
+                    ApplyGlobalFontSizeToElement(_primarySelectedElement.ModelElement);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 应用全局字体大小到单个元素
+        /// </summary>
+        /// <param name="element">元素</param>
+        private void ApplyGlobalFontSizeToElement(TemplateElements.ElementBase element)
+        {
+            if (_currentTemplate == null)
+            {
+                return;
+            }
+            
+            if (element.IgnoreGlobalFontSize)
+            {
+                return;
+            }
+
+            if (element is TemplateElements.TextElement textElement)
+            {
+                textElement.FontSize = _currentTemplate.GlobalFontSize;
+                if (_primarySelectedElement?.UiElement is TextBlock textBlock && _primarySelectedElement.ModelElement == textElement)
+                {
+                    textBlock.FontSize = _currentTemplate.GlobalFontSize;
+                }
+            }
+            else if (element is TemplateElements.LabelElement labelElement)
+            {
+                labelElement.FontSize = _currentTemplate.GlobalFontSize;
+                if (_primarySelectedElement?.UiElement is TextBlock textBlock && _primarySelectedElement.ModelElement == labelElement)
+                {
+                    textBlock.FontSize = _currentTemplate.GlobalFontSize;
+                }
+            }
+        }
+
         // 元素事件
         private void Element_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -3641,6 +4541,137 @@ namespace ReportTemplateEditor.Designer
             }
         }
         
+        // 标签输入框属性变化事件处理程序
+        private void txtLabelText_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.LabelText = txtLabelText.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtLabelFontSize_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox && double.TryParse(txtLabelFontSize.Text, out double fontSize))
+            {
+                labelInputBox.LabelFontSize = fontSize;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtLabelForegroundColor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.LabelForegroundColor = txtLabelForegroundColor.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtLabelBackgroundColor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.LabelBackgroundColor = txtLabelBackgroundColor.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtInputWidth_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox && double.TryParse(txtInputWidth.Text, out double width))
+            {
+                labelInputBox.InputWidth = width;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtInputHeight_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox && double.TryParse(txtInputHeight.Text, out double height))
+            {
+                labelInputBox.InputHeight = height;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtDefaultValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.DefaultValue = txtDefaultValue.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtPlaceholder_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.Placeholder = txtPlaceholder.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtInputBackgroundColor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.InputBackgroundColor = txtInputBackgroundColor.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtInputBorderColor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox)
+            {
+                labelInputBox.InputBorderColor = txtInputBorderColor.Text;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        private void txtInputBorderWidth_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_primarySelectedElement?.ModelElement is TemplateElements.LabelInputBoxElement labelInputBox && double.TryParse(txtInputBorderWidth.Text, out double borderWidth))
+            {
+                labelInputBox.InputBorderWidth = borderWidth;
+                UpdateLabelInputBoxUI(labelInputBox);
+            }
+        }
+        
+        /// <summary>
+        /// 更新标签输入框UI
+        /// </summary>
+        /// <param name="labelInputBox">标签输入框元素</param>
+        private void UpdateLabelInputBoxUI(TemplateElements.LabelInputBoxElement labelInputBox)
+        {
+            if (_primarySelectedElement?.UiElement is Grid grid)
+            {
+                // 更新标签
+                if (grid.Children[0] is TextBlock label)
+                {
+                    label.Text = labelInputBox.LabelText;
+                    label.FontSize = labelInputBox.LabelFontSize;
+                    label.FontWeight = labelInputBox.LabelFontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal;
+                    label.Foreground = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.LabelForegroundColor));
+                    label.Background = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.LabelBackgroundColor));
+                }
+                
+                // 更新输入框
+                if (grid.Children[1] is TextBox textBox)
+                {
+                    textBox.Text = labelInputBox.DefaultValue;
+                    textBox.Width = labelInputBox.InputWidth;
+                    textBox.Height = labelInputBox.InputHeight;
+                    textBox.Background = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.InputBackgroundColor));
+                    textBox.BorderBrush = (Brush)(new BrushConverter().ConvertFrom(labelInputBox.InputBorderColor));
+                    textBox.BorderThickness = new Thickness(labelInputBox.InputBorderWidth);
+                }
+            }
+        }
+        
         /// <summary>
         /// 更新图层列表
         /// </summary>
@@ -3830,6 +4861,26 @@ namespace ReportTemplateEditor.Designer
                     border.Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(element.BackgroundColor));
                 }
             }
+        }
+
+        private void btnLabelForegroundColor_Click(object sender,RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnInputBackgroundColor_Click(object sender,RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnInputBorderColor_Click(object sender,RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnLabelBackgroundColor_Click(object sender,RoutedEventArgs e)
+        {
+
         }
     }
 }

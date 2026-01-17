@@ -33,3 +33,5 @@ D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\DataPathSelectorWindow.baml
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\TableDesignerWindow.baml
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\TableDesignerWindow.g.cs
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\Controls\ElementWrapper.baml
+d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\Controls\ElementWrapper.g.cs

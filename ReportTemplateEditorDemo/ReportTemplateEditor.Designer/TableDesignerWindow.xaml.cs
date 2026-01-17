@@ -18,7 +18,7 @@ namespace ReportTemplateEditor.Designer
         private TableElement _tableElement;
         
         // 当前选中的单元格
-        private TableCell _selectedCell;
+        private TableCell? _selectedCell;
         
         // 当前选中的行和列索引
         private int _selectedRowIndex = -1;
@@ -105,6 +105,14 @@ namespace ReportTemplateEditor.Designer
                     });
                 }
             }
+
+            // 深拷贝列宽和行高
+            copy.ColumnWidths = source.ColumnWidths != null 
+                ? new List<double>(source.ColumnWidths) 
+                : new List<double>();
+            copy.RowHeights = source.RowHeights != null 
+                ? new List<double>(source.RowHeights) 
+                : new List<double>();
             
             return copy;
         }
@@ -119,6 +127,17 @@ namespace ReportTemplateEditor.Designer
             tablePreviewGrid.RowDefinitions.Clear();
             tablePreviewGrid.ColumnDefinitions.Clear();
             _cellUIMap.Clear();
+            
+            // 初始化列索引选择ComboBox
+            cmbColumnIndex.Items.Clear();
+            for (int i = 0; i < _tableElement.Columns; i++)
+            {
+                cmbColumnIndex.Items.Add(new ComboBoxItem { Content = $"列{i + 1}" });
+            }
+            if (cmbColumnIndex.Items.Count > 0)
+            {
+                cmbColumnIndex.SelectedIndex = 0;
+            }
             
             // 添加行定义
             for (int i = 0; i < _tableElement.Rows; i++)
@@ -180,9 +199,12 @@ namespace ReportTemplateEditor.Designer
             
             // 安全转换颜色，避免null引用
             BrushConverter brushConverter = new BrushConverter();
-            Brush borderBrush = (Brush)brushConverter.ConvertFrom(_tableElement.BorderColor) ?? Brushes.Black;
-            Brush backgroundBrush = (Brush)brushConverter.ConvertFrom(cell.BackgroundColor) ?? Brushes.White;
-            Brush foregroundBrush = (Brush)brushConverter.ConvertFrom(cell.ForegroundColor) ?? Brushes.Black;
+            var borderBrushObj = brushConverter.ConvertFrom(_tableElement.BorderColor);
+            Brush borderBrush = borderBrushObj as Brush ?? Brushes.Black;
+            var backgroundBrushObj = brushConverter.ConvertFrom(cell.BackgroundColor);
+            Brush backgroundBrush = backgroundBrushObj as Brush ?? Brushes.White;
+            var foregroundBrushObj = brushConverter.ConvertFrom(cell.ForegroundColor);
+            Brush foregroundBrush = foregroundBrushObj as Brush ?? Brushes.Black;
             
             // 创建单元格边框
             Border cellBorder = new Border
@@ -240,11 +262,14 @@ namespace ReportTemplateEditor.Designer
             txtSelectionInfo.Text = string.Format("行 {0}, 列 {1}", row + 1, col + 1);
             
             // 查找选中的单元格
-            _selectedCell = _tableElement.Cells.Find(c => c.RowIndex == row && c.ColumnIndex == col);
-            if (_selectedCell == null)
+            var foundCell = _tableElement.Cells.Find(c => c.RowIndex == row && c.ColumnIndex == col);
+            if (foundCell == null)
             {
+                _selectedCell = null;
                 return;
             }
+            
+            _selectedCell = foundCell;
             
             // 更新属性面板
             UpdatePropertyPanel();
@@ -272,28 +297,36 @@ namespace ReportTemplateEditor.Designer
             chkIsEditable.IsChecked = _selectedCell.IsEditable;
             
             // 更新字体大小
-            var fontSizeItem = cmbFontSize.Items.Cast<ComboBoxItem>().FirstOrDefault(item => double.Parse( item .Tag.ToString() )== _selectedCell.FontSize);
+            var fontSizeItem = cmbFontSize.Items.Cast<ComboBoxItem>().FirstOrDefault(item => SafeConvertToDouble(item.Tag, _selectedCell.FontSize) == _selectedCell.FontSize);
             if (fontSizeItem != null)
             {
                 cmbFontSize.SelectedItem = fontSizeItem;
             }
             
             // 更新字体粗细
-            var fontWeightItem = cmbFontWeight.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == _selectedCell.FontWeight);
+            var fontWeightItem = cmbFontWeight.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string?)item.Tag == _selectedCell.FontWeight);
             if (fontWeightItem != null)
             {
                 cmbFontWeight.SelectedItem = fontWeightItem;
             }
             
             // 更新文本对齐
-            var textAlignmentItem = cmbTextAlignment.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == _selectedCell.TextAlignment);
+            var textAlignmentItem = cmbTextAlignment.Items.Cast<ComboBoxItem>().FirstOrDefault(item => 
+            {
+                var tagValue = item.Tag?.ToString();
+                return tagValue == _selectedCell.TextAlignment;
+            });
             if (textAlignmentItem != null)
             {
                 cmbTextAlignment.SelectedItem = textAlignmentItem;
             }
             
             // 更新垂直对齐
-            var verticalAlignmentItem = cmbVerticalAlignment.Items.Cast<ComboBoxItem>().FirstOrDefault(item => (string)item.Tag == _selectedCell.VerticalAlignment);
+            var verticalAlignmentItem = cmbVerticalAlignment.Items.Cast<ComboBoxItem>().FirstOrDefault(item => 
+            {
+                var tagValue = item.Tag?.ToString();
+                return tagValue == _selectedCell.VerticalAlignment;
+            });
             if (verticalAlignmentItem != null)
             {
                 cmbVerticalAlignment.SelectedItem = verticalAlignmentItem;
@@ -370,13 +403,16 @@ namespace ReportTemplateEditor.Designer
             {
                 int row = kvp.Key.Item1;
                 Border cellBorder = kvp.Value;
-                cellBorder.Style = row == 0 ? (Style)Resources["HeaderCellBorderStyle"] : (Style)Resources["CellBorderStyle"];
+                var headerStyle = Resources["HeaderCellBorderStyle"] as Style;
+                var cellStyle = Resources["CellBorderStyle"] as Style;
+                cellBorder.Style = row == 0 ? headerStyle : cellStyle;
             }
             
             // 高亮选中的单元格
             if (_cellUIMap.TryGetValue((_selectedRowIndex, _selectedColumnIndex), out Border selectedBorder))
             {
-                selectedBorder.Style = (Style)Resources["SelectedCellBorderStyle"];
+                var selectedStyle = Resources["SelectedCellBorderStyle"] as Style;
+                selectedBorder.Style = selectedStyle;
             }
         }
         
@@ -391,7 +427,8 @@ namespace ReportTemplateEditor.Designer
             }
             
             // 更新边框
-            cellBorder.Background = (Brush)(new BrushConverter().ConvertFrom(_selectedCell.BackgroundColor));
+            var bgBrushObj = new BrushConverter().ConvertFrom(_selectedCell.BackgroundColor);
+            cellBorder.Background = bgBrushObj as Brush;
             
             // 更新文本块
             if (cellBorder.Child is TextBlock textBlock)
@@ -399,9 +436,10 @@ namespace ReportTemplateEditor.Designer
                 textBlock.Text = _selectedCell.Content;
                 textBlock.FontSize = _selectedCell.FontSize;
                 textBlock.FontWeight = _selectedCell.FontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal;
-                textBlock.Foreground = (Brush)(new BrushConverter().ConvertFrom(_selectedCell.ForegroundColor));
-                textBlock.TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), _selectedCell.TextAlignment);
-                textBlock.VerticalAlignment = (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), _selectedCell.VerticalAlignment);
+                var fgBrushObj = new BrushConverter().ConvertFrom(_selectedCell.ForegroundColor);
+                textBlock.Foreground = fgBrushObj as Brush;
+                textBlock.TextAlignment = SafeConvertToTextAlignment(_selectedCell.TextAlignment, TextAlignment.Left);
+                textBlock.VerticalAlignment = SafeConvertToVerticalAlignment(_selectedCell.VerticalAlignment, VerticalAlignment.Top);
             }
         }
         
@@ -547,7 +585,7 @@ namespace ReportTemplateEditor.Designer
         {
             if (_selectedCell != null && cmbFontSize.SelectedItem is ComboBoxItem item)
             {
-                _selectedCell.FontSize = (double)item.Tag;
+                _selectedCell.FontSize = double.Parse(item.Tag.ToString());
                 UpdateCellUI();
             }
         }
@@ -675,7 +713,8 @@ namespace ReportTemplateEditor.Designer
             var columnConfig = _tableElement.ColumnsConfig.Find(c => c.ColumnIndex == _selectedColumnIndex);
             if (columnConfig != null)
             {
-                columnConfig.Type = (ColumnType)Enum.Parse(typeof(ColumnType), (string)selectedItem.Tag);
+                var tagValue = selectedItem?.Tag;
+                columnConfig.Type = SafeConvertToColumnType(tagValue, ColumnType.TextBox);
                 
                 // 更新下拉选项面板可见性
                 dropdownOptionsPanel.Visibility = columnConfig.Type == ColumnType.ComboBox ? Visibility.Visible : Visibility.Collapsed;
@@ -791,10 +830,247 @@ namespace ReportTemplateEditor.Designer
             }
             
             // 删除选中的选项
-            columnConfig.DropdownOptions.Remove(lstDropdownOptions.SelectedItem.ToString());
+            var selectedItem = lstDropdownOptions.SelectedItem?.ToString();
+            if (selectedItem != null)
+            {
+                columnConfig.DropdownOptions.Remove(selectedItem);
+            }
             
             // 更新选项列表
             UpdateDropdownOptionsList(columnConfig);
+        }
+        
+        // ========== 列宽配置事件 ==========
+        
+        /// <summary>
+        /// 列索引选择变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cmbColumnIndex_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_tableElement == null || cmbColumnIndex.SelectedItem == null)
+            {
+                return;
+            }
+            
+            if (!(cmbColumnIndex.SelectedItem is ComboBoxItem selectedItem))
+            {
+                return;
+            }
+            
+            var contentValue = selectedItem.Content?.ToString();
+            if (contentValue == null || !int.TryParse(contentValue, out int columnIndex))
+            {
+                return;
+            }
+            
+            _selectedColumnIndex = columnIndex;
+            
+            // 更新列宽输入框
+            if (_tableElement.ColumnWidths != null && columnIndex < _tableElement.ColumnWidths.Count)
+            {
+                txtColumnWidth.Text = _tableElement.ColumnWidths[columnIndex].ToString("F2");
+            }
+            else
+            {
+                txtColumnWidth.Text = string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// 列宽文本变化事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txtColumnWidth_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // 不需要实时处理，等待用户点击应用按钮
+        }
+        
+        /// <summary>
+        /// 应用列宽按钮点击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnApplyColumnWidth_Click(object sender, RoutedEventArgs e)
+        {
+            if (_tableElement == null || _selectedColumnIndex < 0)
+            {
+                MessageBox.Show("请先选择一列", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            
+            if (double.TryParse(txtColumnWidth.Text, out double newWidth))
+            {
+                if (newWidth <= 0)
+                {
+                    MessageBox.Show("列宽必须大于0", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                
+                if (newWidth > 100)
+                {
+                    MessageBox.Show("列宽不能超过100毫米", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                
+                // 确保ColumnWidths集合已初始化
+                if (_tableElement.ColumnWidths == null)
+                {
+                    _tableElement.ColumnWidths = new List<double>();
+                }
+                
+                // 扩展集合到足够的大小
+                while (_tableElement.ColumnWidths.Count <= _selectedColumnIndex)
+                {
+                    _tableElement.ColumnWidths.Add(20);
+                }
+                
+                _tableElement.ColumnWidths[_selectedColumnIndex] = newWidth;
+                
+                // 更新表格预览
+                InitializeTablePreview();
+                
+                MessageBox.Show($"列{_selectedColumnIndex + 1}宽度已设置为{newWidth:F2}毫米", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("请输入有效的列宽数值", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    
+  
+        /// <summary>
+        /// 类型安全转换：将对象转换为ColumnType
+        /// </summary>
+        /// <param name="value">要转换的值</param>
+        /// <param name="defaultValue">默认值</param>
+        /// <returns>转换后的ColumnType</returns>
+        private ColumnType SafeConvertToColumnType(object value, ColumnType defaultValue = ColumnType.TextBox)
+        {
+            if (value == null)
+            {
+                return defaultValue;
+            }
+            
+            try
+            {
+                if (value is string stringValue)
+                {
+                    return Enum.TryParse<ColumnType>(stringValue, out var result) ? result : defaultValue;
+                }
+                else if (value is ColumnType columnType)
+                {
+                    return columnType;
+                }
+                return defaultValue;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"类型转换失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return defaultValue;
+            }
+        }
+        
+        /// <summary>
+        /// 类型安全转换：将对象转换为double
+        /// </summary>
+        /// <param name="value">要转换的值</param>
+        /// <param name="defaultValue">默认值</param>
+        /// <returns>转换后的double</returns>
+        private double SafeConvertToDouble(object value, double defaultValue = 0)
+        {
+            if (value == null)
+            {
+                return defaultValue;
+            }
+            
+            try
+            {
+                if (value is double doubleValue)
+                {
+                    return doubleValue;
+                }
+                else if (value is string stringValue)
+                {
+                    return double.TryParse(stringValue, out var result) ? result : defaultValue;
+                }
+                else if (value is int intValue)
+                {
+                    return (double)intValue;
+                }
+                return defaultValue;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"数值转换失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return defaultValue;
+            }
+        }
+        
+        /// <summary>
+        /// 类型安全转换：将对象转换为TextAlignment
+        /// </summary>
+        /// <param name="value">要转换的值</param>
+        /// <param name="defaultValue">默认值</param>
+        /// <returns>转换后的TextAlignment</returns>
+        private TextAlignment SafeConvertToTextAlignment(object value, TextAlignment defaultValue = TextAlignment.Left)
+        {
+            if (value == null)
+            {
+                return defaultValue;
+            }
+            
+            try
+            {
+                if (value is TextAlignment alignment)
+                {
+                    return alignment;
+                }
+                else if (value is string stringValue)
+                {
+                    return Enum.TryParse<TextAlignment>(stringValue, out var result) ? result : defaultValue;
+                }
+                return defaultValue;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"文本对齐转换失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return defaultValue;
+            }
+        }
+        
+        /// <summary>
+        /// 类型安全转换：将对象转换为VerticalAlignment
+        /// </summary>
+        /// <param name="value">要转换的值</param>
+        /// <param name="defaultValue">默认值</param>
+        /// <returns>转换后的VerticalAlignment</returns>
+        private VerticalAlignment SafeConvertToVerticalAlignment(object value, VerticalAlignment defaultValue = VerticalAlignment.Top)
+        {
+            if (value == null)
+            {
+                return defaultValue;
+            }
+            
+            try
+            {
+                if (value is VerticalAlignment alignment)
+                {
+                    return alignment;
+                }
+                else if (value is string stringValue)
+                {
+                    return Enum.TryParse<VerticalAlignment>(stringValue, out var result) ? result : defaultValue;
+                }
+                return defaultValue;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"垂直对齐转换失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return defaultValue;
+            }
         }
     }
 }
