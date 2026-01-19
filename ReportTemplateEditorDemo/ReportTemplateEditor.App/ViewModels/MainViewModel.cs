@@ -1,0 +1,201 @@
+using CommunityToolkit.Mvvm.Input;
+using ReportTemplateEditor.Core.Models;
+using ReportTemplateEditor.App.Models;
+using ReportTemplateEditor.App.Services;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace ReportTemplateEditor.App.ViewModels
+{
+    public partial class MainViewModel : ViewModelBase
+    {
+        private readonly ITemplateLoaderService _templateLoaderService;
+
+        public TemplateTreeViewModel TemplateTreeViewModel { get; }
+        public ControlPanelViewModel ControlPanelViewModel { get; }
+        public PdfPreviewViewModel PdfPreviewViewModel { get; }
+
+        [ObservableProperty]
+        private string _windowTitle = "报告模板编辑器";
+
+        [ObservableProperty]
+        private string _statusMessage = "就绪";
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        public ICommand OpenOtherDirectoryCommand { get; }
+        public ICommand OpenBuiltInTemplatesCommand { get; }
+        public ICommand LoadTemplateCommand { get; }
+        public ICommand SaveTemplateCommand { get; }
+        public ICommand ExitCommand { get; }
+
+        public MainViewModel(
+            ITemplateLoaderService templateLoaderService,
+            TemplateTreeViewModel templateTreeViewModel,
+            ControlPanelViewModel controlPanelViewModel,
+            PdfPreviewViewModel pdfPreviewViewModel)
+        {
+            _templateLoaderService = templateLoaderService;
+            TemplateTreeViewModel = templateTreeViewModel;
+            ControlPanelViewModel = controlPanelViewModel;
+            PdfPreviewViewModel = pdfPreviewViewModel;
+
+            OpenOtherDirectoryCommand = new RelayCommand(OpenOtherDirectory);
+            OpenBuiltInTemplatesCommand = new RelayCommand(OpenBuiltInTemplates);
+            LoadTemplateCommand = new RelayCommand<TemplateTreeItem>(LoadTemplate);
+            SaveTemplateCommand = new RelayCommand(SaveTemplate, CanExecuteSaveTemplate);
+            ExitCommand = new RelayCommand(Exit);
+
+            TemplateTreeViewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(TemplateTreeViewModel.SelectedItem))
+                {
+                    OnTemplateTreeSelectedItemChanged();
+                }
+            };
+
+            InitializeBuiltInTemplates();
+        }
+
+        private void InitializeBuiltInTemplates()
+        {
+            if (!string.IsNullOrEmpty(App.BuiltInTemplatesPath) && System.IO.Directory.Exists(App.BuiltInTemplatesPath))
+            {
+                TemplateTreeViewModel.LoadBuiltInTemplatesCommand.Execute(App.BuiltInTemplatesPath);
+            }
+        }
+
+        private void OpenOtherDirectory()
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "选择模板文件目录",
+                ShowNewFolderButton = true
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                TemplateTreeViewModel.LoadTemplatesCommand.Execute(dialog.SelectedPath);
+                StatusMessage = $"已选择目录: {dialog.SelectedPath}";
+            }
+        }
+
+        private void OpenBuiltInTemplates()
+        {
+            if (!string.IsNullOrEmpty(App.BuiltInTemplatesPath))
+            {
+                TemplateTreeViewModel.LoadBuiltInTemplatesCommand.Execute(App.BuiltInTemplatesPath);
+                StatusMessage = $"已打开内置模板目录";
+            }
+        }
+
+        private void LoadTemplate(TemplateTreeItem? item)
+        {
+            if (item == null)
+            {
+                StatusMessage = "未选择模板文件";
+                return;
+            }
+
+            if (item.Type != TreeItemType.TemplateFile)
+            {
+                StatusMessage = $"选择了 {item.Type}，请选择模板文件";
+                return;
+            }
+
+            if (string.IsNullOrEmpty(item.FullPath))
+            {
+                StatusMessage = "模板文件路径为空";
+                return;
+            }
+
+            if (!System.IO.File.Exists(item.FullPath))
+            {
+                StatusMessage = $"模板文件不存在: {item.FullPath}";
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                StatusMessage = $"正在加载模板: {item.Name}";
+
+                var template = _templateLoaderService.LoadTemplateFromFile(item.FullPath);
+                WindowTitle = $"报告模板编辑器 - {template.Name}";
+
+                var data = CreateSampleData(template);
+
+                ControlPanelViewModel.LoadTemplateCommand.Execute(template);
+                ControlPanelViewModel.UpdateDataCommand.Execute(data);
+
+                PdfPreviewViewModel.LoadTemplateCommand.Execute(template);
+                PdfPreviewViewModel.UpdateDataCommand.Execute(data);
+
+                StatusMessage = $"已加载模板: {template.Name}，包含 {template.Elements.Count} 个元素";
+            }
+            catch (System.Exception ex)
+            {
+                StatusMessage = $"加载失败: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"加载模板失败: {ex}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private object CreateSampleData(ReportTemplateDefinition template)
+        {
+            var data = new System.Dynamic.ExpandoObject();
+            var dataDict = (System.Collections.Generic.IDictionary<string, object?>)data;
+
+            foreach (var element in template.Elements)
+            {
+                if (element is ReportTemplateEditor.Core.Models.Elements.TextElement textElement &&
+                    !string.IsNullOrEmpty(textElement.DataBindingPath))
+                {
+                    if (!dataDict.ContainsKey(textElement.DataBindingPath))
+                    {
+                        dataDict[textElement.DataBindingPath] = textElement.Text;
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        private void SaveTemplate()
+        {
+            StatusMessage = "保存功能待实现";
+        }
+
+        private bool CanExecuteSaveTemplate()
+        {
+            return ControlPanelViewModel.CurrentTemplate != null;
+        }
+
+        private void Exit()
+        {
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void OnTemplateTreeSelectedItemChanged()
+        {
+            var selectedItem = TemplateTreeViewModel.SelectedItem;
+            if (selectedItem != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"选中项: {selectedItem.Name}, 类型: {selectedItem.Type}");
+                LoadTemplate(selectedItem);
+            }
+        }
+
+        partial void OnIsBusyChanged(bool value)
+        {
+            if (SaveTemplateCommand is CommunityToolkit.Mvvm.Input.IRelayCommand relayCommand)
+            {
+                relayCommand.NotifyCanExecuteChanged();
+            }
+        }
+    }
+}
