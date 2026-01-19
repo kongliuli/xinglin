@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "categories": {
+    "test-result": {
+      "id": "test-result",
+      "name": "检验结果",
+      "options": [
+        "阴性",
+        "阳性"
+      ]
+    },
+    "reference-value": {
+      "id": "reference-value",
+      "name": "参考值",
+      "options": [
+        "阴性",
+        "阳性",
+        "阴性/阳性"
+      ]
+    },
+    "gender": {
+      "id": "gender",
+      "name": "性别",
+      "options": [
+        "男",
+        "女"
+      ]
+    }
+  }
+}

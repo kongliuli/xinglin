@@ -1,5 +1,3 @@
-using System;
-
 namespace ReportTemplateEditor.Core.Models.Elements
 {
     /// <summary>
@@ -91,5 +89,85 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 输入框圆角半径
         /// </summary>
         public double InputCornerRadius { get; set; } = 0;
+
+        /// <summary>
+        /// 标签引用ID（引用SharedData/label-templates.json）
+        /// </summary>
+        public string? LabelRef { get; set; }
+
+        /// <summary>
+        /// 数据路径引用ID（引用SharedData/data-paths.json）
+        /// </summary>
+        public string? DataPathRef { get; set; }
+
+        /// <summary>
+        /// 输入框样式引用ID（引用SharedData/font-styles.json）
+        /// </summary>
+        public string? InputStyleRef { get; set; }
+
+        /// <summary>
+        /// 数据绑定路径
+        /// </summary>
+        public string DataBindingPath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 格式化字符串
+        /// </summary>
+        public string FormatString { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 标签字体名称
+        /// </summary>
+        public string LabelFontFamily { get; set; } = "Microsoft YaHei";
+
+        /// <summary>
+        /// 标签字体样式
+        /// </summary>
+        public string LabelFontStyle { get; set; } = "Normal";
+
+        /// <summary>
+        /// 标签文本对齐方式
+        /// </summary>
+        public string LabelTextAlignment { get; set; } = "Left";
+
+        /// <summary>
+        /// 标签垂直对齐方式
+        /// </summary>
+        public string LabelVerticalAlignment { get; set; } = "Center";
+
+        /// <summary>
+        /// 输入框字体名称
+        /// </summary>
+        public string InputFontFamily { get; set; } = "Microsoft YaHei";
+
+        /// <summary>
+        /// 输入框字体大小
+        /// </summary>
+        public double InputFontSize { get; set; } = 11;
+
+        /// <summary>
+        /// 输入框字体粗细
+        /// </summary>
+        public string InputFontWeight { get; set; } = "Normal";
+
+        /// <summary>
+        /// 输入框字体样式
+        /// </summary>
+        public string InputFontStyle { get; set; } = "Normal";
+
+        /// <summary>
+        /// 输入框文本颜色
+        /// </summary>
+        public string InputForegroundColor { get; set; } = "#000000";
+
+        /// <summary>
+        /// 输入框文本对齐方式
+        /// </summary>
+        public string InputTextAlignment { get; set; } = "Left";
+
+        /// <summary>
+        /// 输入框垂直对齐方式
+        /// </summary>
+        public string InputVerticalAlignment { get; set; } = "Center";
     }
 }

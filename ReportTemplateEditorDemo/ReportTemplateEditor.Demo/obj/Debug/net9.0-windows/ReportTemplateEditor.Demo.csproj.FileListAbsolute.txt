@@ -20,3 +20,9 @@ D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\obj\Debug\net9
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\obj\Debug\net9.0-windows\ReportTemplateEditor.Demo.pdb
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\obj\Debug\net9.0-windows\ReportTemplateEditor.Demo.genruntimeconfig.cache
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\obj\Debug\net9.0-windows\ref\ReportTemplateEditor.Demo.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.Caching.Abstractions.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.Caching.Memory.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.Options.dll
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Demo\bin\Debug\net9.0-windows\Microsoft.Extensions.Primitives.dll

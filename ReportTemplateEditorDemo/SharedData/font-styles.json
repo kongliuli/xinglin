@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "styles": [
+    {
+      "id": "title-style",
+      "name": "标题样式",
+      "fontFamily": "Microsoft YaHei",
+      "fontSize": 16.0,
+      "fontWeight": "Bold",
+      "fontStyle": "Normal",
+      "foregroundColor": "#000000",
+      "textAlignment": "Center",
+      "verticalAlignment": "Center"
+    },
+    {
+      "id": "label-style",
+      "name": "标签样式",
+      "fontFamily": "Microsoft YaHei",
+      "fontSize": 11.0,
+      "fontWeight": "Normal",
+      "fontStyle": "Normal",
+      "foregroundColor": "#000000",
+      "textAlignment": "Left",
+      "verticalAlignment": "Center"
+    },
+    {
+      "id": "input-style",
+      "name": "输入框样式",
+      "fontFamily": "Microsoft YaHei",
+      "fontSize": 11.0,
+      "fontWeight": "Normal",
+      "fontStyle": "Normal",
+      "foregroundColor": "#000000",
+      "textAlignment": "Left",
+      "verticalAlignment": "Center"
+    },
+    {
+      "id": "remark-style",
+      "name": "备注样式",
+      "fontFamily": "Microsoft YaHei",
+      "fontSize": 9.0,
+      "fontWeight": "Normal",
+      "fontStyle": "Normal",
+      "foregroundColor": "#000000",
+      "textAlignment": "Left",
+      "verticalAlignment": "Top"
+    }
+  ]
+}

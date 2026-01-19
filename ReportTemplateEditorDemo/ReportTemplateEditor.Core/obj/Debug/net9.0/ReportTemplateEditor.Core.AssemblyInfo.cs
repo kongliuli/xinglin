@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ReportTemplateEditor.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d410b7344d73647d3644c1bb7c28facd17940fed")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cc461107778979a4c486fb155ff5807ab070f175")]
 [assembly: System.Reflection.AssemblyProductAttribute("ReportTemplateEditor.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ReportTemplateEditor.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

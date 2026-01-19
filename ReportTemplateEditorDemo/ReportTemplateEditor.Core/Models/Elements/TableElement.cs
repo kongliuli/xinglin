@@ -48,6 +48,11 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 不可修改状态下的默认值
         /// </summary>
         public string DefaultValue { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 下拉选项类别引用ID（引用SharedData/dropdown-options.json）
+        /// </summary>
+        public string? DropdownCategoryRef { get; set; }
     }
 
     /// <summary>
@@ -195,10 +200,20 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 格式化字符串
         /// </summary>
         public string FormatString { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// 是否可编辑
         /// </summary>
         public bool IsEditable { get; set; } = false;
+
+        /// <summary>
+        /// 数据路径引用ID（引用SharedData/data-paths.json）
+        /// </summary>
+        public string? DataPathRef { get; set; }
+
+        /// <summary>
+        /// 数据路径索引（用于替换{index}占位符）
+        /// </summary>
+        public int? DataPathIndex { get; set; }
     }
 }

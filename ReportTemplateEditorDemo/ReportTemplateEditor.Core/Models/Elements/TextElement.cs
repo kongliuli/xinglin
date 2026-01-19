@@ -79,5 +79,10 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 格式化字符串
         /// </summary>
         public string FormatString { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 样式引用ID（引用SharedData/font-styles.json）
+        /// </summary>
+        public string? StyleRef { get; set; }
     }
 }

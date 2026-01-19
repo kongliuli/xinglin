@@ -1,11 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-
 using QuestPDF.Infrastructure;
-
 using ReportTemplateEditor.App.Services;
 using ReportTemplateEditor.App.ViewModels;
 using ReportTemplateEditor.App.Views;
-
+using ReportTemplateEditor.Core.Services;
 using System.Windows;
 
 using WpfApplication = System.Windows.Application;
@@ -16,17 +14,20 @@ namespace ReportTemplateEditor.App
     {
         public static ServiceProvider ServiceProvider { get; private set; } = null!;
         public static string BuiltInTemplatesPath { get; private set; } = string.Empty;
+        public static string SharedDataPath { get; private set; } = string.Empty;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            InitializeBuiltInTemplatesPath();
+            InitializeSharedDataPath();
+
             var services = new ServiceCollection();
 
             ConfigureServices(services);
 
             ServiceProvider = services.BuildServiceProvider();
-
-            InitializeBuiltInTemplatesPath();
 
             QuestPDF.Settings.License = LicenseType.Professional;
             var mainWindow = ServiceProvider.GetRequiredService<Views.MainWindow>();
@@ -35,7 +36,7 @@ namespace ReportTemplateEditor.App
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<ITemplateLoaderService, TemplateLoaderService>();
+            services.AddSingleton<ITemplateLoaderService>(sp => new TemplateLoaderService(SharedDataPath));
             services.AddSingleton<IFileWatcherService, FileWatcherService>();
             services.AddSingleton<IControlGeneratorService, ControlGeneratorService>();
             services.AddSingleton<IPdfPreviewService, PdfPreviewService>();
@@ -51,6 +52,12 @@ namespace ReportTemplateEditor.App
         {
             var appBasePath = AppDomain.CurrentDomain.BaseDirectory;
             BuiltInTemplatesPath = System.IO.Path.Combine(appBasePath, "Templates");
+        }
+
+        private void InitializeSharedDataPath()
+        {
+            var appBasePath = AppDomain.CurrentDomain.BaseDirectory;
+            SharedDataPath = System.IO.Path.Combine(appBasePath, "SharedData");
         }
     }
 }

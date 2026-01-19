@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "groups": {
+    "patient": {
+      "name": "患者信息",
+      "paths": [
+        {
+          "id": "patient-name",
+          "name": "患者姓名",
+          "path": "Patient.Name",
+          "formatString": ""
+        },
+        {
+          "id": "patient-gender",
+          "name": "患者性别",
+          "path": "Patient.Gender",
+          "formatString": ""
+        },
+        {
+          "id": "patient-age",
+          "name": "患者年龄",
+          "path": "Patient.Age",
+          "formatString": ""
+        }
+      ]
+    },
+    "report": {
+      "name": "报告信息",
+      "paths": [
+        {
+          "id": "sample-type",
+          "name": "样本类型",
+          "path": "Report.SampleType",
+          "formatString": ""
+        },
+        {
+          "id": "report-date",
+          "name": "报告时间",
+          "path": "Report.ReportDate",
+          "formatString": "yyyy-MM-dd HH:mm"
+        },
+        {
+          "id": "technician",
+          "name": "检验者",
+          "path": "Report.Technician",
+          "formatString": ""
+        },
+        {
+          "id": "reviewer",
+          "name": "审核者",
+          "path": "Report.Reviewer",
+          "formatString": ""
+        }
+      ]
+    },
+    "test-item": {
+      "name": "检验项目",
+      "paths": [
+        {
+          "id": "test-item-result",
+          "name": "检验结果",
+          "path": "TestItems[{index}].Result",
+          "formatString": ""
+        },
+        {
+          "id": "test-item-reference",
+          "name": "参考值",
+          "path": "TestItems[{index}].ReferenceRange",
+          "formatString": ""
+        },
+        {
+          "id": "test-item-method",
+          "name": "检测方法",
+          "path": "TestItems[{index}].Method",
+          "formatString": ""
+        }
+      ]
+    }
+  }
+}

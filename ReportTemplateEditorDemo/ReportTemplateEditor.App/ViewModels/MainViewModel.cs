@@ -43,7 +43,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
             OpenOtherDirectoryCommand = new RelayCommand(OpenOtherDirectory);
             OpenBuiltInTemplatesCommand = new RelayCommand(OpenBuiltInTemplates);
-            LoadTemplateCommand = new RelayCommand<TemplateTreeItem>(LoadTemplate);
+            LoadTemplateCommand = new RelayCommand<TemplateTreeItem>(LoadTemplateAsync);
             SaveTemplateCommand = new RelayCommand(SaveTemplate, CanExecuteSaveTemplate);
             ExitCommand = new RelayCommand(Exit);
 
@@ -90,7 +90,7 @@ namespace ReportTemplateEditor.App.ViewModels
             }
         }
 
-        private void LoadTemplate(TemplateTreeItem? item)
+        private async void LoadTemplateAsync(TemplateTreeItem? item)
         {
             if (item == null)
             {
@@ -121,17 +121,15 @@ namespace ReportTemplateEditor.App.ViewModels
                 IsBusy = true;
                 StatusMessage = $"正在加载模板: {item.Name}";
 
-                var template = _templateLoaderService.LoadTemplateFromFile(item.FullPath);
+                var template = await _templateLoaderService.LoadTemplateFromFileAsync(item.FullPath);
                 WindowTitle = $"报告模板编辑器 - {template.Name}";
 
                 var data = CreateSampleData(template);
 
                 ControlPanelViewModel.LoadTemplateCommand.Execute(template);
                 ControlPanelViewModel.UpdateDataCommand.Execute(data);
-
                 PdfPreviewViewModel.LoadTemplateCommand.Execute(template);
                 PdfPreviewViewModel.UpdateDataCommand.Execute(data);
-
                 StatusMessage = $"已加载模板: {template.Name}，包含 {template.Elements.Count} 个元素";
             }
             catch (System.Exception ex)
@@ -186,7 +184,7 @@ namespace ReportTemplateEditor.App.ViewModels
             if (selectedItem != null)
             {
                 System.Diagnostics.Debug.WriteLine($"选中项: {selectedItem.Name}, 类型: {selectedItem.Type}");
-                LoadTemplate(selectedItem);
+                LoadTemplateAsync(selectedItem);
             }
         }
 

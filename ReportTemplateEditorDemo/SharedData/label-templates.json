@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "categories": {
+    "patient": {
+      "name": "患者信息",
+      "labels": [
+        {
+          "id": "lbl-name",
+          "text": "姓名:",
+          "defaultDataPathRef": "patient-name"
+        },
+        {
+          "id": "lbl-gender",
+          "text": "性别:",
+          "defaultDataPathRef": "patient-gender"
+        },
+        {
+          "id": "lbl-age",
+          "text": "年龄:",
+          "defaultDataPathRef": "patient-age"
+        }
+      ]
+    },
+    "report": {
+      "name": "报告信息",
+      "labels": [
+        {
+          "id": "lbl-sample-type",
+          "text": "样本类型:",
+          "defaultDataPathRef": "sample-type"
+        },
+        {
+          "id": "lbl-report-date",
+          "text": "报告时间:",
+          "defaultDataPathRef": "report-date"
+        },
+        {
+          "id": "lbl-technician",
+          "text": "检验者:",
+          "defaultDataPathRef": "technician"
+        },
+        {
+          "id": "lbl-reviewer",
+          "text": "审核者:",
+          "defaultDataPathRef": "reviewer"
+        }
+      ]
+    },
+    "remark": {
+      "name": "备注",
+      "labels": [
+        {
+          "id": "lbl-remark",
+          "text": "备注: 此报告仅对该标本负责,仅供临床医师参考"
+        }
+      ]
+    }
+  }
+}
