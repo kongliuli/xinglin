@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace ReportTemplateEditor.Core.Models.Widgets
 {
     /// <summary>
@@ -18,7 +21,7 @@ namespace ReportTemplateEditor.Core.Models.Widgets
         /// <summary>
         /// 控件描述
         /// </summary>
-        public string Description => "用于显示文本内容的标签控件，大小随字号变化";
+        public string Description => "用于显示静态文本标签的控件";
 
         /// <summary>
         /// 控件图标
@@ -37,13 +40,15 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                 Y = 0,
                 Width = 80,
                 Height = 25,
-                Text = "新标签",
+                Text = "标签",
                 FontFamily = "Microsoft YaHei",
                 FontSize = 12,
                 FontWeight = "Normal",
                 FontStyle = "Normal",
                 TextAlignment = "Left",
+                VerticalAlignment = "Center",
                 ForegroundColor = "#000000",
+                BackgroundColor = "#FFFFFF",
                 ZIndex = 0
             };
         }
@@ -56,7 +61,6 @@ namespace ReportTemplateEditor.Core.Models.Widgets
         {
             return new List<WidgetPropertyDefinition>
             {
-                // 位置和大小属性
                 new WidgetPropertyDefinition
                 {
                     Name = "X",
@@ -101,33 +105,32 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                     MinValue = 1,
                     MaxValue = 1000
                 },
-                // 文本属性
                 new WidgetPropertyDefinition
                 {
                     Name = "Text",
-                    DisplayName = "文本内容",
-                    Description = "标签显示的文本内容",
+                    DisplayName = "标签文本",
+                    Description = "显示的标签文本",
                     Type = PropertyType.String,
-                    DefaultValue = "新标签",
-                    IsRequired = true
+                    DefaultValue = "标签",
+                    IsRequired = false
                 },
                 new WidgetPropertyDefinition
                 {
                     Name = "FontFamily",
                     DisplayName = "字体",
                     Description = "文本的字体",
-                    Type = PropertyType.String,
+                    Type = PropertyType.FontFamily,
                     DefaultValue = "Microsoft YaHei",
-                    IsRequired = true
+                    IsRequired = false
                 },
                 new WidgetPropertyDefinition
                 {
                     Name = "FontSize",
-                    DisplayName = "字号",
+                    DisplayName = "字体大小",
                     Description = "文本的字体大小",
-                    Type = PropertyType.Double,
+                    Type = PropertyType.FontSize,
                     DefaultValue = 12,
-                    IsRequired = true,
+                    IsRequired = false,
                     MinValue = 6,
                     MaxValue = 72
                 },
@@ -136,79 +139,72 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                     Name = "FontWeight",
                     DisplayName = "字体粗细",
                     Description = "文本的字体粗细",
-                    Type = PropertyType.String,
+                    Type = PropertyType.FontWeight,
                     DefaultValue = "Normal",
-                    IsRequired = true
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "FontStyle",
-                    DisplayName = "字体样式",
-                    Description = "文本的字体样式",
-                    Type = PropertyType.String,
-                    DefaultValue = "Normal",
-                    IsRequired = true
+                    IsRequired = false,
+                    Options = new Dictionary<string, object>
+                    {
+                        { "正常", "Normal" },
+                        { "粗体", "Bold" }
+                    }
                 },
                 new WidgetPropertyDefinition
                 {
                     Name = "TextAlignment",
                     DisplayName = "文本对齐",
                     Description = "文本的对齐方式",
-                    Type = PropertyType.String,
+                    Type = PropertyType.TextAlignment,
                     DefaultValue = "Left",
-                    IsRequired = true
+                    IsRequired = false,
+                    Options = new Dictionary<string, object>
+                    {
+                        { "左对齐", "Left" },
+                        { "居中", "Center" },
+                        { "右对齐", "Right" },
+                        { "两端对齐", "Justify" }
+                    }
+                },
+                new WidgetPropertyDefinition
+                {
+                    Name = "VerticalAlignment",
+                    DisplayName = "垂直对齐",
+                    Description = "文本的垂直对齐方式",
+                    Type = PropertyType.String,
+                    DefaultValue = "Center",
+                    IsRequired = false,
+                    Options = new Dictionary<string, object>
+                    {
+                        { "顶部", "Top" },
+                        { "居中", "Center" },
+                        { "底部", "Bottom" }
+                    }
                 },
                 new WidgetPropertyDefinition
                 {
                     Name = "ForegroundColor",
-                    DisplayName = "文字颜色",
+                    DisplayName = "前景色",
                     Description = "文本的颜色",
-                    Type = PropertyType.String,
+                    Type = PropertyType.Color,
                     DefaultValue = "#000000",
-                    IsRequired = true
-                },
-                // 通用属性
-                new WidgetPropertyDefinition
-                {
-                    Name = "IsVisible",
-                    DisplayName = "是否可见",
-                    Description = "元素是否可见",
-                    Type = PropertyType.Boolean,
-                    DefaultValue = true,
-                    IsRequired = true
+                    IsRequired = false
                 },
                 new WidgetPropertyDefinition
                 {
-                    Name = "Rotation",
-                    DisplayName = "旋转角度",
-                    Description = "元素的旋转角度",
-                    Type = PropertyType.Double,
-                    DefaultValue = 0,
-                    IsRequired = true,
-                    MinValue = 0,
-                    MaxValue = 360
+                    Name = "BackgroundColor",
+                    DisplayName = "背景色",
+                    Description = "元素的背景色",
+                    Type = PropertyType.Color,
+                    DefaultValue = "#FFFFFF",
+                    IsRequired = false
                 },
                 new WidgetPropertyDefinition
                 {
                     Name = "ZIndex",
-                    DisplayName = "Z轴顺序",
-                    Description = "元素的Z轴顺序",
+                    DisplayName = "图层顺序",
+                    Description = "元素的图层顺序",
                     Type = PropertyType.Integer,
                     DefaultValue = 0,
-                    IsRequired = true,
-                    MinValue = 0,
-                    MaxValue = 1000
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "Opacity",
-                    DisplayName = "透明度",
-                    Description = "元素的透明度",
-                    Type = PropertyType.Double,
-                    DefaultValue = 1,
-                    IsRequired = true,
-                    MinValue = 0,
-                    MaxValue = 1
+                    IsRequired = false
                 }
             };
         }

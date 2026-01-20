@@ -1,0 +1,65 @@
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build Results
+[Dd]*
+[Dd]*
+[Dd]*
+x64/
+x86/
+[Bb]*
+[Bb]*
+Obj/
+[Oo]*
+[Ll]*
+[Ll]*
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Specific backup files for this project
+MainWindow.xaml.cs.bak
+MainWindow.xaml copy.cs.bak
+MainWindow.xaml.cs.bak
+MainWindow.xaml.cs.fixed
+MainWindow.xaml.cs.backup
+
+# NuGet Packages
+*.nupkg
+**/packages/*
+
+# Visual Studio cache/options
+.vs/
+*.vsidx
+*.vspscc
+.vshost.exe
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.AppleSingle
+LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Project specific
+bin/
+obj/

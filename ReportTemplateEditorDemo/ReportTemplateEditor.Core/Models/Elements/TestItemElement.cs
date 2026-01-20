@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using ReportTemplateEditor.Core.Models.DataBinding;
 
 namespace ReportTemplateEditor.Core.Models.Elements
 {
@@ -40,29 +41,54 @@ namespace ReportTemplateEditor.Core.Models.Elements
         public string AbnormalFlag { get; set; }
 
         /// <summary>
-        /// 数据绑定路径 - 项目名称
+        /// 统一的数据绑定路径
         /// </summary>
-        public string ItemNameDataPath { get; set; }
+        public DataBindingPaths DataBindings { get; set; } = new DataBindingPaths();
 
         /// <summary>
-        /// 数据绑定路径 - 结果
+        /// 数据绑定路径 - 项目名称（向后兼容）
         /// </summary>
-        public string ResultDataPath { get; set; }
+        public string ItemNameDataPath
+        {
+            get => DataBindings.GetPath("ItemName");
+            set => DataBindings.SetPath("ItemName", value);
+        }
 
         /// <summary>
-        /// 数据绑定路径 - 参考值范围
+        /// 数据绑定路径 - 结果（向后兼容）
         /// </summary>
-        public string ReferenceRangeDataPath { get; set; }
+        public string ResultDataPath
+        {
+            get => DataBindings.GetPath("Result");
+            set => DataBindings.SetPath("Result", value);
+        }
 
         /// <summary>
-        /// 数据绑定路径 - 单位
+        /// 数据绑定路径 - 参考值范围（向后兼容）
         /// </summary>
-        public string UnitDataPath { get; set; }
+        public string ReferenceRangeDataPath
+        {
+            get => DataBindings.GetPath("ReferenceRange");
+            set => DataBindings.SetPath("ReferenceRange", value);
+        }
 
         /// <summary>
-        /// 数据绑定路径 - 异常标志
+        /// 数据绑定路径 - 单位（向后兼容）
         /// </summary>
-        public string AbnormalFlagDataPath { get; set; }
+        public string UnitDataPath
+        {
+            get => DataBindings.GetPath("Unit");
+            set => DataBindings.SetPath("Unit", value);
+        }
+
+        /// <summary>
+        /// 数据绑定路径 - 异常标志（向后兼容）
+        /// </summary>
+        public string AbnormalFlagDataPath
+        {
+            get => DataBindings.GetPath("AbnormalFlag");
+            set => DataBindings.SetPath("AbnormalFlag", value);
+        }
 
         /// <summary>
         /// 构造函数

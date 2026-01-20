@@ -10,7 +10,7 @@ namespace ReportTemplateEditor.Core.Models.Commands
         private readonly ReportTemplateDefinition _template;
         private readonly ElementBase _element;
         private int _index;
-        
+
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -21,7 +21,7 @@ namespace ReportTemplateEditor.Core.Models.Commands
             _template = template;
             _element = element;
         }
-        
+
         /// <summary>
         /// 执行命令
         /// </summary>
@@ -33,18 +33,18 @@ namespace ReportTemplateEditor.Core.Models.Commands
                 _template.Elements.RemoveAt(_index);
             }
         }
-        
+
         /// <summary>
         /// 撤销命令
         /// </summary>
         public override void Undo()
         {
-            if (_index >= 0 && _index <= _template.Elements.Count)
+            if (_index >= 0)
             {
                 _template.Elements.Insert(_index, _element);
             }
         }
-        
+
         /// <summary>
         /// 命令描述
         /// </summary>

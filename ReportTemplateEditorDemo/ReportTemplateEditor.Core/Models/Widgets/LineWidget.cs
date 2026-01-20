@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ReportTemplateEditor.Core.Models.Widgets
 {
@@ -22,12 +21,12 @@ namespace ReportTemplateEditor.Core.Models.Widgets
         /// <summary>
         /// 控件描述
         /// </summary>
-        public string Description => "用于绘制线条的控件";
+        public string Description => "用于绘制直线的控件";
 
         /// <summary>
         /// 控件图标
         /// </summary>
-        public string Icon => "—";
+        public string Icon => "📏";
 
         /// <summary>
         /// 创建线条元素实例
@@ -40,16 +39,14 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                 X = 0,
                 Y = 0,
                 Width = 100,
-                Height = 60,
+                Height = 1,
                 StartX = 0,
-                StartY = 30,
+                StartY = 0,
                 EndX = 100,
-                EndY = 30,
-                LineWidth = 1,
+                EndY = 0,
                 LineColor = "#000000",
+                LineWidth = 1,
                 LineStyle = "Solid",
-                StartLineCap = "Flat",
-                EndLineCap = "Flat",
                 ZIndex = 0
             };
         }
@@ -62,52 +59,6 @@ namespace ReportTemplateEditor.Core.Models.Widgets
         {
             return new List<WidgetPropertyDefinition>
             {
-                // 位置和大小属性
-                new WidgetPropertyDefinition
-                {
-                    Name = "X",
-                    DisplayName = "X坐标",
-                    Description = "元素的X坐标",
-                    Type = PropertyType.Double,
-                    DefaultValue = 0,
-                    IsRequired = true,
-                    MinValue = 0,
-                    MaxValue = 1000
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "Y",
-                    DisplayName = "Y坐标",
-                    Description = "元素的Y坐标",
-                    Type = PropertyType.Double,
-                    DefaultValue = 0,
-                    IsRequired = true,
-                    MinValue = 0,
-                    MaxValue = 1000
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "Width",
-                    DisplayName = "宽度",
-                    Description = "元素的宽度",
-                    Type = PropertyType.Double,
-                    DefaultValue = 100,
-                    IsRequired = true,
-                    MinValue = 1,
-                    MaxValue = 1000
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "Height",
-                    DisplayName = "高度",
-                    Description = "元素的高度",
-                    Type = PropertyType.Double,
-                    DefaultValue = 100,
-                    IsRequired = true,
-                    MinValue = 1,
-                    MaxValue = 1000
-                },
-                // 线条属性
                 new WidgetPropertyDefinition
                 {
                     Name = "StartX",
@@ -147,21 +98,10 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                     DisplayName = "终点Y",
                     Description = "线条终点的Y坐标",
                     Type = PropertyType.Double,
-                    DefaultValue = 100,
+                    DefaultValue = 0,
                     IsRequired = true,
                     MinValue = 0,
                     MaxValue = 1000
-                },
-                new WidgetPropertyDefinition
-                {
-                    Name = "LineWidth",
-                    DisplayName = "线条宽度",
-                    Description = "线条的宽度",
-                    Type = PropertyType.Double,
-                    DefaultValue = 1,
-                    IsRequired = true,
-                    MinValue = 0.1,
-                    MaxValue = 20
                 },
                 new WidgetPropertyDefinition
                 {
@@ -170,7 +110,18 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                     Description = "线条的颜色",
                     Type = PropertyType.Color,
                     DefaultValue = "#000000",
-                    IsRequired = true
+                    IsRequired = false
+                },
+                new WidgetPropertyDefinition
+                {
+                    Name = "LineWidth",
+                    DisplayName = "线条宽度",
+                    Description = "线条的宽度",
+                    Type = PropertyType.Double,
+                    DefaultValue = 1,
+                    IsRequired = false,
+                    MinValue = 1,
+                    MaxValue = 10
                 },
                 new WidgetPropertyDefinition
                 {
@@ -179,8 +130,22 @@ namespace ReportTemplateEditor.Core.Models.Widgets
                     Description = "线条的样式",
                     Type = PropertyType.String,
                     DefaultValue = "Solid",
-                    IsRequired = true,
-                    Options = new Dictionary<string, object> { { "Solid", "Solid" }, { "Dashed", "Dashed" }, { "Dotted", "Dotted" } }
+                    IsRequired = false,
+                    Options = new Dictionary<string, object>
+                    {
+                        { "实线", "Solid" },
+                        { "虚线", "Dash" },
+                        { "点线", "Dot" }
+                    }
+                },
+                new WidgetPropertyDefinition
+                {
+                    Name = "ZIndex",
+                    DisplayName = "图层顺序",
+                    Description = "元素的图层顺序",
+                    Type = PropertyType.Integer,
+                    DefaultValue = 0,
+                    IsRequired = false
                 }
             };
         }

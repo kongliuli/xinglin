@@ -30,8 +30,8 @@ namespace ReportTemplateEditor.App.Services
         {
             return element switch
             {
-                TextElement textElement => GenerateTextControl(textElement),
                 LabelElement labelElement => GenerateLabelControl(labelElement),
+                TextElement textElement => GenerateTextControl(textElement),
                 LabelInputBoxElement labelInputBoxElement => GenerateLabelInputBoxControl(labelInputBoxElement),
                 TableElement tableElement => GenerateTableControl(tableElement),
                 ImageElement imageElement => GenerateImageControl(imageElement),

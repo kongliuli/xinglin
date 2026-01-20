@@ -89,7 +89,7 @@ namespace ReportTemplateEditor.Core.Models.Widgets
         /// </summary>
         /// <param name="widgetType">控件类型</param>
         /// <returns>控件实例</returns>
-        public Elements.ElementBase CreateWidgetInstance(string widgetType)
+        public Elements.ElementBase CreateElement(string widgetType)
         {
             var widget = GetWidget(widgetType);
             if (widget == null)

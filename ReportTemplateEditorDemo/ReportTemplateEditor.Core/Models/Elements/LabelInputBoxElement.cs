@@ -1,3 +1,5 @@
+using ReportTemplateEditor.Core.Models.Styles;
+
 namespace ReportTemplateEditor.Core.Models.Elements
 {
     /// <summary>
@@ -21,34 +23,14 @@ namespace ReportTemplateEditor.Core.Models.Elements
         public string LabelPosition { get; set; } = "Left";
 
         /// <summary>
-        /// 输入框宽度
+        /// 标签样式
         /// </summary>
-        public double InputWidth { get; set; } = 100;
+        public LabelStyle LabelStyle { get; set; } = new LabelStyle();
 
         /// <summary>
-        /// 输入框高度
+        /// 输入框样式
         /// </summary>
-        public double InputHeight { get; set; } = 30;
-
-        /// <summary>
-        /// 标签字体大小
-        /// </summary>
-        public double LabelFontSize { get; set; } = 12;
-
-        /// <summary>
-        /// 标签字体粗细
-        /// </summary>
-        public string LabelFontWeight { get; set; } = "Normal";
-
-        /// <summary>
-        /// 标签文本颜色
-        /// </summary>
-        public string LabelForegroundColor { get; set; } = "#000000";
-
-        /// <summary>
-        /// 标签背景颜色
-        /// </summary>
-        public string LabelBackgroundColor { get; set; } = "#FFFFFF";
+        public InputStyle InputStyle { get; set; } = new InputStyle();
 
         /// <summary>
         /// 输入框默认值
@@ -69,26 +51,6 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 最大长度
         /// </summary>
         public int MaxLength { get; set; } = 0;
-
-        /// <summary>
-        /// 输入框背景颜色
-        /// </summary>
-        public string InputBackgroundColor { get; set; } = "#FFFFFF";
-
-        /// <summary>
-        /// 输入框边框颜色
-        /// </summary>
-        public string InputBorderColor { get; set; } = "#000000";
-
-        /// <summary>
-        /// 输入框边框宽度
-        /// </summary>
-        public double InputBorderWidth { get; set; } = 1;
-
-        /// <summary>
-        /// 输入框圆角半径
-        /// </summary>
-        public double InputCornerRadius { get; set; } = 0;
 
         /// <summary>
         /// 标签引用ID（引用SharedData/label-templates.json）
@@ -115,59 +77,208 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// </summary>
         public string FormatString { get; set; } = string.Empty;
 
-        /// <summary>
-        /// 标签字体名称
-        /// </summary>
-        public string LabelFontFamily { get; set; } = "Microsoft YaHei";
+        #region 向后兼容的属性
 
         /// <summary>
-        /// 标签字体样式
+        /// 标签字体大小（向后兼容）
         /// </summary>
-        public string LabelFontStyle { get; set; } = "Normal";
+        public double LabelFontSize
+        {
+            get => LabelStyle.FontSize;
+            set => LabelStyle.FontSize = value;
+        }
 
         /// <summary>
-        /// 标签文本对齐方式
+        /// 标签字体粗细（向后兼容）
         /// </summary>
-        public string LabelTextAlignment { get; set; } = "Left";
+        public string LabelFontWeight
+        {
+            get => LabelStyle.FontWeight;
+            set => LabelStyle.FontWeight = value;
+        }
 
         /// <summary>
-        /// 标签垂直对齐方式
+        /// 标签文本颜色（向后兼容）
         /// </summary>
-        public string LabelVerticalAlignment { get; set; } = "Center";
+        public string LabelForegroundColor
+        {
+            get => LabelStyle.ForegroundColor;
+            set => LabelStyle.ForegroundColor = value;
+        }
 
         /// <summary>
-        /// 输入框字体名称
+        /// 标签背景颜色（向后兼容）
         /// </summary>
-        public string InputFontFamily { get; set; } = "Microsoft YaHei";
+        public string LabelBackgroundColor
+        {
+            get => LabelStyle.BackgroundColor;
+            set => LabelStyle.BackgroundColor = value;
+        }
 
         /// <summary>
-        /// 输入框字体大小
+        /// 标签字体名称（向后兼容）
         /// </summary>
-        public double InputFontSize { get; set; } = 11;
+        public string LabelFontFamily
+        {
+            get => LabelStyle.FontFamily;
+            set => LabelStyle.FontFamily = value;
+        }
 
         /// <summary>
-        /// 输入框字体粗细
+        /// 标签字体样式（向后兼容）
         /// </summary>
-        public string InputFontWeight { get; set; } = "Normal";
+        public string LabelFontStyle
+        {
+            get => LabelStyle.FontStyle;
+            set => LabelStyle.FontStyle = value;
+        }
 
         /// <summary>
-        /// 输入框字体样式
+        /// 标签文本对齐方式（向后兼容）
         /// </summary>
-        public string InputFontStyle { get; set; } = "Normal";
+        public string LabelTextAlignment
+        {
+            get => LabelStyle.TextAlignment;
+            set => LabelStyle.TextAlignment = value;
+        }
 
         /// <summary>
-        /// 输入框文本颜色
+        /// 标签垂直对齐方式（向后兼容）
         /// </summary>
-        public string InputForegroundColor { get; set; } = "#000000";
+        public string LabelVerticalAlignment
+        {
+            get => LabelStyle.VerticalAlignment;
+            set => LabelStyle.VerticalAlignment = value;
+        }
 
         /// <summary>
-        /// 输入框文本对齐方式
+        /// 输入框宽度（向后兼容）
         /// </summary>
-        public string InputTextAlignment { get; set; } = "Left";
+        public double InputWidth
+        {
+            get => InputStyle.Width;
+            set => InputStyle.Width = value;
+        }
 
         /// <summary>
-        /// 输入框垂直对齐方式
+        /// 输入框高度（向后兼容）
         /// </summary>
-        public string InputVerticalAlignment { get; set; } = "Center";
+        public double InputHeight
+        {
+            get => InputStyle.Height;
+            set => InputStyle.Height = value;
+        }
+
+        /// <summary>
+        /// 输入框背景颜色（向后兼容）
+        /// </summary>
+        public string InputBackgroundColor
+        {
+            get => InputStyle.BackgroundColor;
+            set => InputStyle.BackgroundColor = value;
+        }
+
+        /// <summary>
+        /// 输入框边框颜色（向后兼容）
+        /// </summary>
+        public string InputBorderColor
+        {
+            get => InputStyle.BorderColor;
+            set => InputStyle.BorderColor = value;
+        }
+
+        /// <summary>
+        /// 输入框边框宽度（向后兼容）
+        /// </summary>
+        public double InputBorderWidth
+        {
+            get => InputStyle.BorderWidth;
+            set => InputStyle.BorderWidth = value;
+        }
+
+        /// <summary>
+        /// 输入框圆角半径（向后兼容）
+        /// </summary>
+        public double InputCornerRadius
+        {
+            get => InputStyle.CornerRadius;
+            set => InputStyle.CornerRadius = value;
+        }
+
+        /// <summary>
+        /// 输入框字体名称（向后兼容）
+        /// </summary>
+        public string InputFontFamily
+        {
+            get => InputStyle.FontFamily;
+            set => InputStyle.FontFamily = value;
+        }
+
+        /// <summary>
+        /// 输入框字体大小（向后兼容）
+        /// </summary>
+        public double InputFontSize
+        {
+            get => InputStyle.FontSize;
+            set => InputStyle.FontSize = value;
+        }
+
+        /// <summary>
+        /// 输入框字体粗细（向后兼容）
+        /// </summary>
+        public string InputFontWeight
+        {
+            get => InputStyle.FontWeight;
+            set => InputStyle.FontWeight = value;
+        }
+
+        /// <summary>
+        /// 输入框字体样式（向后兼容）
+        /// </summary>
+        public string InputFontStyle
+        {
+            get => InputStyle.FontStyle;
+            set => InputStyle.FontStyle = value;
+        }
+
+        /// <summary>
+        /// 输入框文本颜色（向后兼容）
+        /// </summary>
+        public string InputForegroundColor
+        {
+            get => InputStyle.ForegroundColor;
+            set => InputStyle.ForegroundColor = value;
+        }
+
+        /// <summary>
+        /// 输入框文本对齐方式（向后兼容）
+        /// </summary>
+        public string InputTextAlignment
+        {
+            get => InputStyle.TextAlignment;
+            set => InputStyle.TextAlignment = value;
+        }
+
+        /// <summary>
+        /// 输入框垂直对齐方式（向后兼容）
+        /// </summary>
+        public string InputVerticalAlignment
+        {
+            get => InputStyle.VerticalAlignment;
+            set => InputStyle.VerticalAlignment = value;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// 验证元素的有效性
+        /// </summary>
+        public override bool Validate()
+        {
+            base.Validate();
+            LabelStyle.Validate();
+            InputStyle.Validate();
+            return true;
+        }
     }
 }

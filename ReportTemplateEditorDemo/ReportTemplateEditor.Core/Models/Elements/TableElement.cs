@@ -76,17 +76,24 @@ namespace ReportTemplateEditor.Core.Models.Elements
         public int Columns { get; set; } = 2;
 
         /// <summary>
+        /// 表头行索引（默认第一行为表头）
+        /// </summary>
+        public int HeaderRowIndex { get; set; } = 0;
+
+        /// <summary>
         /// 单元格集合
         /// </summary>
         public List<TableCell> Cells { get; set; } = new List<TableCell>();
 
         /// <summary>
-        /// 列配置集合
+        /// 列配置集合（定义列的类型、默认值等）
         /// </summary>
         public List<TableColumn> ColumnsConfig { get; set; } = new List<TableColumn>();
 
         /// <summary>
         /// 列宽集合（毫米）
+        /// 说明：此属性由ColumnsConfig和Cells内容计算得出
+        /// 如果ColumnWidths为空，则自动计算
         /// </summary>
         public List<double> ColumnWidths { get; set; } = new List<double>();
 
@@ -119,6 +126,29 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// 背景颜色
         /// </summary>
         public string BackgroundColor { get; set; } = "#FFFFFF";
+
+        /// <summary>
+        /// 验证表格配置的一致性
+        /// </summary>
+        public bool ValidateConfiguration()
+        {
+            if (Columns <= 0 || Rows <= 0)
+                return false;
+
+            if (ColumnWidths.Count > 0 && ColumnWidths.Count != Columns)
+                return false;
+
+            if (RowHeights.Count > 0 && RowHeights.Count != Rows)
+                return false;
+
+            if (ColumnsConfig.Count > 0 && ColumnsConfig.Count != Columns)
+                return false;
+
+            if (HeaderRowIndex < 0 || HeaderRowIndex >= Rows)
+                return false;
+
+            return true;
+        }
     }
 
     /// <summary>
