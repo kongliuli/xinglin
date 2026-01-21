@@ -1,65 +1,61 @@
-# Visual Studio
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Build Results
-[Dd]*
-[Dd]*
-[Dd]*
-x64/
-x86/
-[Bb]*
-[Bb]*
-Obj/
-[Oo]*
-[Ll]*
-[Ll]*
-
-# Backup files
-*.bak
-*.backup
-*.old
-*.orig
-
-# Specific backup files for this project
-MainWindow.xaml.cs.bak
-MainWindow.xaml copy.cs.bak
-MainWindow.xaml.cs.bak
-MainWindow.xaml.cs.fixed
-MainWindow.xaml.cs.backup
-
-# NuGet Packages
-*.nupkg
-**/packages/*
-
-# Visual Studio cache/options
-.vs/
-*.vsidx
-*.vspscc
-.vshost.exe
-
-# ReSharper
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-
-# JetBrains Rider
-.idea/
-*.sln.iml
-
-# macOS
-.DS_Store
-.AppleDouble
-.AppleSingle
-LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Project specific
+# Binaries and build output
 bin/
 obj/
+*.exe
+*.dll
+*.pdb
+*.exe.config
+*.dll.config
+*.manifest
+
+# IDE and editor files
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.md.user
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Log files
+*.log
+
+# Test results
+TestResults/
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+temp/
+tmp/
+
+# NuGet packages
+*.nupkg
+
+# Build artifacts
+build/
+out/
+
+# Package manager files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# C# specific
+*.cshtml.cs
+*.cshtml.g.cs
+*.razor.g.cs
+*.g.i.cs
