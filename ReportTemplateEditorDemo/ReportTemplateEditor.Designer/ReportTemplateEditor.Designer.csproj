@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+
+
   <ItemGroup>
     <ProjectReference Include="..\ReportTemplateEditor.Core\ReportTemplateEditor.Core.csproj" />
     <ProjectReference Include="..\ReportTemplateEditor.Engine\ReportTemplateEditor.Engine.csproj" />
