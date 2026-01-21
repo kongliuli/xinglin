@@ -1,6 +1,0 @@
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.csproj.AssemblyReference.cache
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.GeneratedMSBuildEditorConfig.editorconfig
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.AssemblyInfoInputs.cache
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.AssemblyInfo.cs
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.csproj.CoreCompileInputs.cache
-D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Engine\obj\Debug\net9.0\ReportTemplateEditor.Engine.sourcelink.json

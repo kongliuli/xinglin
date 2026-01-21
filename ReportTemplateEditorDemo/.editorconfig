@@ -1,0 +1,45 @@
+root = true
+
+[*.{cs,vb}]
+charset = utf-8-bom
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{csproj,vbproj,vcxproj,vcxproj}]
+charset = utf-8-bom
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{xaml,axaml}]
+charset = utf-8-bom
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,js,ts}]
+charset = utf-8-bom
+end_of_line = crlf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{md}]
+charset = utf-8-bom
+end_of_line = crlf
+trim_trailing_whitespace = true
+
+[*.{xml,config,props,targets,csproj,nuspec,resx,reswfs,vsix,vssettings,sln,slnf}]
+charset = utf-8-bom
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true

@@ -6,6 +6,7 @@ D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.AssemblyInfoInputs.cache
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.AssemblyInfo.cs
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.csproj.CoreCompileInputs.cache
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.sourcelink.json
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.dll
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\refint\ReportTemplateEditor.Core.dll
 D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Core\obj\Debug\net9.0\ReportTemplateEditor.Core.pdb

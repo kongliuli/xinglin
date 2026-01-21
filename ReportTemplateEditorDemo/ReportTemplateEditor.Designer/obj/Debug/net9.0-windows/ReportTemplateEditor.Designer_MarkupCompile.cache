@@ -1,20 +1,20 @@
 ﻿ReportTemplateEditor.Designer
-1.0.0.0
+
 
 winexe
 C#
 .cs
-d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\
 ReportTemplateEditor.Designer
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\App.xaml
-4-1163603938
+D:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\App.xaml
+5-533533438
 
-192036164993
-210-230318440
-Controls\DataPathSelector.xaml;DataPathSelectorWindow.xaml;MainWindow.xaml;TableDesignerWindow.xaml;
+271786208273
+2111122887460
+Controls\DataPathSelector.xaml;DataPathSelectorWindow.xaml;MainWindow.xaml;Styles\CommonStyles.xaml;TableDesignerWindow.xaml;
 
-True
+False
 

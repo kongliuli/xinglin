@@ -4,13 +4,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ReportTemplateEditor.Designer"
+        xmlns:viewmodels="clr-namespace:ReportTemplateEditor.Designer.ViewModels"
+        xmlns:converters="clr-namespace:ReportTemplateEditor.Designer.Converters"
         mc:Ignorable="d"
         Title="报告模板编辑器"
         Height="800"
         Width="1200"
         WindowStartupLocation="CenterScreen"
         PreviewKeyDown="MainWindow_PreviewKeyDown">
+    <Window.DataContext>
+        <viewmodels:MainWindowViewModel/>
+    </Window.DataContext>
     <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
+        <converters:BooleanInverseConverter x:Key="InverseBooleanConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <!-- 纸张阴影效果 -->
         <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
         
@@ -96,16 +105,16 @@
         <!-- 菜单栏 -->
         <Menu Grid.Row="0" Background="#F0F0F0">
             <MenuItem Header="文件">
-                <MenuItem Header="新建模板" Click="NewTemplate_Click"/>
-                <MenuItem Header="打开模板" Click="OpenTemplate_Click"/>
-                <MenuItem Header="保存模板" Click="SaveTemplate_Click"/>
-                <MenuItem Header="保存模板为" Click="SaveTemplateAs_Click"/>
+                <MenuItem Header="新建模板" Command="{Binding NewTemplateCommand}"/>
+                <MenuItem Header="打开模板" Command="{Binding OpenTemplateCommand}"/>
+                <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}"/>
+                <MenuItem Header="保存模板为" Command="{Binding SaveAsTemplateCommand}"/>
                 <Separator/>
-                <MenuItem Header="退出" Click="Exit_Click"/>
+                <MenuItem Header="退出" Command="{Binding ExitCommand}"/>
             </MenuItem>
             <MenuItem Header="编辑">
-                <MenuItem Header="撤销" Click="Undo_Click"/>
-                <MenuItem Header="重做" Click="Redo_Click"/>
+                <MenuItem Header="撤销" Command="{Binding UndoCommand}"/>
+                <MenuItem Header="重做" Command="{Binding RedoCommand}"/>
                 <Separator/>
                 <!-- 剪切/复制/粘贴/删除功能待实现 -->
                 <!-- <MenuItem Header="剪切" Click="Cut_Click"/>
@@ -114,37 +123,37 @@
                 <MenuItem Header="删除" Click="Delete_Click"/> -->
             </MenuItem>
             <MenuItem Header="视图">
-                <MenuItem Header="显示网格" Click="ShowGrid_Click" IsCheckable="True" IsChecked="True" x:Name="showGridToggle"/>
-                <MenuItem Header="对齐到网格" Click="SnapToGrid_Click" IsCheckable="True" IsChecked="True" x:Name="snapToGridToggle"/>
+                <MenuItem Header="显示网格" IsCheckable="True" IsChecked="{Binding ShowGrid}" Command="{Binding ToggleShowGridCommand}"/>
+                <MenuItem Header="对齐到网格" IsCheckable="True" IsChecked="{Binding SnapToGrid}" Command="{Binding ToggleSnapToGridCommand}"/>
                 <Separator/>
                 <MenuItem Header="缩放">
-                    <MenuItem Header="50%" Click="Zoom50_Click"/>
-                    <MenuItem Header="75%" Click="Zoom75_Click"/>
-                    <MenuItem Header="100%" Click="Zoom100_Click"/>
-                    <MenuItem Header="150%" Click="Zoom150_Click"/>
-                    <MenuItem Header="200%" Click="Zoom200_Click"/>
+                    <MenuItem Header="50%" Command="{Binding ZoomTo50Command}"/>
+                    <MenuItem Header="75%" Command="{Binding ZoomTo75Command}"/>
+                    <MenuItem Header="100%" Command="{Binding ZoomTo100Command}"/>
+                    <MenuItem Header="150%" Command="{Binding ZoomTo150Command}"/>
+                    <MenuItem Header="200%" Command="{Binding ZoomTo200Command}"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="工具">
-                <MenuItem Header="模板属性" Click="TemplateProperties_Click"/>
-                <MenuItem Header="预览模板" Click="PreviewTemplate_Click"/>
-                <MenuItem Header="导出为JSON" Click="ExportJson_Click"/>
+                <MenuItem Header="模板属性" Command="{Binding TemplatePropertiesCommand}"/>
+                <MenuItem Header="预览模板" Command="{Binding PreviewTemplateCommand}"/>
+                <MenuItem Header="导出为JSON" Command="{Binding ExportToJsonCommand}"/>
             </MenuItem>
         </Menu>
         
         <!-- 工具栏 -->
         <Border Grid.Row="1" BorderThickness="0,1,0,1" BorderBrush="#E0E0E0">
             <ToolBar Background="#F0F0F0">
-                <Button Content="新建" Click="NewTemplate_Click" ToolTip="新建模板"/>
-                <Button Content="打开" Click="OpenTemplate_Click" ToolTip="打开模板"/>
-                <Button Content="保存" Click="SaveTemplate_Click" ToolTip="保存模板"/>
+                <Button Content="新建" Command="{Binding NewTemplateCommand}" ToolTip="新建模板"/>
+                <Button Content="打开" Command="{Binding OpenTemplateCommand}" ToolTip="打开模板"/>
+                <Button Content="保存" Command="{Binding SaveTemplateCommand}" ToolTip="保存模板"/>
                 <Separator/>
-                <Button Content="撤销" Click="Undo_Click" ToolTip="撤销"/>
-                <Button Content="重做" Click="Redo_Click" ToolTip="重做"/>
+                <Button Content="撤销" Command="{Binding UndoCommand}" ToolTip="撤销"/>
+                <Button Content="重做" Command="{Binding RedoCommand}" ToolTip="重做"/>
                 <Separator/>
                 <!-- 纸张设置 -->
                 <TextBlock Text="纸张: " Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <ComboBox x:Name="paperSizeComboBox" Width="60" VerticalAlignment="Center" SelectionChanged="paperSizeComboBox_SelectionChanged">
+                <ComboBox x:Name="paperSizeComboBox" Width="60" VerticalAlignment="Center" SelectedValue="{Binding PaperSize}">
                     <ComboBoxItem Content="A3" Tag="A3"/>
                     <ComboBoxItem Content="A4" Tag="A4" IsSelected="True"/>
                     <ComboBoxItem Content="A5" Tag="A5"/>
@@ -156,16 +165,16 @@
                 <TextBlock Text="×" Margin="0,0,5,0" VerticalAlignment="Center" Visibility="Collapsed" x:Name="customSizeSeparator"/>
                 <TextBox x:Name="txtCustomHeight" Width="50" Margin="0,0,5,0" ToolTip="自定义高度（毫米）" Visibility="Collapsed"/>
                 <TextBlock Text="边距:" Margin="10,0,5,0" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtMargin" Width="60" Text="2.5" ToolTip="页边距（毫米）" TextChanged="txtMargin_TextChanged"/>
-                <ToggleButton x:Name="orientationToggle" Content="纵向" ToolTip="切换页面方向" Margin="5,0,0,0" Checked="orientationToggle_Checked" Unchecked="orientationToggle_Unchecked"/>
+                <TextBox x:Name="txtMargin" Width="60" Text="{Binding Margin}" ToolTip="页边距（毫米）"/>
+                <ToggleButton x:Name="orientationToggle" Content="纵向" ToolTip="切换页面方向" Margin="5,0,0,0" IsChecked="{Binding IsLandscape}"/>
                 <Separator/>
                 <!-- 全局字体设置 -->
                 <TextBlock Text="全局字体:" Margin="10,0,5,0" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtGlobalFontSize" Width="50" Text="12" ToolTip="全局字体大小（毫米）" TextChanged="txtGlobalFontSize_TextChanged"/>
-                <CheckBox x:Name="chkEnableGlobalFontSize" Content="启用" ToolTip="启用全局字体设置" Margin="5,0,0,0" Checked="chkEnableGlobalFontSize_Checked" Unchecked="chkEnableGlobalFontSize_Unchecked"/>
+                <TextBox x:Name="txtGlobalFontSize" Width="50" Text="{Binding GlobalFontSize}" ToolTip="全局字体大小（毫米）"/>
+                <CheckBox x:Name="chkEnableGlobalFontSize" Content="启用" ToolTip="启用全局字体设置" Margin="5,0,0,0" IsChecked="{Binding EnableGlobalFontSize}"/>
                 <Separator/>
-                <Button Content="预览" Click="PreviewTemplate_Click" ToolTip="预览模板"/>
-                <Button Content="导出" Click="ExportJson_Click" ToolTip="导出为JSON"/>
+                <Button Content="预览" Command="{Binding PreviewTemplateCommand}" ToolTip="预览模板"/>
+                <Button Content="导出" Command="{Binding ExportJsonCommand}" ToolTip="导出为JSON"/>
             </ToolBar>
         </Border>
         
@@ -266,13 +275,13 @@
                 <!-- 画布标题 -->
                 <Border Grid.Row="0" Padding="10" Background="#F5F5F5">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock x:Name="canvasTitleText" Text="设计画布" FontWeight="Bold"/>
+                        <TextBlock x:Name="canvasTitleText" Text="{Binding CanvasTitle}" FontWeight="Bold"/>
                         <TextBlock Text=" | " Margin="5,0,0,0" Foreground="#666666"/>
-                        <TextBlock x:Name="pageMarginsText" Text="页边距: 2.5mm" Foreground="#666666" Margin="0,0,10,0"/>
-                        <Button Content="实际尺寸" Click="ActualSize_Click" Margin="0,0,5,0" Padding="5,2" Background="#E8F4FF" BorderBrush="#4A90E2" Foreground="#2C5AA0" FontWeight="Medium"/>
-                        <TextBlock x:Name="zoomText" Text="100%" Margin="0,0,5,0" Foreground="#666666" Width="40"/>
-                        <Slider x:Name="zoomSlider" Minimum="10" Maximum="500" Value="100" Width="150" VerticalAlignment="Center" ValueChanged="zoomSlider_ValueChanged"/>
-                        <TextBlock x:Name="statusTextBlock" Text="就绪" Foreground="#666666" Margin="10,0,0,0"/>
+                        <TextBlock x:Name="pageMarginsText" Text="{Binding PageMarginsText}" Foreground="#666666" Margin="0,0,10,0"/>
+                        <Button Content="实际尺寸" Command="{Binding ResetZoomCommand}" Margin="0,0,5,0" Padding="5,2" Background="#E8F4FF" BorderBrush="#4A90E2" Foreground="#2C5AA0" FontWeight="Medium"/>
+                        <TextBlock x:Name="zoomText" Text="{Binding ZoomLevelText}" Margin="0,0,5,0" Foreground="#666666" Width="40"/>
+                        <Slider x:Name="zoomSlider" Minimum="10" Maximum="500" Value="{Binding ZoomLevel}" Width="150" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="statusTextBlock" Text="{Binding Status}" Foreground="#666666" Margin="10,0,0,0"/>
                     </StackPanel>
                 </Border>
                 
@@ -333,20 +342,20 @@
                     <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
                         <DockPanel Margin="5">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
-                                <Button Content="上移" Click="MoveLayerUp_Click" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
+                                <Button Content="上移" Command="{Binding MoveLayerUpCommand}" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
                                         Padding="8,4" FontWeight="Medium"/>
-                                <Button Content="下移" Click="MoveLayerDown_Click" ToolTip="将选中元素下移一层" Margin="0,0,5,0" 
+                                <Button Content="下移" Command="{Binding MoveLayerDownCommand}" ToolTip="将选中元素下移一层" Margin="0,0,5,0" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
                                         Padding="8,4" FontWeight="Medium"/>
-                                <Button Content="置顶" Click="BringToFront_Click" ToolTip="将选中元素置于顶层" Margin="0,0,5,0" 
+                                <Button Content="置顶" Command="{Binding BringToFrontCommand}" ToolTip="将选中元素置于顶层" Margin="0,0,5,0" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
                                         Padding="8,4" FontWeight="Medium"/>
-                                <Button Content="置底" Click="SendToBack_Click" ToolTip="将选中元素置于底层" 
+                                <Button Content="置底" Command="{Binding SendToBackCommand}" ToolTip="将选中元素置于底层" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
                                         Padding="8,4" FontWeight="Medium"/>
                             </StackPanel>
-                            <ListBox x:Name="layerList" ItemsSource="{Binding ElementWrappers, RelativeSource={RelativeSource AncestorType=Window}}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged"
+                            <ListBox x:Name="layerList" ItemsSource="{Binding LayerWrappers}" SelectionMode="Extended" SelectionChanged="layerList_SelectionChanged"
                                      Background="#FFFFFF" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
@@ -391,7 +400,7 @@
                             <ScrollViewer Margin="5">
                                 <StackPanel>
                                     <!-- 选择信息 -->
-                                    <TextBlock x:Name="selectionInfoText" Text="未选择任何元素" Foreground="#666666" Margin="0,0,0,10"/>
+                                    <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="#666666" Margin="0,0,0,10"/>
                                     
                                     <!-- 位置和大小属性 -->
                                     <Expander Header="位置和大小" Style="{StaticResource PropertyGroupStyle}">
@@ -408,27 +417,27 @@
                                             </Grid.RowDefinitions>
                                             
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="0" x:Name="posXTextBox" IsEnabled="False" 
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                      Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                      Padding="8" FontWeight="Medium"/>
                                             
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="posYTextBox" IsEnabled="False" 
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                      Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                      Padding="8" FontWeight="Medium"/>
                                             
                                             <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="widthTextBox" IsEnabled="False" 
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                      Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                      Padding="8" FontWeight="Medium"/>
                                             
                                             <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="0" x:Name="heightTextBox" IsEnabled="False" 
+                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                      Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                      Padding="8" FontWeight="Medium"/>
 
                                             <!-- 全局字体设置 -->
-                                            <CheckBox x:Name="chkIgnoreGlobalFontSize" Content="忽略全局字体设置" Margin="0,10,0,0" Checked="chkIgnoreGlobalFontSize_Checked" Unchecked="chkIgnoreGlobalFontSize_Unchecked"/>
+                                            <CheckBox x:Name="chkIgnoreGlobalFontSize" Content="忽略全局字体设置" Margin="0,10,0,0" IsChecked="{Binding IgnoreGlobalFontSize}"/>
 
                                         </Grid>
                                         
@@ -451,21 +460,21 @@
                                                 </Grid.RowDefinitions>
                                                 
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="True" x:Name="visibleCheckBox" IsEnabled="False" 
+                                                <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="{Binding SelectedElementVisible}" x:Name="visibleCheckBox" IsEnabled="{Binding HasSelectedElement}" 
                                                           Foreground="#333333" FontWeight="Medium"/>
                                                 
                                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="rotationTextBox" IsEnabled="False" 
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementRotation}" x:Name="rotationTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                          Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                          Padding="8" FontWeight="Medium"/>
                                                 
                                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="zIndexTextBox" IsEnabled="False" 
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementZIndex}" x:Name="zIndexTextBox" IsEnabled="{Binding HasSelectedElement}" 
                                                          Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
                                                          Padding="8" FontWeight="Medium"/>
                                                 
                                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                                <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="1" x:Name="opacitySlider" IsEnabled="False" 
+                                                <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="{Binding SelectedElementOpacity}" x:Name="opacitySlider" IsEnabled="{Binding HasSelectedElement}" 
                                                         Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1"/>
                                             </Grid>
                                             
@@ -485,23 +494,23 @@
                                                 </Grid.RowDefinitions>
                                                 
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="backgroundColorTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding SelectedElementBackgroundColor}" x:Name="backgroundColorTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                                 
                                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="边框颜色:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="#000000" x:Name="borderColorTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementBorderColor}" x:Name="borderColorTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                                 
                                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="边框宽度:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="0" x:Name="borderWidthTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementBorderWidth}" x:Name="borderWidthTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                                 
                                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="边框样式:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="borderStyleComboBox" IsEnabled="False">
-                                                    <ComboBoxItem Content="Solid" IsSelected="True"/>
-                                                    <ComboBoxItem Content="Dashed"/>
-                                                    <ComboBoxItem Content="Dotted"/>
+                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="borderStyleComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementBorderStyle}">
+                                                    <ComboBoxItem Content="Solid" Tag="Solid" IsSelected="True"/>
+                                                    <ComboBoxItem Content="Dashed" Tag="Dashed"/>
+                                                    <ComboBoxItem Content="Dotted" Tag="Dotted"/>
                                                 </ComboBox>
                                                 
                                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="圆角半径:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="0" x:Name="cornerRadiusTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="{Binding SelectedElementCornerRadius}" x:Name="cornerRadiusTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                             </Grid>
                                             
                                             <!-- 阴影效果 -->
@@ -517,10 +526,10 @@
                                                 </Grid.RowDefinitions>
                                                 
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="阴影颜色:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="#000000" x:Name="shadowColorTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding SelectedElementShadowColor}" x:Name="shadowColorTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                                 
                                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="阴影深度:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="0" x:Name="shadowDepthTextBox" IsEnabled="False"/>
+                                                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementShadowDepth}" x:Name="shadowDepthTextBox" IsEnabled="{Binding HasSelectedElement}"/>
                                             </Grid>
                                         </StackPanel>
                                     </Expander>
@@ -543,30 +552,30 @@
                                                 </Grid.RowDefinitions>
                                                 
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="False" TextChanged="textContentTextBox_TextChanged"/>
+                                                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementText}"/>
                                                 
                                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="False" SelectionChanged="fontFamilyComboBox_SelectionChanged">
-                                                    <ComboBoxItem Content="Microsoft YaHei"/>
-                                                    <ComboBoxItem Content="SimSun"/>
-                                                    <ComboBoxItem Content="SimHei"/>
-                                                    <ComboBoxItem Content="Arial"/>
-                                                    <ComboBoxItem Content="Times New Roman"/>
+                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontFamily}">
+                                                    <ComboBoxItem Content="Microsoft YaHei" Tag="Microsoft YaHei"/>
+                                                    <ComboBoxItem Content="SimSun" Tag="SimSun"/>
+                                                    <ComboBoxItem Content="SimHei" Tag="SimHei"/>
+                                                    <ComboBoxItem Content="Arial" Tag="Arial"/>
+                                                    <ComboBoxItem Content="Times New Roman" Tag="Times New Roman"/>
                                                 </ComboBox>
                                                 
                                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="12" x:Name="fontSizeTextBox" IsEnabled="False" TextChanged="fontSizeTextBox_TextChanged"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" x:Name="fontSizeTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementFontSize}"/>
                                                 
                                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="False" SelectionChanged="fontWeightComboBox_SelectionChanged">
-                                                    <ComboBoxItem Content="Normal"/>
-                                                    <ComboBoxItem Content="Bold"/>
+                                                <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontWeight}">
+                                                    <ComboBoxItem Content="Normal" Tag="Normal"/>
+                                                    <ComboBoxItem Content="Bold" Tag="Bold"/>
                                                 </ComboBox>
                                                 
                                                 <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="False" SelectionChanged="fontStyleComboBox_SelectionChanged">
-                                                    <ComboBoxItem Content="Normal"/>
-                                                    <ComboBoxItem Content="Italic"/>
+                                                <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontStyle}">
+                                                    <ComboBoxItem Content="Normal" Tag="Normal"/>
+                                                    <ComboBoxItem Content="Italic" Tag="Italic"/>
                                                 </ComboBox>
                                             </Grid>
                                             
@@ -585,7 +594,7 @@
                                                 </Grid.RowDefinitions>
                                                 
                                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="文本对齐:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textAlignmentComboBox" IsEnabled="False" SelectionChanged="textAlignmentComboBox_SelectionChanged">
+                                                <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textAlignmentComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementTextAlignment}">
                                                     <ComboBoxItem Content="左对齐" Tag="Left"/>
                                                     <ComboBoxItem Content="居中" Tag="Center"/>
                                                     <ComboBoxItem Content="右对齐" Tag="Right"/>
@@ -593,17 +602,17 @@
                                                 </ComboBox>
                                                 
                                                 <TextBlock Grid.Row="1" Grid.Column="0" Text="垂直对齐:" Margin="5,5,0,5"/>
-                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="verticalAlignmentComboBox" IsEnabled="False" SelectionChanged="verticalAlignmentComboBox_SelectionChanged">
+                                                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="verticalAlignmentComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementVerticalAlignment}">
                                                     <ComboBoxItem Content="顶部" Tag="Top"/>
                                                     <ComboBoxItem Content="居中" Tag="Center"/>
                                                     <ComboBoxItem Content="底部" Tag="Bottom"/>
                                                 </ComboBox>
                                                 
                                                 <TextBlock Grid.Row="2" Grid.Column="0" Text="文本颜色:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="#000000" x:Name="foregroundColorTextBox" IsEnabled="False" TextChanged="foregroundColorTextBox_TextChanged"/>
+                                                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" x:Name="foregroundColorTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementForegroundColor}"/>
                                                 
                                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="背景颜色:" Margin="5,5,0,5"/>
-                                                <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="#FFFFFF" x:Name="textBackgroundColorTextBox" IsEnabled="False" TextChanged="textBackgroundColorTextBox_TextChanged"/>
+                                                <TextBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="textBackgroundColorTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementTextBackgroundColor}"/>
                                             </Grid>
                                         </StackPanel>
                                     </Expander>
@@ -622,11 +631,11 @@
                                             </Grid.RowDefinitions>
                                             
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="路径:" Margin="5,5,0,5" VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="False" TextChanged="dataPathTextBox_TextChanged" VerticalAlignment="Center"/>
-                                            <Button Grid.Row="0" Grid.Column="2" Margin="5" x:Name="selectPathButton" Content="选择" Width="50" Height="25" Click="selectPathButton_Click" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="dataPathTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementDataPath}" VerticalAlignment="Center"/>
+                                            <Button Grid.Row="0" Grid.Column="2" Margin="5" x:Name="selectPathButton" Content="选择" Width="50" Height="25" Command="{Binding SelectDataPathCommand}" VerticalAlignment="Center"/>
                                             
                                             <TextBlock Grid.Row="1" Grid.Column="0" Text="格式:" Margin="5,5,0,5" VerticalAlignment="Center"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="False" TextChanged="formatStringTextBox_TextChanged" VerticalAlignment="Center"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="formatStringTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementFormatString}" VerticalAlignment="Center"/>
                                             <TextBlock Grid.Row="1" Grid.Column="2" Text="" Margin="5" VerticalAlignment="Center"/>
                                         </Grid>
                                     </Expander>
@@ -723,8 +732,8 @@
                                             <!-- 预览内容将在这里动态生成 -->
                                         </Canvas>
                                     </Border>
-                                    <Button x:Name="loadDataButton" Content="加载测试数据" Margin="0,5,0,0" Click="loadDataButton_Click"/>
-                                    <Button x:Name="refreshPreviewButton" Content="刷新预览" Click="refreshPreviewButton_Click"/>
+                                    <Button x:Name="loadDataButton" Content="加载测试数据" Margin="0,5,0,0" Command="{Binding LoadTestDataCommand}"/>
+                                    <Button x:Name="refreshPreviewButton" Content="刷新预览" Command="{Binding RefreshPreviewCommand}"/>
                                 </StackPanel>
                             </Grid>
                         </TabItem>

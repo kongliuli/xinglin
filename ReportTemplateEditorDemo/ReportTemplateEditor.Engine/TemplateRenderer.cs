@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -12,15 +13,32 @@ using WpfImage = System.Windows.Controls.Image;
 namespace ReportTemplateEditor.Engine
 {
     /// <summary>
-    /// 模板渲染器实现
+    /// 模板渲染器实现，负责将模板渲染为各种格式
     /// </summary>
+    /// <remarks>
+    /// 支持的输出格式：
+    /// - FlowDocument: WPF流文档格式
+    /// - FrameworkElement: WPF UI元素
+    /// - PDF: PDF文档格式（使用QuestPDF）
+    /// - Image: 图片格式（PNG、JPG、BMP、GIF、TIFF）
+    /// 
+    /// 功能特性：
+    /// - 支持数据绑定
+    /// - 支持多种元素类型（文本、图片、表格等）
+    /// - 支持样式和格式化
+    /// </remarks>
     public class TemplateRenderer : ITemplateRenderer
     {
         private readonly IDataBindingEngine _dataBindingEngine;
 
         /// <summary>
-        /// 构造函数
+        /// 初始化TemplateRenderer实例
         /// </summary>
+        /// <example>
+        /// <code>
+        /// var renderer = new TemplateRenderer();
+        /// </code>
+        /// </example>
         public TemplateRenderer()
         {
             _dataBindingEngine = new DataBindingEngine();
@@ -29,6 +47,20 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将模板渲染为FlowDocument
         /// </summary>
+        /// <param name="template">要渲染的模板</param>
+        /// <param name="data">绑定数据（可选）</param>
+        /// <returns>FlowDocument对象</returns>
+        /// <remarks>
+        /// FlowDocument是WPF中用于显示流内容的文档模型
+        /// 适用于需要自动换行和分页的场景
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// var renderer = new TemplateRenderer();
+        /// var template = new ReportTemplateDefinition { Name = "测试模板" };
+        /// var document = renderer.RenderToFlowDocument(template);
+        /// </code>
+        /// </example>
         public FlowDocument RenderToFlowDocument(ReportTemplateDefinition template, object? data = null)
         {
             var document = new FlowDocument();
@@ -62,6 +94,20 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将模板渲染为FrameworkElement
         /// </summary>
+        /// <param name="template">要渲染的模板</param>
+        /// <param name="data">绑定数据（可选）</param>
+        /// <returns>FrameworkElement对象</returns>
+        /// <remarks>
+        /// FrameworkElement是WPF中所有UI元素的基类
+        /// 适用于需要精确控制布局的场景
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// var renderer = new TemplateRenderer();
+        /// var template = new ReportTemplateDefinition { Name = "测试模板" };
+        /// var element = renderer.RenderToFrameworkElement(template);
+        /// </code>
+        /// </example>
         public System.Windows.FrameworkElement RenderToFrameworkElement(ReportTemplateDefinition template, object? data = null)
         {
             var canvas = new Canvas();
@@ -86,8 +132,21 @@ namespace ReportTemplateEditor.Engine
         }
 
         /// <summary>
-        /// 导出为PDF
+        /// 将模板导出为PDF文件
         /// </summary>
+        /// <param name="template">要导出的模板</param>
+        /// <param name="data">绑定数据（可选）</param>
+        /// <param name="filePath">输出文件路径</param>
+        /// <exception cref="ArgumentNullException">当template参数为null时抛出</exception>
+        /// <exception cref="ArgumentException">当filePath参数为空时抛出</exception>
+        /// <exception cref="InvalidOperationException">当导出失败时抛出</exception>
+        /// <example>
+        /// <code>
+        /// var renderer = new TemplateRenderer();
+        /// var template = new ReportTemplateDefinition { Name = "测试模板" };
+        /// renderer.ExportToPdf(template, null, @"C:\Output\report.pdf");
+        /// </code>
+        /// </example>
         public void ExportToPdf(ReportTemplateDefinition template, object? data, string filePath)
         {
             if (template == null)
@@ -107,6 +166,16 @@ namespace ReportTemplateEditor.Engine
             }
         }
 
+        /// <summary>
+        /// 创建QuestPDF文档
+        /// </summary>
+        /// <param name="template">模板定义</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>QuestPDF文档对象</returns>
+        /// <remarks>
+        /// QuestPDF是一个开源的.NET PDF生成库
+        /// 使用流畅的API来定义PDF文档结构
+        /// </remarks>
         private IDocument CreateQuestPdfDocument(ReportTemplateDefinition template, object data)
         {
             return Document.Create(container =>
@@ -333,8 +402,24 @@ namespace ReportTemplateEditor.Engine
         }
 
         /// <summary>
-        /// 导出为图片
+        /// 将模板导出为图片文件
         /// </summary>
+        /// <param name="template">要导出的模板</param>
+        /// <param name="data">绑定数据（可选）</param>
+        /// <param name="filePath">输出文件路径</param>
+        /// <exception cref="ArgumentNullException">当template参数为null时抛出</exception>
+        /// <exception cref="ArgumentException">当filePath参数为空时抛出</exception>
+        /// <exception cref="InvalidOperationException">当导出失败时抛出</exception>
+        /// <remarks>
+        /// 支持的图片格式：PNG、JPG、JPEG、BMP、GIF、TIFF
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// var renderer = new TemplateRenderer();
+        /// var template = new ReportTemplateDefinition { Name = "测试模板" };
+        /// renderer.ExportToImage(template, null, @"C:\Output\report.png");
+        /// </code>
+        /// </example>
         public void ExportToImage(ReportTemplateDefinition template, object? data, string filePath)
         {
             if (template == null)
@@ -354,6 +439,14 @@ namespace ReportTemplateEditor.Engine
             }
         }
 
+        /// <summary>
+        /// 将FrameworkElement渲染为图片文件
+        /// </summary>
+        /// <param name="element">要渲染的UI元素</param>
+        /// <param name="filePath">输出文件路径</param>
+        /// <exception cref="ArgumentNullException">当element参数为null时抛出</exception>
+        /// <exception cref="InvalidOperationException">当元素尺寸无效时抛出</exception>
+        /// <exception cref="NotSupportedException">当图片格式不支持时抛出</exception>
         private void RenderFrameworkElementToImage(System.Windows.FrameworkElement element, string filePath)
         {
             if (element == null)
@@ -383,6 +476,12 @@ namespace ReportTemplateEditor.Engine
             }
         }
 
+        /// <summary>
+        /// 根据文件扩展名获取图片编码器
+        /// </summary>
+        /// <param name="filePath">文件路径</param>
+        /// <returns>图片编码器</returns>
+        /// <exception cref="NotSupportedException">当图片格式不支持时抛出</exception>
         private System.Windows.Media.Imaging.BitmapEncoder GetImageEncoder(string filePath)
         {
             var extension = System.IO.Path.GetExtension(filePath).ToLower();
@@ -401,6 +500,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将元素渲染为Block
         /// </summary>
+        /// <param name="element">要渲染的元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>Block对象</returns>
         private Block RenderElementToBlock(TemplateElements.ElementBase element, object? data)
         {
             switch (element.Type)
@@ -416,6 +518,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将元素渲染为UIElement
         /// </summary>
+        /// <param name="element">要渲染的元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>UIElement对象</returns>
         private System.Windows.UIElement RenderElementToUIElement(TemplateElements.ElementBase element, object? data)
         {
             switch (element.Type)
@@ -435,6 +540,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染文本元素为UIElement
         /// </summary>
+        /// <param name="textElement">文本元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>TextBlock对象</returns>
         private System.Windows.UIElement RenderTextElementToUIElement(TemplateElements.TextElement textElement, object? data)
         {
             var textBlock = new TextBlock();
@@ -471,6 +579,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染文本元素为Block
         /// </summary>
+        /// <param name="textElement">文本元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>Paragraph对象</returns>
         private Block RenderTextElementToBlock(TemplateElements.TextElement textElement, object? data)
         {
             var paragraph = new Paragraph();
@@ -500,6 +611,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染图片元素为UIElement
         /// </summary>
+        /// <param name="imageElement">图片元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>Image对象</returns>
         private System.Windows.UIElement RenderImageElementToUIElement(TemplateElements.ImageElement imageElement, object? data)
         {
             var image = new WpfImage();
@@ -533,6 +647,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染表格元素为UIElement
         /// </summary>
+        /// <param name="tableElement">表格元素</param>
+        /// <param name="data">绑定数据</param>
+        /// <returns>Grid对象</returns>
         private System.Windows.UIElement RenderTableElementToUIElement(TemplateElements.TableElement tableElement, object? data)
         {
             var grid = new Grid();

@@ -19,6 +19,7 @@ using ReportTemplateEditor.Designer.Services;
 using ReportTemplateEditor.Designer.Models;
 using ReportTemplateEditor.Designer.Helpers;
 using ReportTemplateEditor.Core.Services;
+using ReportTemplateEditor.Designer.ViewModels;
 
 namespace ReportTemplateEditor.Designer
 {
@@ -27,6 +28,8 @@ namespace ReportTemplateEditor.Designer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainWindowViewModel _viewModel;
+
         // 当前模板定义
         private ReportTemplateDefinition _currentTemplate;
 
@@ -65,6 +68,7 @@ namespace ReportTemplateEditor.Designer
         public MainWindow()
         {
             InitializeComponent();
+            InitializeViewModel();
             InitializeServices();
             InitializeWidgets();
             InitializeTemplate();
@@ -74,6 +78,26 @@ namespace ReportTemplateEditor.Designer
             _commandManager.CommandExecuted += UpdateSelectedElementsBorderThickness;
             _commandManager.CommandUndone += UpdateSelectedElementsBorderThickness;
             _commandManager.CommandRedone += UpdateSelectedElementsBorderThickness;
+        }
+
+        /// <summary>
+        /// 初始化ViewModel
+        /// </summary>
+        private void InitializeViewModel()
+        {
+            _viewModel = new MainWindowViewModel();
+            _viewModel.CommandManager = _commandManager;
+            _viewModel.CurrentTemplate = _currentTemplate;
+            _viewModel.ElementWrappers = _elementWrappers;
+            _viewModel.SelectionManager = _selectionManager;
+            _viewModel.GridHelper = _gridHelper;
+            _viewModel.ZoomManager = _zoomManager;
+            _viewModel.TemplateFileManager = _templateFileManager;
+            _viewModel.PropertyPanelManager = _propertyPanelManager;
+            _viewModel.CanvasInteractionHandler = _canvasInteractionHandler;
+            _viewModel.UIElementFactory = _uiElementFactory;
+            _viewModel.Renderer = _renderer;
+            this.DataContext = _viewModel;
         }
 
         /// <summary>
@@ -1066,21 +1090,7 @@ namespace ReportTemplateEditor.Designer
         }
 
         #endregion
-
         #region 网格设置事件处理
-
-        private void ShowGridToggle_Click(object sender, RoutedEventArgs e)
-        {
-            _showGrid = showGridToggle.IsChecked == true;
-            _gridHelper.SetGridVisibility(_showGrid);
-        }
-
-        private void SnapToGridToggle_Click(object sender, RoutedEventArgs e)
-        {
-            _snapToGrid = snapToGridToggle.IsChecked == true;
-            _gridHelper.SetSnapToGrid(_snapToGrid);
-        }
-
         private void GridSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             // _gridSize = gridSizeSlider.Value;
@@ -1481,42 +1491,34 @@ namespace ReportTemplateEditor.Designer
 
         private void SaveTemplateAs_Click(object sender, RoutedEventArgs e)
         {
-            SaveAsTemplate_Click(sender, e);
         }
 
         private void ShowGrid_Click(object sender, RoutedEventArgs e)
         {
-            ShowGridToggle_Click(sender, e);
         }
 
         private void SnapToGrid_Click(object sender, RoutedEventArgs e)
         {
-            SnapToGridToggle_Click(sender, e);
         }
 
         private void Zoom50_Click(object sender, RoutedEventArgs e)
         {
-            ZoomTo50_Click(sender, e);
         }
 
         private void Zoom75_Click(object sender, RoutedEventArgs e)
         {
-            ZoomTo75_Click(sender, e);
         }
 
         private void Zoom100_Click(object sender, RoutedEventArgs e)
         {
-            ZoomTo100_Click(sender, e);
         }
 
         private void Zoom150_Click(object sender, RoutedEventArgs e)
         {
-            ZoomTo150_Click(sender, e);
         }
 
         private void Zoom200_Click(object sender, RoutedEventArgs e)
         {
-            ZoomTo200_Click(sender, e);
         }
 
         private void TemplateProperties_Click(object sender, RoutedEventArgs e)
@@ -1529,47 +1531,38 @@ namespace ReportTemplateEditor.Designer
 
         private void ExportJson_Click(object sender, RoutedEventArgs e)
         {
-            ExportToJson_Click(sender, e);
         }
 
         private void paperSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            PageSizeComboBox_SelectionChanged(sender, e);
         }
 
         private void txtMargin_TextChanged(object sender, TextChangedEventArgs e)
         {
-            MarginTextBox_TextChanged(sender, e);
         }
 
         private void orientationToggle_Checked(object sender, RoutedEventArgs e)
         {
-            OrientationToggle_Click(sender, e);
         }
 
         private void orientationToggle_Unchecked(object sender, RoutedEventArgs e)
         {
-            OrientationToggle_Click(sender, e);
         }
 
         private void txtGlobalFontSize_TextChanged(object sender, TextChangedEventArgs e)
         {
-            GlobalFontSizeTextBox_TextChanged(sender, e);
         }
 
         private void chkEnableGlobalFontSize_Checked(object sender, RoutedEventArgs e)
         {
-            EnableGlobalFontSize_Click(sender, e);
         }
 
         private void chkEnableGlobalFontSize_Unchecked(object sender, RoutedEventArgs e)
         {
-            EnableGlobalFontSize_Click(sender, e);
         }
 
         private void ActualSize_Click(object sender, RoutedEventArgs e)
         {
-            ResetZoom_Click(sender, e);
         }
 
         private void MoveLayerUp_Click(object sender, RoutedEventArgs e)
