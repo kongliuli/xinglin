@@ -92,27 +92,8 @@ namespace ReportTemplateEditor.App.ViewModels
 
         private async void LoadTemplateAsync(TemplateTreeItem? item)
         {
-            if (item == null)
+            if (!ValidateTemplateItem(item))
             {
-                StatusMessage = "未选择模板文件";
-                return;
-            }
-
-            if (item.Type != TreeItemType.TemplateFile)
-            {
-                StatusMessage = $"选择了 {item.Type}，请选择模板文件";
-                return;
-            }
-
-            if (string.IsNullOrEmpty(item.FullPath))
-            {
-                StatusMessage = "模板文件路径为空";
-                return;
-            }
-
-            if (!System.IO.File.Exists(item.FullPath))
-            {
-                StatusMessage = $"模板文件不存在: {item.FullPath}";
                 return;
             }
 
@@ -121,15 +102,12 @@ namespace ReportTemplateEditor.App.ViewModels
                 IsBusy = true;
                 StatusMessage = $"正在加载模板: {item.Name}";
 
-                var template = await _templateLoaderService.LoadTemplateFromFileAsync(item.FullPath);
+                var template = await LoadTemplateDataAsync(item.FullPath);
                 WindowTitle = $"报告模板编辑器 - {template.Name}";
 
-                var data = CreateSampleData(template);
+                var data = CreateSampleDataForTemplate(template);
+                UpdateViewModelsWithTemplate(template, data);
 
-                ControlPanelViewModel.LoadTemplateCommand.Execute(template);
-                ControlPanelViewModel.UpdateDataCommand.Execute(data);
-                PdfPreviewViewModel.LoadTemplateCommand.Execute(template);
-                PdfPreviewViewModel.UpdateDataCommand.Execute(data);
                 StatusMessage = $"已加载模板: {template.Name}，包含 {template.Elements.Count} 个元素";
             }
             catch (System.Exception ex)
@@ -143,7 +121,41 @@ namespace ReportTemplateEditor.App.ViewModels
             }
         }
 
-        private object CreateSampleData(ReportTemplateDefinition template)
+        private bool ValidateTemplateItem(TemplateTreeItem? item)
+        {
+            if (item == null)
+            {
+                StatusMessage = "未选择模板文件";
+                return false;
+            }
+
+            if (item.Type != TreeItemType.TemplateFile)
+            {
+                StatusMessage = $"选择了 {item.Type}，请选择模板文件";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(item.FullPath))
+            {
+                StatusMessage = "模板文件路径为空";
+                return false;
+            }
+
+            if (!System.IO.File.Exists(item.FullPath))
+            {
+                StatusMessage = $"模板文件不存在: {item.FullPath}";
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<ReportTemplateDefinition> LoadTemplateDataAsync(string filePath)
+        {
+            return await _templateLoaderService.LoadTemplateFromFileAsync(filePath);
+        }
+
+        private object CreateSampleDataForTemplate(ReportTemplateDefinition template)
         {
             var data = new System.Dynamic.ExpandoObject();
             var dataDict = (System.Collections.Generic.IDictionary<string, object?>)data;
@@ -163,9 +175,56 @@ namespace ReportTemplateEditor.App.ViewModels
             return data;
         }
 
+        private void UpdateViewModelsWithTemplate(ReportTemplateDefinition template, object data)
+        {
+            ControlPanelViewModel.LoadTemplateCommand.Execute(template);
+            ControlPanelViewModel.UpdateDataCommand.Execute(data);
+            PdfPreviewViewModel.LoadTemplateCommand.Execute(template);
+            PdfPreviewViewModel.UpdateDataCommand.Execute(data);
+        }
+
         private void SaveTemplate()
         {
-            StatusMessage = "保存功能待实现";
+            var template = ControlPanelViewModel.CurrentTemplate;
+            if (template == null)
+            {
+                StatusMessage = "没有可保存的模板";
+                return;
+            }
+
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "模板文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+                Title = "保存模板",
+                FileName = string.IsNullOrEmpty(template.FilePath) 
+                    ? $"{template.Name}.json" 
+                    : System.IO.Path.GetFileName(template.FilePath),
+                InitialDirectory = string.IsNullOrEmpty(template.FilePath)
+                    ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    : System.IO.Path.GetDirectoryName(template.FilePath)
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    IsBusy = true;
+                    StatusMessage = $"正在保存模板: {template.Name}";
+
+                    _templateLoaderService.SaveTemplateToFile(template, saveFileDialog.FileName);
+                    WindowTitle = $"报告模板编辑器 - {template.Name}";
+                    StatusMessage = $"模板已保存到: {saveFileDialog.FileName}";
+                }
+                catch (System.Exception ex)
+                {
+                    StatusMessage = $"保存失败: {ex.Message}";
+                    System.Diagnostics.Debug.WriteLine($"保存模板失败: {ex}");
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
+            }
         }
 
         private bool CanExecuteSaveTemplate()

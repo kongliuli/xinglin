@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {}
+    "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {}
   },
   "projects": {
-    "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
+    "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
+        "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
         "projectName": "ReportTemplateEditor.Core",
-        "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
+        "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
         "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-        "outputPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\obj\\",
+        "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -80,14 +80,14 @@
         }
       }
     },
-    "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
+    "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
+        "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
         "projectName": "ReportTemplateEditor.Engine",
-        "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
+        "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj",
         "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-        "outputPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\obj\\",
+        "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -109,8 +109,8 @@
           "net9.0-windows7.0": {
             "targetAlias": "net9.0-windows",
             "projectReferences": {
-              "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
-                "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
+              "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
+                "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
               }
             }
           }
@@ -130,6 +130,12 @@
       "frameworks": {
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
+          "dependencies": {
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2024.12.1, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

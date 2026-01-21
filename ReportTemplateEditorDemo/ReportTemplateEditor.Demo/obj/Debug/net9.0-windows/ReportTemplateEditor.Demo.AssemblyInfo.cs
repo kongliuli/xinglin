@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ReportTemplateEditor.Demo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7104c939f03cdc5d36350b95b16a6f8fafccad6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("ReportTemplateEditor.Demo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ReportTemplateEditor.Demo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

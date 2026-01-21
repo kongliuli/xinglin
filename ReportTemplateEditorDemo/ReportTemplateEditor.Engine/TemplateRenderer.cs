@@ -4,6 +4,10 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using ReportTemplateEditor.Core.Models;
 using TemplateElements = ReportTemplateEditor.Core.Models.Elements;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using WpfImage = System.Windows.Controls.Image;
 
 namespace ReportTemplateEditor.Engine
 {
@@ -25,7 +29,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将模板渲染为FlowDocument
         /// </summary>
-        public FlowDocument RenderToFlowDocument(ReportTemplateDefinition template, object data = null)
+        public FlowDocument RenderToFlowDocument(ReportTemplateDefinition template, object? data = null)
         {
             var document = new FlowDocument();
             
@@ -58,7 +62,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将模板渲染为FrameworkElement
         /// </summary>
-        public System.Windows.FrameworkElement RenderToFrameworkElement(ReportTemplateDefinition template, object data = null)
+        public System.Windows.FrameworkElement RenderToFrameworkElement(ReportTemplateDefinition template, object? data = null)
         {
             var canvas = new Canvas();
             canvas.Width = template.PageWidth;
@@ -84,25 +88,320 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 导出为PDF
         /// </summary>
-        public void ExportToPdf(ReportTemplateDefinition template, object data, string filePath)
+        public void ExportToPdf(ReportTemplateDefinition template, object? data, string filePath)
         {
-            // 这里可以实现PDF导出功能，需要引入第三方库如iTextSharp或Syncfusion
-            throw new NotImplementedException();
+            if (template == null)
+                throw new ArgumentNullException(nameof(template));
+
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentException("文件路径不能为空", nameof(filePath));
+
+            try
+            {
+                var document = CreateQuestPdfDocument(template, data);
+                document.GeneratePdf(filePath);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"导出PDF失败: {ex.Message}", ex);
+            }
+        }
+
+        private IDocument CreateQuestPdfDocument(ReportTemplateDefinition template, object data)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size((float)template.PageWidth, (float)template.PageHeight);
+                    page.Margin((float)template.MarginLeft);
+                    page.MarginTop((float)template.MarginTop);
+                    page.MarginRight((float)template.MarginRight);
+                    page.MarginBottom((float)template.MarginBottom);
+                    page.DefaultTextStyle(x => x.FontSize(12).FontFamily(QuestPDF.Helpers.Fonts.Calibri));
+
+                    page.Header().Text(template.Name).Bold().FontSize(16);
+                    page.Content().Element(c => ComposeContent(c));
+                    page.Footer().AlignCenter().Text(x =>
+                    {
+                        x.Span("第 ");
+                        x.CurrentPageNumber();
+                        x.Span(" 页，共 ");
+                        x.TotalPages();
+                        x.Span(" 页");
+                    });
+                });
+
+                void ComposeContent(QuestPDF.Infrastructure.IContainer container)
+                {
+                    container.PaddingVertical(40).Column(column =>
+                    {
+                        foreach (var element in template.Elements)
+                        {
+                            if (!element.IsVisible) continue;
+
+                            column.Item().Element(c => ComposeElement(c, element, data));
+                        }
+                    });
+                }
+
+                void ComposeElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.ElementBase element, object? data)
+                {
+                    switch (element.Type)
+                    {
+                        case "Text":
+                            ComposeTextElement(container, (TemplateElements.TextElement)element, data);
+                            break;
+                        case "Label":
+                            ComposeLabelElement(container, (TemplateElements.LabelElement)element, data);
+                            break;
+                        case "Table":
+                            ComposeTableElement(container, (TemplateElements.TableElement)element, data);
+                            break;
+                        case "Image":
+                            ComposeImageElement(container, (TemplateElements.ImageElement)element, data);
+                            break;
+                        case "Line":
+                            ComposeLineElement(container, (TemplateElements.LineElement)element, data);
+                            break;
+                        case "Rectangle":
+                            ComposeRectangleElement(container, (TemplateElements.RectangleElement)element, data);
+                            break;
+                        case "Ellipse":
+                            ComposeEllipseElement(container, (TemplateElements.EllipseElement)element, data);
+                            break;
+                    }
+                }
+
+                void ComposeTextElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.TextElement element, object? data)
+                {
+                    string text = element.Text;
+                    if (!string.IsNullOrEmpty(element.DataBindingPath) && data != null)
+                    {
+                        text = _dataBindingEngine.GetValue(data, element.DataBindingPath, element.FormatString)?.ToString() ?? text;
+                    }
+
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .Background(GetColor(element.BackgroundColor))
+                        .Border((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor))
+                        .AlignLeft()
+                        .AlignMiddle()
+                        .Text(text)
+                        .FontSize((float)element.FontSize)
+                        .FontColor(GetColor(element.ForegroundColor));
+                }
+
+                void ComposeLabelElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.LabelElement element, object? data)
+                {
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .Background(GetColor(element.BackgroundColor))
+                        .Border((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor))
+                        .AlignLeft()
+                        .AlignMiddle()
+                        .Text(element.Text)
+                        .FontSize((float)element.FontSize)
+                        .FontColor(GetColor(element.ForegroundColor))
+                        .Bold();
+                }
+
+                void ComposeTableElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.TableElement element, object? data)
+                {
+                    container.Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            for (int i = 0; i < element.Columns; i++)
+                            {
+                                columns.RelativeColumn();
+                            }
+                        });
+
+                        for (int row = 0; row < element.Rows; row++)
+                        {
+                            for (int col = 0; col < element.Columns; col++)
+                            {
+                                var cell = element.Cells.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                                if (cell != null)
+                                {
+                                    string content = cell.Content;
+                                    if (!string.IsNullOrEmpty(cell.DataBindingPath) && data != null)
+                                    {
+                                        content = _dataBindingEngine.GetValue(data, cell.DataBindingPath, cell.FormatString)?.ToString() ?? content;
+                                    }
+
+                                    table.Cell()
+                                        .Border((float)element.BorderWidth)
+                                        .BorderColor(GetColor(element.BorderColor))
+                                        .Background(GetColor(cell.BackgroundColor))
+                                        .AlignLeft()
+                                        .AlignMiddle()
+                                        .Padding((float)element.CellPadding)
+                                        .Text(content)
+                                        .FontSize((float)cell.FontSize)
+                                        .FontColor(GetColor(cell.ForegroundColor));
+                                }
+                                else
+                                {
+                                    table.Cell()
+                                        .Border((float)element.BorderWidth)
+                                        .BorderColor(GetColor(element.BorderColor))
+                                        .Background(GetColor(element.BackgroundColor));
+                                }
+                            }
+                        }
+                    });
+                }
+
+                void ComposeImageElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.ImageElement element, object? data)
+                {
+                    byte[] imageBytes = null;
+
+                    if (!string.IsNullOrEmpty(element.ImageData))
+                    {
+                        imageBytes = Convert.FromBase64String(element.ImageData);
+                    }
+                    else if (!string.IsNullOrEmpty(element.ImagePath) && System.IO.File.Exists(element.ImagePath))
+                    {
+                        imageBytes = System.IO.File.ReadAllBytes(element.ImagePath);
+                    }
+
+                    if (imageBytes != null)
+                    {
+                        container
+                            .Width((float)element.Width)
+                            .Height((float)element.Height)
+                            .Background(GetColor(element.BackgroundColor))
+                            .Border((float)element.BorderWidth)
+                            .BorderColor(GetColor(element.BorderColor))
+                            .Image(imageBytes);
+                    }
+                }
+
+                void ComposeLineElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.LineElement element, object? data)
+                {
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .BorderBottom((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor));
+                }
+
+                void ComposeRectangleElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.RectangleElement element, object? data)
+                {
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .Background(GetColor(element.BackgroundColor))
+                        .Border((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor));
+                }
+
+                void ComposeEllipseElement(QuestPDF.Infrastructure.IContainer container, TemplateElements.EllipseElement element, object? data)
+                {
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .Background(GetColor(element.BackgroundColor))
+                        .Border((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor));
+                }
+
+                string GetColor(string colorHex)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(colorHex))
+                            return "#FFFFFF";
+
+                        if (!colorHex.StartsWith("#"))
+                            colorHex = "#" + colorHex;
+
+                        return colorHex;
+                    }
+                    catch
+                    {
+                        return "#FFFFFF";
+                    }
+                }
+            });
         }
 
         /// <summary>
         /// 导出为图片
         /// </summary>
-        public void ExportToImage(ReportTemplateDefinition template, object data, string filePath)
+        public void ExportToImage(ReportTemplateDefinition template, object? data, string filePath)
         {
-            // 这里可以实现图片导出功能
-            throw new NotImplementedException();
+            if (template == null)
+                throw new ArgumentNullException(nameof(template));
+
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentException("文件路径不能为空", nameof(filePath));
+
+            try
+            {
+                var frameworkElement = RenderToFrameworkElement(template, data);
+                RenderFrameworkElementToImage(frameworkElement, filePath);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"导出图片失败: {ex.Message}", ex);
+            }
+        }
+
+        private void RenderFrameworkElementToImage(System.Windows.FrameworkElement element, string filePath)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            var width = (int)element.Width;
+            var height = (int)element.Height;
+
+            if (width <= 0 || height <= 0)
+                throw new InvalidOperationException("元素尺寸无效");
+
+            var renderBitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(
+                width, height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+
+            element.Measure(new System.Windows.Size(width, height));
+            element.Arrange(new System.Windows.Rect(new System.Windows.Point(0, 0), new System.Windows.Size(width, height)));
+            element.UpdateLayout();
+
+            renderBitmap.Render(element);
+
+            var encoder = GetImageEncoder(filePath);
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(renderBitmap));
+
+            using (var fileStream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+            {
+                encoder.Save(fileStream);
+            }
+        }
+
+        private System.Windows.Media.Imaging.BitmapEncoder GetImageEncoder(string filePath)
+        {
+            var extension = System.IO.Path.GetExtension(filePath).ToLower();
+
+            return extension switch
+            {
+                ".png" => new System.Windows.Media.Imaging.PngBitmapEncoder(),
+                ".jpg" or ".jpeg" => new System.Windows.Media.Imaging.JpegBitmapEncoder { QualityLevel = 90 },
+                ".bmp" => new System.Windows.Media.Imaging.BmpBitmapEncoder(),
+                ".gif" => new System.Windows.Media.Imaging.GifBitmapEncoder(),
+                ".tiff" => new System.Windows.Media.Imaging.TiffBitmapEncoder(),
+                _ => throw new NotSupportedException($"不支持的图片格式: {extension}")
+            };
         }
 
         /// <summary>
         /// 将元素渲染为Block
         /// </summary>
-        private Block RenderElementToBlock(TemplateElements.ElementBase element, object data)
+        private Block RenderElementToBlock(TemplateElements.ElementBase element, object? data)
         {
             switch (element.Type)
             {
@@ -117,7 +416,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 将元素渲染为UIElement
         /// </summary>
-        private System.Windows.UIElement RenderElementToUIElement(TemplateElements.ElementBase element, object data)
+        private System.Windows.UIElement RenderElementToUIElement(TemplateElements.ElementBase element, object? data)
         {
             switch (element.Type)
             {
@@ -136,7 +435,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染文本元素为UIElement
         /// </summary>
-        private System.Windows.UIElement RenderTextElementToUIElement(TemplateElements.TextElement textElement, object data)
+        private System.Windows.UIElement RenderTextElementToUIElement(TemplateElements.TextElement textElement, object? data)
         {
             var textBlock = new TextBlock();
             
@@ -172,7 +471,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染文本元素为Block
         /// </summary>
-        private Block RenderTextElementToBlock(TemplateElements.TextElement textElement, object data)
+        private Block RenderTextElementToBlock(TemplateElements.TextElement textElement, object? data)
         {
             var paragraph = new Paragraph();
             var run = new Run();
@@ -201,9 +500,9 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染图片元素为UIElement
         /// </summary>
-        private System.Windows.UIElement RenderImageElementToUIElement(TemplateElements.ImageElement imageElement, object data)
+        private System.Windows.UIElement RenderImageElementToUIElement(TemplateElements.ImageElement imageElement, object? data)
         {
-            var image = new Image();
+            var image = new WpfImage();
             
             // 设置图片源
             if (!string.IsNullOrEmpty(imageElement.ImageData))
@@ -234,7 +533,7 @@ namespace ReportTemplateEditor.Engine
         /// <summary>
         /// 渲染表格元素为UIElement
         /// </summary>
-        private System.Windows.UIElement RenderTableElementToUIElement(TemplateElements.TableElement tableElement, object data)
+        private System.Windows.UIElement RenderTableElementToUIElement(TemplateElements.TableElement tableElement, object? data)
         {
             var grid = new Grid();
             
