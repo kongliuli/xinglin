@@ -11,9 +11,11 @@ obj/
 *.user
 *.userosscache
 *.sln.docstates
+*.md.user
 
 # NuGet 包目录
 packages/
+.nuget/
 
 # 构建日志
 *.log
@@ -21,6 +23,65 @@ BuildLog.*
 
 # 测试结果
 TestResults/
+coverage/
 
 # 调试符号文件
 *.pdb
+*.exe.config
+*.dll.config
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS 生成的文件
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# 包管理器文件
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 运行时文件
+*.runtimeconfig.json
+*.runtimeconfig.dev.json
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 缓存文件
+*.cache
+.cache/
+
+# 工具生成的文件
+*.generated.cs
+*.g.cs
+*.g.i.cs
+
+# 容器相关
+.dockerignore
+docker-compose.override.yml
+
+# 发布目录
+publish/
+dist/
+
+# 临时目录
+temp/
+tmp/
