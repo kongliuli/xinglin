@@ -12,7 +12,7 @@ namespace ReportTemplateEditor.Designer.Services
         private bool _showGrid;
         private bool _snapToGrid;
         private double _gridSize;
-        private List<Line> _gridLines;
+        private Rectangle _gridBackground;
 
         public event Action<double> GridSizeChanged;
 
@@ -55,7 +55,6 @@ namespace ReportTemplateEditor.Designer.Services
             _showGrid = true;
             _snapToGrid = false;
             _gridSize = 10;
-            _gridLines = new List<Line>();
         }
 
         public GridHelper(Canvas designCanvas, bool showGrid, bool snapToGrid, double gridSize)
@@ -64,7 +63,6 @@ namespace ReportTemplateEditor.Designer.Services
             _showGrid = showGrid;
             _snapToGrid = snapToGrid;
             _gridSize = gridSize;
-            _gridLines = new List<Line>();
         }
 
         public void DrawGrid()
@@ -85,49 +83,58 @@ namespace ReportTemplateEditor.Designer.Services
 
             var gridBrush = new SolidColorBrush(Color.FromRgb(200, 200, 200));
 
+            var drawingGroup = new DrawingGroup();
+            
             for (double x = 0; x <= canvasWidth; x += _gridSize)
             {
-                var verticalLine = new Line
+                var verticalLine = new GeometryDrawing
                 {
-                    X1 = x,
-                    Y1 = 0,
-                    X2 = x,
-                    Y2 = canvasHeight,
-                    Stroke = gridBrush,
-                    StrokeThickness = 0.5,
-                    IsHitTestVisible = false
+                    Brush = gridBrush,
+                    Pen = new Pen(gridBrush, 0.5),
+                    Geometry = new LineGeometry(new Point(x, 0), new Point(x, canvasHeight))
                 };
-                _designCanvas.Children.Insert(0, verticalLine);
-                _gridLines.Add(verticalLine);
+                drawingGroup.Children.Add(verticalLine);
             }
 
             for (double y = 0; y <= canvasHeight; y += _gridSize)
             {
-                var horizontalLine = new Line
+                var horizontalLine = new GeometryDrawing
                 {
-                    X1 = 0,
-                    Y1 = y,
-                    X2 = canvasWidth,
-                    Y2 = y,
-                    Stroke = gridBrush,
-                    StrokeThickness = 0.5,
-                    IsHitTestVisible = false
+                    Brush = gridBrush,
+                    Pen = new Pen(gridBrush, 0.5),
+                    Geometry = new LineGeometry(new Point(0, y), new Point(canvasWidth, y))
                 };
-                _designCanvas.Children.Insert(0, horizontalLine);
-                _gridLines.Add(horizontalLine);
+                drawingGroup.Children.Add(horizontalLine);
             }
+
+            var drawingBrush = new DrawingBrush(drawingGroup)
+            {
+                TileMode = TileMode.None,
+                Stretch = Stretch.None
+            };
+
+            _gridBackground = new Rectangle
+            {
+                Width = canvasWidth,
+                Height = canvasHeight,
+                Fill = drawingBrush,
+                IsHitTestVisible = false
+            };
+
+            Canvas.SetLeft(_gridBackground, 0);
+            Canvas.SetTop(_gridBackground, 0);
+            Canvas.SetZIndex(_gridBackground, -1000);
+            
+            _designCanvas.Children.Add(_gridBackground);
         }
 
         public void ClearGrid()
         {
-            foreach (var line in _gridLines)
+            if (_gridBackground != null && _designCanvas.Children.Contains(_gridBackground))
             {
-                if (_designCanvas.Children.Contains(line))
-                {
-                    _designCanvas.Children.Remove(line);
-                }
+                _designCanvas.Children.Remove(_gridBackground);
+                _gridBackground = null;
             }
-            _gridLines.Clear();
         }
 
         public double SnapToGrid(double value)

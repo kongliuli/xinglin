@@ -137,7 +137,8 @@ namespace ReportTemplateEditor.Designer
                 _gridHelper,
                 AddElementToCanvas,
                 ShowStatus,
-                this
+                this,
+                _zoomManager
             );
         }
 
@@ -1398,7 +1399,7 @@ namespace ReportTemplateEditor.Designer
                 selectionBorder.Width = element.Width;
                 selectionBorder.Height = element.Height;
             }
-            Canvas.SetZIndex(selectionBorder, element.ZIndex + 1);
+            Canvas.SetZIndex(selectionBorder, int.MaxValue);
 
             // 更新包装类
             wrapper.UiElement = uiElement;
@@ -1487,6 +1488,71 @@ namespace ReportTemplateEditor.Designer
 
         private void DesignTableContent_Click(object sender, RoutedEventArgs e)
         {
+            if (_selectionManager.PrimarySelectedElement?.ModelElement is TableElement tableElement)
+            {
+                try
+                {
+                    var designerWindow = new TableDesignerWindow(tableElement);
+                    var ownerWindow = Window.GetWindow(this);
+                    if (ownerWindow != null)
+                    {
+                        designerWindow.Owner = ownerWindow;
+                    }
+                    
+                    bool? result = designerWindow.ShowDialog();
+                    
+                    if (result == true)
+                    {
+                        var designedTable = designerWindow.GetDesignResult();
+                        
+                        if (designedTable != null)
+                        {
+                            var wrapper = _elementWrappers.FirstOrDefault(w => w.ModelElement == tableElement);
+                            if (wrapper != null)
+                            {
+                                wrapper.ModelElement = designedTable;
+                                
+                                if (wrapper.UiElement != null)
+                                {
+                                    designCanvas.Children.Remove(wrapper.UiElement);
+                                }
+                                
+                                if (wrapper.SelectionBorder != null)
+                                {
+                                    designCanvas.Children.Remove(wrapper.SelectionBorder);
+                                }
+                                
+                                var newUiElement = _uiElementFactory.CreateUIElement(designedTable);
+                                if (newUiElement != null)
+                                {
+                                    Canvas.SetLeft(newUiElement, designedTable.X);
+                                    Canvas.SetTop(newUiElement, designedTable.Y);
+                                    Canvas.SetZIndex(newUiElement, designedTable.ZIndex);
+                                    
+                                    Border newSelectionBorder = CreateSelectionBorder(newUiElement);
+                                    Canvas.SetLeft(newSelectionBorder, designedTable.X);
+                                    Canvas.SetTop(newSelectionBorder, designedTable.Y);
+                                    newSelectionBorder.Width = designedTable.Width;
+                                    newSelectionBorder.Height = designedTable.Height;
+                                    Canvas.SetZIndex(newSelectionBorder, int.MaxValue);
+                                    
+                                    wrapper.UiElement = newUiElement;
+                                    wrapper.SelectionBorder = newSelectionBorder;
+                                    
+                                    designCanvas.Children.Add(newUiElement);
+                                    designCanvas.Children.Add(newSelectionBorder);
+                                }
+                            }
+                            
+                            ShowStatus("表格内容已更新");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"设计表格内容失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void SaveTemplateAs_Click(object sender, RoutedEventArgs e)

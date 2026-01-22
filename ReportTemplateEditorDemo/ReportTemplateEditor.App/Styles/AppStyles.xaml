@@ -1,0 +1,82 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <Color x:Key="PrimaryColor">#0066CC</Color>
+    <Color x:Key="SecondaryColor">#0099FF</Color>
+    <Color x:Key="AccentColor">#FF6600</Color>
+    <Color x:Key="SuccessColor">#28A745</Color>
+    <Color x:Key="WarningColor">#FFC107</Color>
+    <Color x:Key="ErrorColor">#DC3545</Color>
+    <Color x:Key="InfoColor">#17A2B8</Color>
+    <Color x:Key="TextColor">#333333</Color>
+    <Color x:Key="LightTextColor">#666666</Color>
+    <Color x:Key="BorderColor">#E0E0E0</Color>
+    <Color x:Key="BackgroundColor">#FFFFFF</Color>
+    <Color x:Key="DisabledColor">#A0A0A0</Color>
+    <Color x:Key="HoverColor">#F0F0F0</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
+    <SolidColorBrush x:Key="LightTextBrush" Color="{StaticResource LightTextColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}"/>
+    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}"/>
+    <SolidColorBrush x:Key="SelectionBrush" Color="#0078D7"/>
+    <SolidColorBrush x:Key="GridLineBrush" Color="#E0E0E0"/>
+
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="White"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="White"/>
+    <SolidColorBrush x:Key="RegionBrush" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="PrimaryRegionBrush" Color="#4A90E2"/>
+    <SolidColorBrush x:Key="SecondaryRegionBrush" Color="#FAFAFA"/>
+
+    <sys:Double x:Key="SmallMargin">2</sys:Double>
+    <sys:Double x:Key="MediumMargin">5</sys:Double>
+    <sys:Double x:Key="LargeMargin">10</sys:Double>
+
+    <sys:Double x:Key="SmallPadding">4</sys:Double>
+    <sys:Double x:Key="MediumPadding">8</sys:Double>
+    <sys:Double x:Key="LargePadding">12</sys:Double>
+
+    <sys:Double x:Key="SmallCornerRadius">2</sys:Double>
+    <sys:Double x:Key="MediumCornerRadius">4</sys:Double>
+    <sys:Double x:Key="LargeCornerRadius">6</sys:Double>
+
+    <sys:Double x:Key="SmallFontSize">12</sys:Double>
+    <sys:Double x:Key="MediumFontSize">14</sys:Double>
+    <sys:Double x:Key="LargeFontSize">16</sys:Double>
+
+    <Style x:Key="ButtonPrimary" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+
+    <Style x:Key="ButtonDefault" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Margin" Value="5"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+</ResourceDictionary>

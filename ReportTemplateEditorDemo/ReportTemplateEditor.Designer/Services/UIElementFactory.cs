@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CoreTextElement = ReportTemplateEditor.Core.Models.Elements.TextElement;
 using ReportTemplateEditor.Core.Models.Elements;
 using ReportTemplateEditor.Core.Services;
@@ -17,6 +18,42 @@ namespace ReportTemplateEditor.Designer.Services
         private readonly Action<UIElement> _elementSizeChanged;
         private readonly TableCalculationService _tableCalculationService;
         private readonly Window _mainWindow;
+        private readonly Dictionary<UIElement, DebounceTimer> _debounceTimers = new Dictionary<UIElement, DebounceTimer>();
+
+        private class DebounceTimer
+        {
+            private DispatcherTimer _timer;
+            private Action _action;
+            private readonly int _delayMs;
+
+            public DebounceTimer(Action action, int delayMs = 100)
+            {
+                _action = action;
+                _delayMs = delayMs;
+                _timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(delayMs)
+                };
+                _timer.Tick += OnTimerTick;
+            }
+
+            private void OnTimerTick(object sender, EventArgs e)
+            {
+                _timer.Stop();
+                _action?.Invoke();
+            }
+
+            public void Debounce()
+            {
+                _timer.Stop();
+                _timer.Start();
+            }
+
+            public void Stop()
+            {
+                _timer.Stop();
+            }
+        }
 
         public UIElementFactory(
             Action<UIElement, MouseButtonEventArgs> elementMouseDown,
@@ -247,7 +284,7 @@ namespace ReportTemplateEditor.Designer.Services
                         {
                             RowIndex = row,
                             ColumnIndex = col,
-                            Content = string.Format("单元格 {0},{1}", row + 1, col + 1),
+                            Content = string.Empty,
                             FontSize = 12,
                             FontWeight = "Normal",
                             ForegroundColor = "#000000",
@@ -732,7 +769,13 @@ namespace ReportTemplateEditor.Designer.Services
             {
                 textElement.Width = textBlock.ActualWidth;
                 textElement.Height = textBlock.ActualHeight;
-                _elementSizeChanged?.Invoke(textBlock);
+                
+                if (!_debounceTimers.TryGetValue(textBlock, out var timer))
+                {
+                    timer = new DebounceTimer(() => _elementSizeChanged?.Invoke(textBlock));
+                    _debounceTimers[textBlock] = timer;
+                }
+                timer.Debounce();
             }
         }
 
@@ -742,7 +785,13 @@ namespace ReportTemplateEditor.Designer.Services
             {
                 labelElement.Width = textBlock.ActualWidth;
                 labelElement.Height = textBlock.ActualHeight;
-                _elementSizeChanged?.Invoke(textBlock);
+                
+                if (!_debounceTimers.TryGetValue(textBlock, out var timer))
+                {
+                    timer = new DebounceTimer(() => _elementSizeChanged?.Invoke(textBlock));
+                    _debounceTimers[textBlock] = timer;
+                }
+                timer.Debounce();
             }
         }
 
@@ -752,7 +801,13 @@ namespace ReportTemplateEditor.Designer.Services
             {
                 textElement.Width = richTextBox.ActualWidth;
                 textElement.Height = richTextBox.ActualHeight;
-                _elementSizeChanged?.Invoke(richTextBox);
+                
+                if (!_debounceTimers.TryGetValue(richTextBox, out var timer))
+                {
+                    timer = new DebounceTimer(() => _elementSizeChanged?.Invoke(richTextBox));
+                    _debounceTimers[richTextBox] = timer;
+                }
+                timer.Debounce();
             }
         }
 
@@ -762,7 +817,13 @@ namespace ReportTemplateEditor.Designer.Services
             {
                 autoNumberElement.Width = textBlock.ActualWidth;
                 autoNumberElement.Height = textBlock.ActualHeight;
-                _elementSizeChanged?.Invoke(textBlock);
+                
+                if (!_debounceTimers.TryGetValue(textBlock, out var timer))
+                {
+                    timer = new DebounceTimer(() => _elementSizeChanged?.Invoke(textBlock));
+                    _debounceTimers[textBlock] = timer;
+                }
+                timer.Debounce();
             }
         }
 

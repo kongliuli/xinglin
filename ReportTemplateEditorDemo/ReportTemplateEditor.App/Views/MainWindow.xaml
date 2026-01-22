@@ -26,7 +26,7 @@
                 <MenuItem Header="打开其他目录" Command="{Binding OpenOtherDirectoryCommand}"/>
                 <MenuItem Header="打开内置模板目录" Command="{Binding OpenBuiltInTemplatesCommand}"/>
                 <Separator/>
-                <MenuItem Header="打开设计器" Command="{Binding OpenDesignerCommand}"/>
+                <MenuItem Header="打开模板设计器" Command="{Binding OpenDesignerCommand}"/>
                 <Separator/>
                 <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}"/>
                 <Separator/>
@@ -109,9 +109,9 @@
                     </Border>
 
                     <Border Grid.Row="1" Background="White" Margin="5" CornerRadius="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="ControlPanel" Margin="10" Background="White">
-                            </StackPanel>
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <WrapPanel x:Name="ControlPanel" Margin="10" Background="White" Orientation="Horizontal" ItemWidth="Auto" ItemHeight="Auto">
+                            </WrapPanel>
                         </ScrollViewer>
                     </Border>
 

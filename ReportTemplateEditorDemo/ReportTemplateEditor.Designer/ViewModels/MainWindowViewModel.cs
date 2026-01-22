@@ -5,11 +5,15 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using ReportTemplateEditor.Core.Models;
 using ReportTemplateEditor.Core.Models.Commands;
 using ReportTemplateEditor.Core.Models.Elements;
 using ReportTemplateEditor.Core.Models.Widgets;
 using ReportTemplateEditor.Core.Services;
+using ReportTemplateEditor.Core.Models.TestData;
 using ReportTemplateEditor.Designer.Models;
 using ReportTemplateEditor.Designer.Services;
 using ReportTemplateEditor.Engine;
@@ -42,7 +46,7 @@ namespace ReportTemplateEditor.Designer.ViewModels
         private bool _snapToGrid = false;
         private double _gridSize = 5.0;
         private double _zoomLevel = 100.0;
-        private string _lastTemplatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SharedData");
+        private string _lastTemplatePath = App.SharedDataPath;
         private UIElementWrapper? _primarySelectedElement;
         private string _paperSize = "A4";
         private double _margin = 10.0;
@@ -964,7 +968,274 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// </summary>
         private void PreviewTemplate()
         {
-            Status = "预览模板...";
+            ExceptionHandler.TryExecute(() =>
+            {
+                if (CurrentTemplate == null)
+                {
+                    Status = "没有可预览的模板";
+                    return;
+                }
+
+                IsBusy = true;
+                Status = "正在生成预览...";
+
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "PDF文件 (*.pdf)|*.pdf|所有文件 (*.*)|*.*",
+                    Title = "保存预览PDF",
+                    FileName = $"{CurrentTemplate.Name}_预览.pdf",
+                    InitialDirectory = _lastTemplatePath
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var document = CreateQuestPdfDocument(CurrentTemplate);
+                    document.GeneratePdf(saveFileDialog.FileName);
+                    Status = $"预览已保存到: {saveFileDialog.FileName}";
+                    
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = saveFileDialog.FileName,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Status = $"预览文件已保存，但无法自动打开: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    Status = "预览已取消";
+                }
+            },
+            "预览模板",
+            errorMessage => Status = errorMessage);
+        }
+
+        /// <summary>
+        /// 创建QuestPDF文档
+        /// </summary>
+        private IDocument CreateQuestPdfDocument(ReportTemplateDefinition template)
+        {
+            return Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size((float)template.PageWidth, (float)template.PageHeight);
+                    page.Margin((float)template.MarginLeft);
+                    page.MarginTop((float)template.MarginTop);
+                    page.MarginRight((float)template.MarginRight);
+                    page.MarginBottom((float)template.MarginBottom);
+                    page.DefaultTextStyle(x => x.FontSize(12).FontFamily(Fonts.Calibri));
+
+                    page.Header().Element(ComposeHeader);
+                    page.Content().Element(ComposeContent);
+                    page.Footer().AlignCenter().Text(x =>
+                    {
+                        x.Span("第 ");
+                        x.CurrentPageNumber();
+                        x.Span(" 页，共 ");
+                        x.TotalPages();
+                        x.Span(" 页");
+                    });
+                });
+            });
+
+            void ComposeHeader(IContainer container)
+            {
+                container.Row(row =>
+                {
+                    row.RelativeItem().Text(template.Name).Bold().FontSize(16);
+                });
+            }
+
+            void ComposeContent(IContainer container)
+            {
+                container.PaddingVertical(40).Column(column =>
+                {
+                    foreach (var element in template.Elements)
+                    {
+                        if (!element.IsVisible) continue;
+                        column.Item().Element(c => ComposeElement(c, element));
+                    }
+                });
+            }
+
+            void ComposeElement(IContainer container, ElementBase element)
+            {
+                switch (element.Type)
+                {
+                    case "Text":
+                        ComposeTextElement(container, (TextElement)element);
+                        break;
+                    case "Label":
+                        ComposeLabelElement(container, (LabelElement)element);
+                        break;
+                    case "Table":
+                        ComposeTableElement(container, (TableElement)element);
+                        break;
+                    case "Image":
+                        ComposeImageElement(container, (ImageElement)element);
+                        break;
+                    case "Line":
+                        ComposeLineElement(container, (LineElement)element);
+                        break;
+                    case "Rectangle":
+                        ComposeRectangleElement(container, (RectangleElement)element);
+                        break;
+                    case "Ellipse":
+                        ComposeEllipseElement(container, (EllipseElement)element);
+                        break;
+                }
+            }
+
+            void ComposeTextElement(IContainer container, TextElement element)
+            {
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .Background(GetColor(element.BackgroundColor))
+                    .Border((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor))
+                    .AlignLeft()
+                    .AlignMiddle()
+                    .Text(element.Text)
+                    .FontSize((float)element.FontSize)
+                    .FontColor(GetColor(element.ForegroundColor));
+            }
+
+            void ComposeLabelElement(IContainer container, LabelElement element)
+            {
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .Background(GetColor(element.BackgroundColor))
+                    .Border((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor))
+                    .AlignLeft()
+                    .AlignMiddle()
+                    .Text(element.Text)
+                    .FontSize((float)element.FontSize)
+                    .FontColor(GetColor(element.ForegroundColor))
+                    .Bold();
+            }
+
+            void ComposeTableElement(IContainer container, TableElement element)
+            {
+                container.Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        for (int i = 0; i < element.Columns; i++)
+                        {
+                            columns.RelativeColumn();
+                        }
+                    });
+
+                    for (int row = 0; row < element.Rows; row++)
+                    {
+                        for (int col = 0; col < element.Columns; col++)
+                        {
+                            var cell = element.Cells.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                            if (cell != null)
+                            {
+                                table.Cell()
+                                    .Border((float)element.BorderWidth)
+                                    .BorderColor(GetColor(element.BorderColor))
+                                    .Background(GetColor(cell.BackgroundColor))
+                                    .AlignLeft()
+                                    .AlignMiddle()
+                                    .Padding((float)element.CellPadding)
+                                    .Text(cell.Content)
+                                    .FontSize((float)cell.FontSize)
+                                    .FontColor(GetColor(cell.ForegroundColor));
+                            }
+                            else
+                            {
+                                table.Cell()
+                                    .Border((float)element.BorderWidth)
+                                    .BorderColor(GetColor(element.BorderColor))
+                                    .Background(GetColor(element.BackgroundColor));
+                            }
+                        }
+                    }
+                });
+            }
+
+            void ComposeImageElement(IContainer container, ImageElement element)
+            {
+                byte[]? imageBytes = null;
+
+                if (!string.IsNullOrEmpty(element.ImageData))
+                {
+                    imageBytes = Convert.FromBase64String(element.ImageData);
+                }
+                else if (!string.IsNullOrEmpty(element.ImagePath) && File.Exists(element.ImagePath))
+                {
+                    imageBytes = File.ReadAllBytes(element.ImagePath);
+                }
+
+                if (imageBytes != null)
+                {
+                    container
+                        .Width((float)element.Width)
+                        .Height((float)element.Height)
+                        .Background(GetColor(element.BackgroundColor))
+                        .Border((float)element.BorderWidth)
+                        .BorderColor(GetColor(element.BorderColor))
+                        .Image(imageBytes);
+                }
+            }
+
+            void ComposeLineElement(IContainer container, LineElement element)
+            {
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .BorderBottom((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor));
+            }
+
+            void ComposeRectangleElement(IContainer container, RectangleElement element)
+            {
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .Background(GetColor(element.BackgroundColor))
+                    .Border((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor));
+            }
+
+            void ComposeEllipseElement(IContainer container, EllipseElement element)
+            {
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .Background(GetColor(element.BackgroundColor))
+                    .Border((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor));
+            }
+
+            string GetColor(string colorHex)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(colorHex))
+                        return "#FFFFFF";
+
+                    if (!colorHex.StartsWith("#"))
+                        colorHex = "#" + colorHex;
+
+                    return colorHex;
+                }
+                catch
+                {
+                    return "#FFFFFF";
+                }
+            }
         }
 
         /// <summary>
@@ -972,7 +1243,31 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// </summary>
         private void LoadTestData()
         {
-            Status = "加载测试数据...";
+            ExceptionHandler.TryExecute(() =>
+            {
+                if (CurrentTemplate == null)
+                {
+                    Status = "没有可加载测试数据的模板";
+                    return;
+                }
+
+                IsBusy = true;
+                Status = "正在生成测试数据...";
+
+                var testData = new TestDataGenerator().GenerateTestData(CurrentTemplate);
+                
+                if (testData != null)
+                {
+                    Status = $"已生成测试数据，包含 {CurrentTemplate.Elements.Count} 个元素";
+                    ExceptionHandler.LogInfo("测试数据生成成功", "TestData");
+                }
+                else
+                {
+                    Status = "测试数据生成失败";
+                }
+            },
+            "加载测试数据",
+            errorMessage => Status = errorMessage);
         }
 
         /// <summary>
@@ -980,7 +1275,51 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// </summary>
         private void RefreshPreview()
         {
-            Status = "刷新预览...";
+            ExceptionHandler.TryExecute(() =>
+            {
+                if (CurrentTemplate == null)
+                {
+                    Status = "没有可刷新的模板";
+                    return;
+                }
+
+                IsBusy = true;
+                Status = "正在刷新预览...";
+
+                var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "PDF文件 (*.pdf)|*.pdf|所有文件 (*.*)|*.*",
+                    Title = "保存刷新后的PDF",
+                    FileName = $"{CurrentTemplate.Name}_刷新.pdf",
+                    InitialDirectory = _lastTemplatePath
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var document = CreateQuestPdfDocument(CurrentTemplate);
+                    document.GeneratePdf(saveFileDialog.FileName);
+                    Status = $"刷新后的预览已保存到: {saveFileDialog.FileName}";
+                    
+                    try
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = saveFileDialog.FileName,
+                            UseShellExecute = true
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Status = $"刷新后的预览已保存，但无法自动打开: {ex.Message}";
+                    }
+                }
+                else
+                {
+                    Status = "刷新预览已取消";
+                }
+            },
+            "刷新预览",
+            errorMessage => Status = errorMessage);
         }
 
         /// <summary>

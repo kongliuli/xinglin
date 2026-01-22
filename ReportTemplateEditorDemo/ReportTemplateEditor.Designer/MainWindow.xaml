@@ -16,83 +16,88 @@
         <viewmodels:MainWindowViewModel/>
     </Window.DataContext>
     <Window.Resources>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
-        <converters:BooleanInverseConverter x:Key="InverseBooleanConverter"/>
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
-        <!-- 纸张阴影效果 -->
-        <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
-        
-        <!-- 打印纸纹理画笔 -->
-        <VisualBrush x:Key="PaperTextureBrush" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute" Viewbox="0,0,20,20" ViewboxUnits="Absolute">
-            <VisualBrush.Visual>
-                <Grid Width="20" Height="20" Background="#FFFFFF">
-                    <!-- 轻微的纹理效果 -->
-                    <Path Stroke="#F0F0F0" StrokeThickness="0.5">
-                        <Path.Data>
-                            <GeometryGroup>
-                                <LineGeometry StartPoint="0,0" EndPoint="20,20"/>
-                                <LineGeometry StartPoint="0,5" EndPoint="20,25"/>
-                                <LineGeometry StartPoint="0,10" EndPoint="20,30"/>
-                                <LineGeometry StartPoint="0,15" EndPoint="20,35"/>
-                                <LineGeometry StartPoint="-5,0" EndPoint="15,20"/>
-                                <LineGeometry StartPoint="-10,0" EndPoint="10,20"/>
-                                <LineGeometry StartPoint="5,0" EndPoint="25,20"/>
-                                <LineGeometry StartPoint="10,0" EndPoint="30,20"/>
-                            </GeometryGroup>
-                        </Path.Data>
-                    </Path>
-                </Grid>
-            </VisualBrush.Visual>
-        </VisualBrush>
-        
-        <!-- 设计画布背景画笔 - 结合网格和纸张纹理 -->
-        <DrawingBrush x:Key="DesignCanvasBackground" TileMode="Tile" Viewport="0,0,10,10" ViewportUnits="Absolute" Viewbox="0,0,10,10" ViewboxUnits="Absolute">
-            <DrawingBrush.Drawing>
-                <DrawingGroup>
-                    <!-- 纸张纹理背景 -->
-                    <GeometryDrawing Brush="{StaticResource PaperTextureBrush}">
-                        <GeometryDrawing.Geometry>
-                            <RectangleGeometry Rect="0,0,10,10"/>
-                        </GeometryDrawing.Geometry>
-                    </GeometryDrawing>
-                    <!-- 网格线 -->
-                    <GeometryDrawing Brush="#EEEEEE" Geometry="M0,10 L10,10 M10,0 L10,10"/>
-                </DrawingGroup>
-            </DrawingBrush.Drawing>
-        </DrawingBrush>
-        
-        <!-- 工具箱项样式 -->
-        <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="Background" Value="#F0F0F0"/>
-            <Setter Property="BorderBrush" Value="#CCCCCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E0E0E0"/>
-                </Trigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#D0E8FF"/>
-                    <Setter Property="BorderBrush" Value="#4A90E2"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        
-        <!-- 属性面板分组样式 -->
-        <Style TargetType="Expander" x:Key="PropertyGroupStyle">
-            <Setter Property="Background" Value="#F5F5F5"/>
-            <Setter Property="BorderBrush" Value="#E0E0E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,5,0,0"/>
-        </Style>
-        
-        <!-- 表格控件上下文菜单 -->
-        <ContextMenu x:Key="TableContextMenu">
-            <MenuItem Header="设计表格内容" Click="DesignTableContent_Click"/>
-        </ContextMenu>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/SharedStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
+            <converters:BooleanInverseConverter x:Key="InverseBooleanConverter"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <!-- 纸张阴影效果 -->
+            <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+            
+            <!-- 打印纸纹理画笔 -->
+            <VisualBrush x:Key="PaperTextureBrush" TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute" Viewbox="0,0,20,20" ViewboxUnits="Absolute">
+                <VisualBrush.Visual>
+                    <Grid Width="20" Height="20" Background="#FFFFFF">
+                        <!-- 轻微的纹理效果 -->
+                        <Path Stroke="#F0F0F0" StrokeThickness="0.5">
+                            <Path.Data>
+                                <GeometryGroup>
+                                    <LineGeometry StartPoint="0,0" EndPoint="20,20"/>
+                                    <LineGeometry StartPoint="0,5" EndPoint="20,25"/>
+                                    <LineGeometry StartPoint="0,10" EndPoint="20,30"/>
+                                    <LineGeometry StartPoint="0,15" EndPoint="20,35"/>
+                                    <LineGeometry StartPoint="-5,0" EndPoint="15,20"/>
+                                    <LineGeometry StartPoint="-10,0" EndPoint="10,20"/>
+                                    <LineGeometry StartPoint="5,0" EndPoint="25,20"/>
+                                    <LineGeometry StartPoint="10,0" EndPoint="30,20"/>
+                                </GeometryGroup>
+                            </Path.Data>
+                        </Path>
+                    </Grid>
+                </VisualBrush.Visual>
+            </VisualBrush>
+            
+            <!-- 设计画布背景画笔 - 结合网格和纸张纹理 -->
+            <DrawingBrush x:Key="DesignCanvasBackground" TileMode="Tile" Viewport="0,0,10,10" ViewportUnits="Absolute" Viewbox="0,0,10,10" ViewboxUnits="Absolute">
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <!-- 纸张纹理背景 -->
+                        <GeometryDrawing Brush="{StaticResource PaperTextureBrush}">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,10,10"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <!-- 网格线 -->
+                        <GeometryDrawing Brush="#EEEEEE" Geometry="M0,10 L10,10 M10,0 L10,10"/>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
+            
+            <!-- 工具箱项样式 -->
+            <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
+                <Setter Property="Padding" Value="{StaticResource MediumPadding}"/>
+                <Setter Property="Margin" Value="{StaticResource SmallMargin}"/>
+                <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <!-- 属性面板分组样式 -->
+            <Style TargetType="Expander" x:Key="PropertyGroupStyle">
+                <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Margin" Value="0,5,0,0"/>
+            </Style>
+            
+            <!-- 表格控件上下文菜单 -->
+            <ContextMenu x:Key="TableContextMenu">
+                <MenuItem Header="设计表格内容" Click="DesignTableContent_Click"/>
+            </ContextMenu>
+        </ResourceDictionary>
     </Window.Resources>
     
     <Grid>
@@ -287,34 +292,32 @@
                 
                 <!-- 画布滚动视图 -->
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#E8E8E8">
-                    <Viewbox x:Name="designViewbox" Stretch="Uniform" UseLayoutRounding="True" SnapsToDevicePixels="True">
-                        <Grid>
-                            <!-- 打印纸背景 -->
-                            <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{StaticResource PaperShadow}">
-                                <Canvas x:Name="designCanvas" Width="210" Height="297" Background="Transparent" 
-                                        AllowDrop="True" Drop="DesignCanvas_Drop" 
-                                        DragOver="DesignCanvas_DragOver" 
-                                        PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
-                                        PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
-                                        PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
-                                        PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
-                                        PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
-                                        PreviewMouseWheel="designCanvas_PreviewMouseWheel">
-                                    <!-- 网格背景 -->
-                                    <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False" Background="Transparent">
-                                    </Canvas>
-                                    
-                                    <!-- 页边距显示 - 上下左右四个边距区域 -->
-                                    <Border x:Name="leftMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
-                                    <Border x:Name="topMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
-                                    <Border x:Name="rightMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
-                                    <Border x:Name="bottomMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
-                                    
-                                    <!-- 模板元素将动态添加到这里 -->
+                    <Grid>
+                        <!-- 打印纸背景 -->
+                        <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{StaticResource PaperShadow}">
+                            <Canvas x:Name="designCanvas" Width="210" Height="297" Background="Transparent" 
+                                    AllowDrop="True" Drop="DesignCanvas_Drop" 
+                                    DragOver="DesignCanvas_DragOver" 
+                                    PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
+                                    PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
+                                    PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
+                                    PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
+                                    PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
+                                    PreviewMouseWheel="designCanvas_PreviewMouseWheel">
+                                <!-- 网格背景 -->
+                                <Canvas x:Name="gridCanvas" Width="210" Height="297" IsHitTestVisible="False" Background="Transparent">
                                 </Canvas>
-                            </Border>
-                        </Grid>
-                    </Viewbox>
+                                
+                                <!-- 页边距显示 - 上下左右四个边距区域 -->
+                                <Border x:Name="leftMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="topMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="rightMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="bottomMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                
+                                <!-- 模板元素将动态添加到这里 -->
+                            </Canvas>
+                        </Border>
+                    </Grid>
                 </ScrollViewer>
             </Grid>
             
@@ -334,13 +337,13 @@
                     </Grid.RowDefinitions>
                     
                     <!-- 图层管理标题 -->
-                    <Border Grid.Row="0" Background="#4A90E2" Padding="12" CornerRadius="4,4,0,0">
-                        <TextBlock Text="图层管理" FontWeight="Bold" Foreground="#FFFFFF" FontSize="14"/>
+                    <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="{StaticResource MediumPadding}" CornerRadius="4,4,0,0">
+                        <TextBlock Text="图层管理" FontWeight="Bold" Foreground="White" FontSize="{StaticResource MediumFontSize}"/>
                     </Border>
                     
                     <!-- 图层列表 -->
-                    <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
-                        <DockPanel Margin="5">
+                    <Border Grid.Row="1" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="0,0,4,4">
+                        <DockPanel Margin="{StaticResource SmallMargin}">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
                                 <Button Content="上移" Command="{Binding MoveLayerUpCommand}" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
@@ -359,13 +362,13 @@
                                      Background="#FFFFFF" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Margin="2" Padding="8" CornerRadius="3"
-                                                Background="#F8F9FA"
-                                                BorderBrush="#E0E0E0"
+                                        <Border Margin="{StaticResource SmallMargin}" Padding="{StaticResource MediumPadding}" CornerRadius="2"
+                                                Background="{StaticResource HoverColor}"
+                                                BorderBrush="{StaticResource BorderBrush}"
                                                 BorderThickness="1">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0" FontWeight="Medium"/>
-                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="12" Foreground="#666666"/>
+                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="{StaticResource SmallFontSize}" Foreground="{StaticResource LightTextColor}"/>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -386,21 +389,21 @@
                     </Grid.RowDefinitions>
                     
                     <!-- 属性面板标题 -->
-                    <Border Grid.Row="0" Background="#4A90E2" Padding="12" CornerRadius="4,4,0,0">
-                        <TextBlock Text="属性" FontWeight="Bold" Foreground="#FFFFFF" FontSize="14"/>
+                    <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="{StaticResource MediumPadding}" CornerRadius="4,4,0,0">
+                        <TextBlock Text="属性" FontWeight="Bold" Foreground="White" FontSize="{StaticResource MediumFontSize}"/>
                     </Border>
                     
                     <TabControl Grid.Row="1" x:Name="propertyPanel" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" TabStripPlacement="Top">
                         <TabItem Header="属性">
                             <TabItem.HeaderTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" Padding="12,6" FontWeight="Medium"/>
+                                    <TextBlock Text="{Binding}" Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
                                 </DataTemplate>
                             </TabItem.HeaderTemplate>
                             <ScrollViewer Margin="5">
                                 <StackPanel>
                                     <!-- 选择信息 -->
-                                    <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="#666666" Margin="0,0,0,10"/>
+                                    <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="{StaticResource LightTextColor}" Margin="0,0,0,10"/>
                                     
                                     <!-- 位置和大小属性 -->
                                     <Expander Header="位置和大小" Style="{StaticResource PropertyGroupStyle}">
@@ -416,26 +419,26 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
-                                                     Padding="8" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
+                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
-                                                     Padding="8" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
+                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
-                                                     Padding="8" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
+                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
-                                                     Padding="8" FontWeight="Medium"/>
-
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
+                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                            
                                             <!-- 全局字体设置 -->
                                             <CheckBox x:Name="chkIgnoreGlobalFontSize" Content="忽略全局字体设置" Margin="0,10,0,0" IsChecked="{Binding IgnoreGlobalFontSize}"/>
 

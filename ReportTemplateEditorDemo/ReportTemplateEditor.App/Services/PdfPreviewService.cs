@@ -37,43 +37,25 @@ namespace ReportTemplateEditor.App.Services
         {
             try
             {
-                using (var bitmap = new System.Drawing.Bitmap((int)template.PageWidth, (int)template.PageHeight))
+                var document = CreateDocument(template, data);
+                var pdfBytes = document.GeneratePdf();
+                
+                using (var pdfStream = new MemoryStream(pdfBytes))
                 {
-                    using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
-                    {
-                        graphics.Clear(System.Drawing.Color.LightGray);
-                        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                        
-                        using (var font = new System.Drawing.Font("Arial", 16))
-                        {
-                            var text = "PDF Preview Placeholder";
-                            var textSize = graphics.MeasureString(text, font);
-                            var x = (bitmap.Width - textSize.Width) / 2;
-                            var y = (bitmap.Height - textSize.Height) / 2;
-                            
-                            graphics.DrawString(text, font, System.Drawing.Brushes.Black, x, y);
-                        }
-                    }
+                    var wpfBitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    wpfBitmap.BeginInit();
+                    wpfBitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    wpfBitmap.StreamSource = pdfStream;
+                    wpfBitmap.EndInit();
+                    wpfBitmap.Freeze();
                     
-                    using (var imageStream = new MemoryStream())
-                    {
-                        bitmap.Save(imageStream, System.Drawing.Imaging.ImageFormat.Png);
-                        imageStream.Position = 0;
-                        
-                        var wpfBitmap = new System.Windows.Media.Imaging.BitmapImage();
-                        wpfBitmap.BeginInit();
-                        wpfBitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                        wpfBitmap.StreamSource = imageStream;
-                        wpfBitmap.EndInit();
-                        wpfBitmap.Freeze();
-                        
-                        return wpfBitmap;
-                    }
+                    return wpfBitmap;
                 }
             }
             catch (System.Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"生成预览图像失败: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
             }
             
             return null;

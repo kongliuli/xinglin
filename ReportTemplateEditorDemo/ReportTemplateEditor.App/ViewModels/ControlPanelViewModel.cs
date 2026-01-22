@@ -8,7 +8,7 @@ using System.Windows.Input;
 using System.Windows.Data;
 using System.ComponentModel;
 using WpfFrameworkElement = System.Windows.FrameworkElement;
-using WpfPanel = System.Windows.Controls.Panel;
+using WpfPanel = System.Windows.Controls.WrapPanel;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
 using WpfUpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger;

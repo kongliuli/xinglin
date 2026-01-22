@@ -684,6 +684,7 @@
   "projectFileDependencyGroups": {
     "net9.0-windows7.0": [
       "CommunityToolkit.Mvvm >= 8.4.0",
+      "QuestPDF >= 2024.12.1",
       "ReportTemplateEditor.Core >= 1.0.0",
       "ReportTemplateEditor.Engine >= 1.0.0"
     ]
@@ -749,6 +750,10 @@
           "CommunityToolkit.Mvvm": {
             "target": "Package",
             "version": "[8.4.0, )"
+          },
+          "QuestPDF": {
+            "target": "Package",
+            "version": "[2024.12.1, )"
           }
         },
         "imports": [

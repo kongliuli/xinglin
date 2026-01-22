@@ -8,12 +8,15 @@ namespace ReportTemplateEditor.Designer.Services
     public class ZoomManager
     {
         private Canvas _designCanvas;
-        private ScaleTransform _scaleTransform;
         private Slider _zoomSlider;
         private TextBlock _zoomText;
         private double _currentZoom;
+        private TransformGroup _transformGroup;
+        private ScaleTransform _scaleTransform;
+        private TranslateTransform _translateTransform;
 
         public double CurrentZoom => _currentZoom;
+        public TransformGroup TransformGroup => _transformGroup;
 
         public event Action<double> ZoomChanged;
 
@@ -23,8 +26,14 @@ namespace ReportTemplateEditor.Designer.Services
             _zoomSlider = zoomSlider ?? throw new ArgumentNullException(nameof(zoomSlider));
             _zoomText = zoomText ?? throw new ArgumentNullException(nameof(zoomText));
 
+            _transformGroup = new TransformGroup();
             _scaleTransform = new ScaleTransform(1.0, 1.0);
-            _designCanvas.LayoutTransform = _scaleTransform;
+            _translateTransform = new TranslateTransform(0, 0);
+            
+            _transformGroup.Children.Add(_scaleTransform);
+            _transformGroup.Children.Add(_translateTransform);
+            
+            _designCanvas.RenderTransform = _transformGroup;
             _currentZoom = 1.0;
 
             _zoomSlider.ValueChanged += OnZoomSliderValueChanged;
@@ -85,6 +94,19 @@ namespace ReportTemplateEditor.Designer.Services
         public void ResetZoom()
         {
             SetZoom(1.0);
+            ResetPan();
+        }
+
+        public void Pan(double deltaX, double deltaY)
+        {
+            _translateTransform.X += deltaX;
+            _translateTransform.Y += deltaY;
+        }
+
+        public void ResetPan()
+        {
+            _translateTransform.X = 0;
+            _translateTransform.Y = 0;
         }
 
         private void ApplyZoom()

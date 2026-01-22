@@ -9,6 +9,14 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="QuestPDF" Version="2024.12.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\SharedData\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>SharedData\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup>

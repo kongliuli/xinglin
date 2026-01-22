@@ -137,6 +137,10 @@
             "CommunityToolkit.Mvvm": {
               "target": "Package",
               "version": "[8.4.0, )"
+            },
+            "QuestPDF": {
+              "target": "Package",
+              "version": "[2024.12.1, )"
             }
           },
           "imports": [

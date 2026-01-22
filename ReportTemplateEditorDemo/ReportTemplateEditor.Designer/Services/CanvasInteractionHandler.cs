@@ -18,6 +18,7 @@ namespace ReportTemplateEditor.Designer.Services
         private readonly Action<UIElementWrapper> _elementDropped;
         private readonly Action<string> _showStatus;
         private readonly Window _mainWindow;
+        private readonly ZoomManager _zoomManager;
 
         private bool _isDragging;
         private Point _dragStartPoint;
@@ -40,7 +41,8 @@ namespace ReportTemplateEditor.Designer.Services
             GridHelper gridHelper,
             Action<UIElementWrapper> elementDropped,
             Action<string> showStatus,
-            Window mainWindow)
+            Window mainWindow,
+            ZoomManager zoomManager)
         {
             _designCanvas = designCanvas ?? throw new ArgumentNullException(nameof(designCanvas));
             _selectionManager = selectionManager ?? throw new ArgumentNullException(nameof(selectionManager));
@@ -48,6 +50,7 @@ namespace ReportTemplateEditor.Designer.Services
             _elementDropped = elementDropped ?? throw new ArgumentNullException(nameof(elementDropped));
             _showStatus = showStatus ?? throw new ArgumentNullException(nameof(showStatus));
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+            _zoomManager = zoomManager ?? throw new ArgumentNullException(nameof(zoomManager));
 
             _isDragging = false;
             _dragStartPoint = new Point(0, 0);
@@ -119,8 +122,11 @@ namespace ReportTemplateEditor.Designer.Services
                 return;
 
             Point currentPoint = e.GetPosition(_designCanvas);
-            double deltaX = currentPoint.X - _dragStartPoint.X;
-            double deltaY = currentPoint.Y - _dragStartPoint.Y;
+            Point canvasPoint = TransformMouseToCanvas(currentPoint);
+            Point startPoint = TransformMouseToCanvas(_dragStartPoint);
+            
+            double deltaX = canvasPoint.X - startPoint.X;
+            double deltaY = canvasPoint.Y - startPoint.Y;
 
             if (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0)
             {
@@ -170,6 +176,50 @@ namespace ReportTemplateEditor.Designer.Services
                 _dragStartPoint = currentPoint;
                 e.Handled = true;
             }
+        }
+
+        private Point TransformMouseToCanvas(Point mousePoint)
+        {
+            if (_zoomManager == null)
+                return mousePoint;
+
+            var transformGroup = _zoomManager.TransformGroup;
+            if (transformGroup == null)
+                return mousePoint;
+
+            try
+            {
+                var inverseTransform = transformGroup.Inverse;
+                if (inverseTransform != null)
+                {
+                    return inverseTransform.Transform(mousePoint);
+                }
+            }
+            catch
+            {
+            }
+
+            return mousePoint;
+        }
+
+        private Point TransformCanvasToMouse(Point canvasPoint)
+        {
+            if (_zoomManager == null)
+                return canvasPoint;
+
+            var transformGroup = _zoomManager.TransformGroup;
+            if (transformGroup == null)
+                return canvasPoint;
+
+            try
+            {
+                return transformGroup.Transform(canvasPoint);
+            }
+            catch
+            {
+            }
+
+            return canvasPoint;
         }
 
         public void HandleElementMouseUp(MouseButtonEventArgs e)
@@ -231,33 +281,7 @@ namespace ReportTemplateEditor.Designer.Services
                 double deltaX = currentPoint.X - _panStartPoint.X;
                 double deltaY = currentPoint.Y - _panStartPoint.Y;
 
-                TransformGroup transformGroup = _designCanvas.RenderTransform as TransformGroup;
-                if (transformGroup == null)
-                {
-                    transformGroup = new TransformGroup();
-                    _designCanvas.RenderTransform = transformGroup;
-                }
-
-                var translateTransform = transformGroup.Children.OfType<TranslateTransform>().FirstOrDefault();
-
-                if (translateTransform != null)
-                {
-                    transformGroup.Children.Remove(translateTransform);
-                }
-
-                double newTranslateX = (translateTransform?.X ?? 0) + deltaX;
-                double newTranslateY = (translateTransform?.Y ?? 0) + deltaY;
-                translateTransform = new TranslateTransform(newTranslateX, newTranslateY);
-
-                int scaleIndex = transformGroup.Children.IndexOf(transformGroup.Children.OfType<ScaleTransform>().FirstOrDefault());
-                if (scaleIndex >= 0)
-                {
-                    transformGroup.Children.Insert(scaleIndex, translateTransform);
-                }
-                else
-                {
-                    transformGroup.Children.Add(translateTransform);
-                }
+                _zoomManager.Pan(deltaX, deltaY);
 
                 _panStartPoint = currentPoint;
                 CanvasPanning?.Invoke(currentPoint);

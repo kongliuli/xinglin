@@ -19,7 +19,7 @@ namespace ReportTemplateEditor.App.Views
         {
             if (DataContext is MainViewModel viewModel)
             {
-                var panel = FindName("ControlPanel") as StackPanel;
+                var panel = FindName("ControlPanel") as WrapPanel;
                 if (panel != null)
                 {
                     viewModel.ControlPanelViewModel.ControlContainer = panel;

@@ -14,6 +14,7 @@ using WpfFrameworkElement = System.Windows.FrameworkElement;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
 using WpfUpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger;
+using ReportTemplateEditor.App.Services;
 
 namespace ReportTemplateEditor.App.Services
 {
@@ -53,7 +54,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -63,8 +64,8 @@ namespace ReportTemplateEditor.App.Services
                 FontSize = Math.Max(12, element.FontSize),
                 FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
                 FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 8)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var textBox = new System.Windows.Controls.TextBox
@@ -73,13 +74,13 @@ namespace ReportTemplateEditor.App.Services
                 FontSize = Math.Max(12, element.FontSize),
                 FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
                 FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Background = new BrushConverter().ConvertFrom("#FAFAFA") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#D0D0D0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(8),
-                MinWidth = 200,
-                Height = Math.Max(30, element.Height),
+                Padding = new Thickness(6),
+                MinWidth = 180,
+                Height = Math.Max(28, element.Height),
                 VerticalContentAlignment = VerticalAlignment.Center
             };
 
@@ -99,11 +100,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 180,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -122,7 +124,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -132,9 +134,9 @@ namespace ReportTemplateEditor.App.Services
                 FontSize = Math.Max(12, element.FontSize),
                 FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
                 FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 0, 0, 8)
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             container.Children.Add(label);
@@ -142,11 +144,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 160,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -165,7 +168,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8),
+                Margin = new Thickness(4),
                 Orientation = System.Windows.Controls.Orientation.Horizontal
             };
 
@@ -180,23 +183,23 @@ namespace ReportTemplateEditor.App.Services
                 Text = labelText,
                 FontSize = Math.Max(12, element.LabelFontSize),
                 FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.LabelFontWeight),
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 0, 0, 8),
+                Margin = new Thickness(0, 0, 0, 6),
                 Height = 20,
                 VerticalAlignment = VerticalAlignment.Center,
                 TextAlignment = TextAlignment.Right,
-                Width = 100
+                Width = 90
             };
 
             var textBox = new System.Windows.Controls.TextBox
             {
-                Background = new BrushConverter().ConvertFrom("#FAFAFA") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#0078D4") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(8),
-                Width = element.InputWidth > 0 ? element.InputWidth : 150,
-                Height = element.InputHeight > 0 ? element.InputHeight : 30,
+                Padding = new Thickness(6),
+                Width = element.InputWidth > 0 ? element.InputWidth : 140,
+                Height = element.InputHeight > 0 ? element.InputHeight : 28,
                 VerticalContentAlignment = VerticalAlignment.Center,
                 MaxLength = element.MaxLength > 0 ? element.MaxLength : int.MaxValue
             };
@@ -221,11 +224,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 240,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -244,7 +248,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -253,14 +257,15 @@ namespace ReportTemplateEditor.App.Services
                 FontFamily = new WpfFontFamily("Microsoft YaHei"),
                 FontSize = 14,
                 FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 12)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var grid = new Grid
             {
                 Background = new BrushConverter().ConvertFrom(element.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                ShowGridLines = true
+                ShowGridLines = true,
+                MaxWidth = 600
             };
 
             for (int i = 0; i < element.Rows; i++)
@@ -290,7 +295,7 @@ namespace ReportTemplateEditor.App.Services
                             FontSize = Math.Max(10, cell.FontSize),
                             FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
                             Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom("#F8F8F8") as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                             TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
                             VerticalAlignment = VerticalAlignment.Center,
                             Margin = new Thickness(1),
@@ -311,8 +316,8 @@ namespace ReportTemplateEditor.App.Services
                             FontSize = Math.Max(10, cell.FontSize),
                             FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
                             Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom("#FAFAFA") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom("#0078D4") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
                             Padding = new Thickness(5),
                             VerticalContentAlignment = VerticalAlignment.Center
@@ -355,8 +360,8 @@ namespace ReportTemplateEditor.App.Services
                             FontSize = Math.Max(10, cell.FontSize),
                             FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
                             Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom("#FAFAFA") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom("#0078D4") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
                             Padding = new Thickness(5),
                             VerticalContentAlignment = VerticalAlignment.Center,
@@ -393,8 +398,8 @@ namespace ReportTemplateEditor.App.Services
                             FontSize = Math.Max(10, cell.FontSize),
                             FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
                             Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom("#FAFAFA") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom("#0078D4") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
                             Padding = new Thickness(5),
                             TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
@@ -433,7 +438,7 @@ namespace ReportTemplateEditor.App.Services
                         FontSize = Math.Max(10, cell.FontSize),
                         FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
                         Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                        Background = new BrushConverter().ConvertFrom("#F8F8F8") as WpfBrush ?? new SolidColorBrush(Colors.White),
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                         TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(1),
@@ -454,11 +459,13 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 280,
+                MaxWidth = 600,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -477,7 +484,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -486,17 +493,17 @@ namespace ReportTemplateEditor.App.Services
                 FontFamily = new WpfFontFamily("Microsoft YaHei"),
                 FontSize = 14,
                 FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 12)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var image = new WpfImage
             {
                 Stretch = (WpfStretch)Enum.Parse(typeof(WpfStretch), element.Stretch ?? "Uniform"),
                 Opacity = element.Opacity,
-                MaxWidth = 400,
-                MaxHeight = 300,
-                Margin = new Thickness(10)
+                MaxWidth = 350,
+                MaxHeight = 250,
+                Margin = new Thickness(6)
             };
 
             if (!string.IsNullOrEmpty(element.ImageData))
@@ -512,7 +519,7 @@ namespace ReportTemplateEditor.App.Services
                     var placeholder = new TextBlock
                     {
                         Text = "图片加载失败",
-                        Foreground = new BrushConverter().ConvertFrom("#FF0000") as WpfBrush ?? new SolidColorBrush(Colors.Red),
+                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.ErrorColor) as WpfBrush ?? new SolidColorBrush(Colors.Red),
                         HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     };
@@ -530,7 +537,7 @@ namespace ReportTemplateEditor.App.Services
                     var placeholder = new TextBlock
                     {
                         Text = "图片加载失败",
-                        Foreground = new BrushConverter().ConvertFrom("#FF0000") as WpfBrush ?? new SolidColorBrush(Colors.Red),
+                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.ErrorColor) as WpfBrush ?? new SolidColorBrush(Colors.Red),
                         HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     };
@@ -544,11 +551,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 140,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -567,7 +575,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -576,8 +584,8 @@ namespace ReportTemplateEditor.App.Services
                 FontFamily = new WpfFontFamily("Microsoft YaHei"),
                 FontSize = 14,
                 FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 12)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var line = new Line
@@ -589,7 +597,7 @@ namespace ReportTemplateEditor.App.Services
                 Stroke = new BrushConverter().ConvertFrom(element.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 StrokeThickness = Math.Max(2, element.BorderWidth),
                 StrokeDashArray = element.BorderStyle == "Dashed" ? new DoubleCollection(new double[] { 4, 2 }) : null,
-                Margin = new Thickness(10)
+                Margin = new Thickness(6)
             };
 
             container.Children.Add(label);
@@ -598,11 +606,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 120,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -621,7 +630,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -630,8 +639,8 @@ namespace ReportTemplateEditor.App.Services
                 FontFamily = new WpfFontFamily("Microsoft YaHei"),
                 FontSize = 14,
                 FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 12)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var rectangle = new System.Windows.Shapes.Rectangle
@@ -641,9 +650,9 @@ namespace ReportTemplateEditor.App.Services
                 StrokeThickness = Math.Max(1, element.BorderWidth),
                 RadiusX = element.CornerRadius,
                 RadiusY = element.CornerRadius,
-                Width = Math.Max(100, element.Width),
-                Height = Math.Max(50, element.Height),
-                Margin = new Thickness(10)
+                Width = Math.Max(80, element.Width),
+                Height = Math.Max(40, element.Height),
+                Margin = new Thickness(6)
             };
 
             container.Children.Add(label);
@@ -652,11 +661,12 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12),
+                Padding = new Thickness(8),
+                MinWidth = 120,
                 Effect = new System.Windows.Media.Effects.DropShadowEffect
                 {
                     Color = Colors.Gray,
@@ -675,7 +685,7 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(8)
+                Margin = new Thickness(4)
             };
 
             var label = new TextBlock
@@ -684,8 +694,8 @@ namespace ReportTemplateEditor.App.Services
                 FontFamily = new WpfFontFamily("Microsoft YaHei"),
                 FontSize = 14,
                 FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom("#333333") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 12)
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Margin = new Thickness(0, 0, 0, 6)
             };
 
             var ellipse = new Ellipse
@@ -693,9 +703,9 @@ namespace ReportTemplateEditor.App.Services
                 Fill = new BrushConverter().ConvertFrom(element.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                 Stroke = new BrushConverter().ConvertFrom(element.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 StrokeThickness = Math.Max(1, element.BorderWidth),
-                Width = Math.Max(100, element.Width),
-                Height = Math.Max(50, element.Height),
-                Margin = new Thickness(10)
+                Width = Math.Max(80, element.Width),
+                Height = Math.Max(40, element.Height),
+                Margin = new Thickness(6)
             };
 
             container.Children.Add(label);
@@ -704,8 +714,8 @@ namespace ReportTemplateEditor.App.Services
             var border = new Border
             {
                 Child = container,
-                Background = new BrushConverter().ConvertFrom("#FFFFFF") as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom("#E0E0E0") as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(6),
                 Padding = new Thickness(12),

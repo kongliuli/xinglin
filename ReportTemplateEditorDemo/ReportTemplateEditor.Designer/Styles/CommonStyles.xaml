@@ -37,12 +37,12 @@
     <!-- 按钮样式 -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="10,5"/>
-        <Setter Property="Margin" Value="5"/>
+        <Setter Property="Margin" Value="{StaticResource MediumMargin}"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="{StaticResource MediumFontSize}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -51,7 +51,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="4"
+                            CornerRadius="{StaticResource MediumCornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter x:Name="ContentPresenter"
                                           Content="{TemplateBinding Content}"
@@ -126,7 +126,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="2">
+                            CornerRadius="{StaticResource SmallCornerRadius}">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto">
                             <TextBox x:Name="PART_EditableTextBox"
                                      Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}"
