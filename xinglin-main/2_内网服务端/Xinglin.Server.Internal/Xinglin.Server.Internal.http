@@ -1,0 +1,6 @@
+@Xinglin.Server.Internal_HostAddress = http://localhost:5123
+
+GET {{Xinglin.Server.Internal_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
