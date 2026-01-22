@@ -51,7 +51,7 @@ namespace ReportTemplateEditor.App
         private void InitializeBuiltInTemplatesPath()
         {
             var appBasePath = AppDomain.CurrentDomain.BaseDirectory;
-            BuiltInTemplatesPath = System.IO.Path.Combine(appBasePath, "Templates");
+            BuiltInTemplatesPath = System.IO.Path.Combine(appBasePath, "SharedData");
         }
 
         private void InitializeSharedDataPath()

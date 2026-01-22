@@ -42,7 +42,7 @@ namespace ReportTemplateEditor.Designer.ViewModels
         private bool _snapToGrid = false;
         private double _gridSize = 5.0;
         private double _zoomLevel = 100.0;
-        private string _lastTemplatePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        private string _lastTemplatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SharedData");
         private UIElementWrapper? _primarySelectedElement;
         private string _paperSize = "A4";
         private double _margin = 10.0;

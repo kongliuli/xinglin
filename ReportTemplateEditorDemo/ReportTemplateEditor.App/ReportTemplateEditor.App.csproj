@@ -7,6 +7,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <OutputPath>..\bin\Debug\net9.0-windows\</OutputPath>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +27,10 @@
     <Content Include="Templates\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Templates\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+    <Content Include="..\SharedData\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>SharedData\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </Content>
   </ItemGroup>
 

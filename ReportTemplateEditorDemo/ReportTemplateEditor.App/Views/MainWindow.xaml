@@ -26,6 +26,8 @@
                 <MenuItem Header="打开其他目录" Command="{Binding OpenOtherDirectoryCommand}"/>
                 <MenuItem Header="打开内置模板目录" Command="{Binding OpenBuiltInTemplatesCommand}"/>
                 <Separator/>
+                <MenuItem Header="打开设计器" Command="{Binding OpenDesignerCommand}"/>
+                <Separator/>
                 <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}"/>
                 <Separator/>
                 <MenuItem Header="退出" Command="{Binding ExitCommand}"/>

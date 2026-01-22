@@ -26,6 +26,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
         public ICommand OpenOtherDirectoryCommand { get; }
         public ICommand OpenBuiltInTemplatesCommand { get; }
+        public ICommand OpenDesignerCommand { get; }
         public ICommand LoadTemplateCommand { get; }
         public ICommand SaveTemplateCommand { get; }
         public ICommand ExitCommand { get; }
@@ -43,6 +44,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
             OpenOtherDirectoryCommand = new RelayCommand(OpenOtherDirectory);
             OpenBuiltInTemplatesCommand = new RelayCommand(OpenBuiltInTemplates);
+            OpenDesignerCommand = new RelayCommand(OpenDesigner);
             LoadTemplateCommand = new RelayCommand<TemplateTreeItem>(LoadTemplateAsync);
             SaveTemplateCommand = new RelayCommand(SaveTemplate, CanExecuteSaveTemplate);
             ExitCommand = new RelayCommand(Exit);
@@ -200,7 +202,7 @@ namespace ReportTemplateEditor.App.ViewModels
                     ? $"{template.Name}.json" 
                     : System.IO.Path.GetFileName(template.FilePath),
                 InitialDirectory = string.IsNullOrEmpty(template.FilePath)
-                    ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                    ? App.SharedDataPath
                     : System.IO.Path.GetDirectoryName(template.FilePath)
             };
 
@@ -235,6 +237,34 @@ namespace ReportTemplateEditor.App.ViewModels
         private void Exit()
         {
             System.Windows.Application.Current.Shutdown();
+        }
+
+        private void OpenDesigner()
+        {
+            try
+            {
+                // 获取designer可执行文件路径
+                string designerExePath = System.IO.Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "ReportTemplateEditor.Designer.exe"
+                );
+
+                if (System.IO.File.Exists(designerExePath))
+                {
+                    // 启动designer应用程序
+                    System.Diagnostics.Process.Start(designerExePath);
+                    StatusMessage = "已启动设计器";
+                }
+                else
+                {
+                    StatusMessage = "设计器可执行文件不存在，请先构建项目";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"启动设计器失败: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"启动设计器失败: {ex}");
+            }
         }
 
         private void OnTemplateTreeSelectedItemChanged()
