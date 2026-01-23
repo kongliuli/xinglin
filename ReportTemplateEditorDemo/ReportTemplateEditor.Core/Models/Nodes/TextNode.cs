@@ -1,5 +1,3 @@
-using System.Windows.Media;
-
 namespace ReportTemplateEditor.Core.Models.Nodes
 {
     /// <summary>

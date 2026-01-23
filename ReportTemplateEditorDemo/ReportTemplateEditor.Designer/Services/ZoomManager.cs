@@ -10,6 +10,7 @@ namespace ReportTemplateEditor.Designer.Services
         private Canvas _designCanvas;
         private Slider _zoomSlider;
         private TextBlock _zoomText;
+        private ScrollViewer _scrollViewer;
         private double _currentZoom;
         private TransformGroup _transformGroup;
         private ScaleTransform _scaleTransform;
@@ -20,11 +21,12 @@ namespace ReportTemplateEditor.Designer.Services
 
         public event Action<double> ZoomChanged;
 
-        public ZoomManager(Canvas designCanvas, Slider zoomSlider, TextBlock zoomText)
+        public ZoomManager(Canvas designCanvas, Slider zoomSlider, TextBlock zoomText, ScrollViewer scrollViewer = null)
         {
             _designCanvas = designCanvas ?? throw new ArgumentNullException(nameof(designCanvas));
             _zoomSlider = zoomSlider ?? throw new ArgumentNullException(nameof(zoomSlider));
             _zoomText = zoomText ?? throw new ArgumentNullException(nameof(zoomText));
+            _scrollViewer = scrollViewer;
 
             _transformGroup = new TransformGroup();
             _scaleTransform = new ScaleTransform(1.0, 1.0);
@@ -89,6 +91,37 @@ namespace ReportTemplateEditor.Designer.Services
         public void ZoomTo200()
         {
             SetZoom(2.0);
+        }
+
+        public void FitWidth()
+        {
+            if (_scrollViewer != null && _designCanvas.ActualWidth > 0)
+            {
+                double containerWidth = _scrollViewer.ViewportWidth - 40;
+                double canvasWidth = _designCanvas.ActualWidth;
+                if (canvasWidth > 0)
+                {
+                    double zoom = containerWidth / canvasWidth;
+                    SetZoom(zoom);
+                }
+            }
+        }
+
+        public void FitPage()
+        {
+            if (_scrollViewer != null && _designCanvas.ActualWidth > 0 && _designCanvas.ActualHeight > 0)
+            {
+                double containerWidth = _scrollViewer.ViewportWidth - 40;
+                double containerHeight = _scrollViewer.ViewportHeight - 100;
+                double canvasWidth = _designCanvas.ActualWidth;
+                double canvasHeight = _designCanvas.ActualHeight;
+                
+                if (canvasWidth > 0 && canvasHeight > 0)
+                {
+                    double zoom = Math.Min(containerWidth / canvasWidth, containerHeight / canvasHeight);
+                    SetZoom(zoom);
+                }
+            }
         }
 
         public void ResetZoom()

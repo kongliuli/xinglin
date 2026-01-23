@@ -100,42 +100,42 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// <summary>
         /// 选择元素命令
         /// </summary>
-        public ICommand SelectElementCommand { get; private set; }
+        public ICommand? SelectElementCommand { get; private set; }
 
         /// <summary>
         /// 清除选择命令
         /// </summary>
-        public ICommand ClearSelectionCommand { get; private set; }
+        public ICommand? ClearSelectionCommand { get; private set; }
 
         /// <summary>
         /// 开始拖拽命令
         /// </summary>
-        public ICommand StartDragCommand { get; private set; }
+        public ICommand? StartDragCommand { get; private set; }
 
         /// <summary>
         /// 拖拽移动命令
         /// </summary>
-        public ICommand DragMoveCommand { get; private set; }
+        public ICommand? DragMoveCommand { get; private set; }
 
         /// <summary>
         /// 结束拖拽命令
         /// </summary>
-        public ICommand EndDragCommand { get; private set; }
+        public ICommand? EndDragCommand { get; private set; }
 
         /// <summary>
         /// 开始平移命令
         /// </summary>
-        public ICommand StartPanCommand { get; private set; }
+        public ICommand? StartPanCommand { get; private set; }
 
         /// <summary>
         /// 平移移动命令
         /// </summary>
-        public ICommand PanMoveCommand { get; private set; }
+        public ICommand? PanMoveCommand { get; private set; }
 
         /// <summary>
         /// 结束平移命令
         /// </summary>
-        public ICommand EndPanCommand { get; private set; }
+        public ICommand? EndPanCommand { get; private set; }
 
         #endregion
 

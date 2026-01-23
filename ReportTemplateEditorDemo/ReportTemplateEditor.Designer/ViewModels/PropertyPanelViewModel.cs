@@ -174,7 +174,7 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// <summary>
         /// 更新属性命令
         /// </summary>
-        public ICommand UpdatePropertyCommand { get; private set; }
+        public ICommand? UpdatePropertyCommand { get; private set; }
 
         #endregion
 

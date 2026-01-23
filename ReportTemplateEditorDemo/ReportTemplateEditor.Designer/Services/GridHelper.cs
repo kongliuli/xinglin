@@ -12,9 +12,9 @@ namespace ReportTemplateEditor.Designer.Services
         private bool _showGrid;
         private bool _snapToGrid;
         private double _gridSize;
-        private Rectangle _gridBackground;
+        private Rectangle? _gridBackground;
 
-        public event Action<double> GridSizeChanged;
+        public event Action<double>? GridSizeChanged;
 
         public bool ShowGrid
         {

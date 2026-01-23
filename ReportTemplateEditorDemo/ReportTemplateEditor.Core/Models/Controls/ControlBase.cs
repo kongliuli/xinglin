@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Windows;
 using ReportTemplateEditor.Core.Models.Elements;
 
 namespace ReportTemplateEditor.Core.Models.Controls
@@ -105,7 +104,7 @@ namespace ReportTemplateEditor.Core.Models.Controls
         /// </summary>
         public double Rotation { get; set; } = 0;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

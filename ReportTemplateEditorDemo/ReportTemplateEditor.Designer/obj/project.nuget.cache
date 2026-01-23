@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "2tdCvmcskeI=",
+  "dgSpecHash": "J/bKTaG3FkE=",
   "success": true,
   "projectFilePath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
   "expectedPackageFiles": [
@@ -14,15 +14,5 @@
     "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
     "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\questpdf\\2024.12.1\\questpdf.2024.12.1.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1900",
-      "level": "Warning",
-      "message": "获取包漏洞数据时出错: 由于在 60000 毫秒内未接收到数据，“https://api.nuget.org/v3/vulnerabilities/vulnerability.base.json”的下载超时。",
-      "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
-      "warningLevel": 1,
-      "filePath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
-      "targetGraphs": []
-    }
-  ]
+  "logs": []
 }

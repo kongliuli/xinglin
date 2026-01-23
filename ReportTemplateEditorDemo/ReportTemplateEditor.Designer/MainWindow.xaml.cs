@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -53,6 +54,8 @@ namespace ReportTemplateEditor.Designer
         private TemplateFileManager _templateFileManager;
         private PropertyPanelManager _propertyPanelManager;
         private CanvasInteractionHandler _canvasInteractionHandler;
+        private FixedPageEngine _fixedPageEngine;
+        private FixedPagePaginator _fixedPagePaginator;
 
         // 上次使用的模板路径
         private string _lastTemplatePath = @"D:\Code\杏林\ReportTemplateEditorDemo";
@@ -140,6 +143,8 @@ namespace ReportTemplateEditor.Designer
                 this,
                 _zoomManager
             );
+
+            _fixedPageEngine = new FixedPageEngine(_uiElementFactory);
         }
 
         /// <summary>
@@ -1593,6 +1598,33 @@ namespace ReportTemplateEditor.Designer
 
         private void PreviewTemplate_Click(object sender, RoutedEventArgs e)
         {
+            ExceptionHandler.TryExecute(() =>
+            {
+                if (_currentTemplate == null)
+                {
+                    ShowStatus("没有可预览的模板");
+                    return;
+                }
+
+                ShowStatus("正在生成预览...");
+
+                var elements = _elementWrappers.Select(w => w.ModelElement).ToList();
+                var fixedPage = _fixedPageEngine.GenerateFixedPage(_currentTemplate, elements);
+                _fixedPagePaginator = new FixedPagePaginator(fixedPage);
+
+                var printDialog = new PrintDialog();
+                if (printDialog.ShowDialog() == true)
+                {
+                    printDialog.PrintDocument(_fixedPagePaginator, $"{_currentTemplate.Name} 打印预览");
+                    ShowStatus("打印预览已发送到打印机");
+                }
+                else
+                {
+                    ShowStatus("打印预览已取消");
+                }
+            },
+            "预览模板",
+            errorMessage => ShowStatus(errorMessage));
         }
 
         private void ExportJson_Click(object sender, RoutedEventArgs e)

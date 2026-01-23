@@ -76,7 +76,7 @@ namespace ReportTemplateEditor.Designer.Services
         /// <summary>
         /// 获取主选中元素
         /// </summary>
-        public UIElementWrapper PrimarySelectedElement => _primarySelectedElement;
+        public UIElementWrapper? PrimarySelectedElement => _primarySelectedElement;
 
         /// <summary>
         /// 选择元素
@@ -228,7 +228,7 @@ namespace ReportTemplateEditor.Designer.Services
         /// var wrapper = manager.FindElementWrapper(uiElement);
         /// </code>
         /// </example>
-        public UIElementWrapper FindElementWrapper(DependencyObject visual)
+        public UIElementWrapper? FindElementWrapper(DependencyObject visual)
         {
             if (visual == null)
                 return null;

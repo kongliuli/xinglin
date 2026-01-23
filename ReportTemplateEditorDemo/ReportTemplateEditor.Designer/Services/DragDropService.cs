@@ -1,4 +1,5 @@
 using ReportTemplateEditor.Core.Models.Controls;
+using ReportTemplateEditor.Core.Models.Nodes;
 using System.Windows;
 using System.Windows.Input;
 
@@ -26,7 +27,7 @@ namespace ReportTemplateEditor.Designer.Services
         /// <param name="sender">放置目标</param>
         /// <param name="e">拖拽事件参数</param>
         /// <returns>创建的节点对象，失败返回null</returns>
-        public ReportNode HandleDrop(object sender, DragEventArgs e)
+        public ReportNode? HandleDrop(object sender, DragEventArgs e)
         {
             if (!e.Data.GetDataPresent("ControlType"))
             {
@@ -51,7 +52,7 @@ namespace ReportTemplateEditor.Designer.Services
         /// </summary>
         /// <param name="controlType">控件类型</param>
         /// <returns>创建的节点，未知类型返回null</returns>
-        private ReportNode CreateNodeFromControlType(ControlType controlType)
+        private ReportNode? CreateNodeFromControlType(ControlType controlType)
         {
             switch (controlType)
             {

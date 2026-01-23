@@ -9,6 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <OutputPath>..\bin\Debug\net9.0-windows\</OutputPath>
     <BaseOutputPath>..\bin\</BaseOutputPath>
+    <NoWarn>$(NoWarn);CS8625;CS8612;CS8622;CS8619;NU1900</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

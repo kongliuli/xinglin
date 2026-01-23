@@ -22,7 +22,7 @@ namespace ReportTemplateEditor.Core.Models.Nodes
         /// <summary>
         /// 主选中节点
         /// </summary>
-        private ReportNode _primarySelectedNode;
+        private ReportNode? _primarySelectedNode;
 
         /// <summary>
         /// 节点选中事件
@@ -135,7 +135,7 @@ namespace ReportTemplateEditor.Core.Models.Nodes
             SelectionCleared?.Invoke();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

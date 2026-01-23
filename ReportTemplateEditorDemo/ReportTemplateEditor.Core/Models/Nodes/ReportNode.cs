@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel;
-using System.Windows;
 using ReportTemplateEditor.Core.Models.Controls;
 
 namespace ReportTemplateEditor.Core.Models.Nodes
@@ -38,7 +37,12 @@ namespace ReportTemplateEditor.Core.Models.Nodes
         /// <summary>
         /// 节点名称
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 是否可见
+        /// </summary>
+        public bool IsVisible { get; set; } = true;
 
         /// <summary>
         /// 是否选中
@@ -57,7 +61,7 @@ namespace ReportTemplateEditor.Core.Models.Nodes
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged = delegate { };
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

@@ -5,10 +5,13 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using CoreTextElement = ReportTemplateEditor.Core.Models.Elements.TextElement;
 using ReportTemplateEditor.Core.Models.Elements;
 using ReportTemplateEditor.Core.Services;
+using ReportTemplateEditor.Core.Models.Nodes;
+using ReportTemplateEditor.Core.Models.Controls;
 
 namespace ReportTemplateEditor.Designer.Services
 {
@@ -97,6 +100,23 @@ namespace ReportTemplateEditor.Designer.Services
                     return CreateLabelInputBoxUIElement((LabelInputBoxElement)element);
                 default:
                     return null;
+            }
+        }
+
+        public UIElement CreateUIElement(ReportNode node)
+        {
+            switch (node)
+            {
+                case TextNode textNode:
+                    return CreateTextNodeUIElement(textNode);
+                case ImageNode imageNode:
+                    return CreateImageNodeUIElement(imageNode);
+                case LineNode lineNode:
+                    return CreateLineNodeUIElement(lineNode);
+                case RectangleNode rectangleNode:
+                    return CreateRectangleNodeUIElement(rectangleNode);
+                default:
+                    return CreateDefaultNodeUIElement(node);
             }
         }
 
@@ -301,16 +321,30 @@ namespace ReportTemplateEditor.Designer.Services
 
                     Brush backgroundBrush = null;
                     Brush foregroundBrush = null;
-                    try
+                    if (!string.IsNullOrEmpty(cellData.BackgroundColor))
                     {
-                        backgroundBrush = (Brush)brushConverter.ConvertFrom(cellData.BackgroundColor);
+                        try
+                        {
+                            backgroundBrush = (Brush)brushConverter.ConvertFrom(cellData.BackgroundColor);
+                        }
+                        catch { backgroundBrush = Brushes.White; }
                     }
-                    catch { backgroundBrush = Brushes.White; }
-                    try
+                    else
                     {
-                        foregroundBrush = (Brush)brushConverter.ConvertFrom(cellData.ForegroundColor);
+                        backgroundBrush = Brushes.White;
                     }
-                    catch { foregroundBrush = Brushes.Black; }
+                    if (!string.IsNullOrEmpty(cellData.ForegroundColor))
+                    {
+                        try
+                        {
+                            foregroundBrush = (Brush)brushConverter.ConvertFrom(cellData.ForegroundColor);
+                        }
+                        catch { foregroundBrush = Brushes.Black; }
+                    }
+                    else
+                    {
+                        foregroundBrush = Brushes.Black;
+                    }
 
                     var cell = new Border
                     {
@@ -425,19 +459,44 @@ namespace ReportTemplateEditor.Designer.Services
                     }
                     else
                     {
-                        var textBlock = new TextBlock
+                        bool isEditable = columnConfig?.IsEditable ?? true;
+                        
+                        if (!isHeaderRow && columnType == ColumnType.TextBox)
                         {
-                            Text = cellData.Content ?? string.Empty,
-                            Padding = new Thickness(tableElement.CellPadding),
-                            FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
-                            FontWeight = fontWeight,
-                            Foreground = foregroundBrush ?? Brushes.Black,
-                            TextAlignment = textAlignment,
-                            VerticalAlignment = verticalAlignment,
-                            TextWrapping = TextWrapping.Wrap
-                        };
+                            var textBox = new TextBox
+                            {
+                                Text = cellData.Content ?? string.Empty,
+                                Padding = new Thickness(tableElement.CellPadding),
+                                FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
+                                FontWeight = fontWeight,
+                                Foreground = foregroundBrush ?? Brushes.Black,
+                                Background = backgroundBrush ?? Brushes.White,
+                                TextAlignment = textAlignment,
+                                VerticalAlignment = verticalAlignment,
+                                TextWrapping = TextWrapping.Wrap,
+                                BorderThickness = new Thickness(0),
+                                IsHitTestVisible = false,
+                                Focusable = false
+                            };
 
-                        cellContent = textBlock;
+                            cellContent = textBox;
+                        }
+                        else
+                        {
+                            var textBlock = new TextBlock
+                            {
+                                Text = cellData.Content ?? string.Empty,
+                                Padding = new Thickness(tableElement.CellPadding),
+                                FontSize = cellData.FontSize > 0 ? cellData.FontSize : 12,
+                                FontWeight = fontWeight,
+                                Foreground = foregroundBrush ?? Brushes.Black,
+                                TextAlignment = textAlignment,
+                                VerticalAlignment = verticalAlignment,
+                                TextWrapping = TextWrapping.Wrap
+                            };
+
+                            cellContent = textBlock;
+                        }
                     }
 
                     cell.Child = cellContent;
@@ -625,13 +684,24 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateLineUIElement(LineElement lineElement)
         {
+            var strokeBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(lineElement.LineColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    strokeBrush = solidColorBrush;
+                }
+            }
+            catch { strokeBrush = Brushes.Black; }
+
             var line = new System.Windows.Shapes.Line
             {
                 X1 = lineElement.StartX,
                 Y1 = lineElement.StartY,
                 X2 = lineElement.EndX,
                 Y2 = lineElement.EndY,
-                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(lineElement.LineColor)),
+                Stroke = strokeBrush,
                 StrokeThickness = lineElement.LineWidth,
                 Cursor = Cursors.Hand
             };
@@ -643,12 +713,33 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateRectangleUIElement(RectangleElement rectangleElement)
         {
+            var fillBrush = Brushes.White;
+            var strokeBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(rectangleElement.FillColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    fillBrush = solidColorBrush;
+                }
+            }
+            catch { fillBrush = Brushes.White; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(rectangleElement.BorderColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    strokeBrush = solidColorBrush;
+                }
+            }
+            catch { strokeBrush = Brushes.Black; }
+
             var rectangle = new System.Windows.Shapes.Rectangle
             {
                 Width = rectangleElement.Width,
                 Height = rectangleElement.Height,
-                Fill = (SolidColorBrush)(new BrushConverter().ConvertFrom(rectangleElement.FillColor)),
-                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(rectangleElement.BorderColor)),
+                Fill = fillBrush,
+                Stroke = strokeBrush,
                 StrokeThickness = rectangleElement.BorderWidth,
                 RadiusX = rectangleElement.CornerRadius,
                 RadiusY = rectangleElement.CornerRadius,
@@ -662,12 +753,33 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateEllipseUIElement(EllipseElement ellipseElement)
         {
+            var fillBrush = Brushes.White;
+            var strokeBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(ellipseElement.FillColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    fillBrush = solidColorBrush;
+                }
+            }
+            catch { fillBrush = Brushes.White; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(ellipseElement.BorderColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    strokeBrush = solidColorBrush;
+                }
+            }
+            catch { strokeBrush = Brushes.Black; }
+
             var ellipse = new System.Windows.Shapes.Ellipse
             {
                 Width = ellipseElement.Width,
                 Height = ellipseElement.Height,
-                Fill = (SolidColorBrush)(new BrushConverter().ConvertFrom(ellipseElement.FillColor)),
-                Stroke = (SolidColorBrush)(new BrushConverter().ConvertFrom(ellipseElement.BorderColor)),
+                Fill = fillBrush,
+                Stroke = strokeBrush,
                 StrokeThickness = ellipseElement.BorderWidth,
                 Cursor = Cursors.Hand
             };
@@ -679,24 +791,57 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateBarcodeUIElement(BarcodeElement barcodeElement)
         {
+            var backgroundBrush = Brushes.White;
+            var borderBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(barcodeElement.BackgroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    backgroundBrush = solidColorBrush;
+                }
+            }
+            catch { backgroundBrush = Brushes.White; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(barcodeElement.BorderColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    borderBrush = solidColorBrush;
+                }
+            }
+            catch { borderBrush = Brushes.Black; }
+
             var border = new Border
             {
                 Width = barcodeElement.Width,
                 Height = barcodeElement.Height,
-                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.BackgroundColor)),
-                BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.BorderColor)),
+                Background = backgroundBrush,
+                BorderBrush = borderBrush,
                 BorderThickness = new Thickness(barcodeElement.BorderWidth),
                 CornerRadius = new CornerRadius(barcodeElement.CornerRadius),
                 Cursor = Cursors.Hand
             };
+
+            var fontWeightConverter = new FontWeightConverter();
+            var foregroundBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(barcodeElement.ForegroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    foregroundBrush = solidColorBrush;
+                }
+            }
+            catch { foregroundBrush = Brushes.Black; }
 
             var textBlock = new TextBlock
             {
                 Text = "条形码",
                 FontFamily = new FontFamily(barcodeElement.FontFamily),
                 FontSize = barcodeElement.FontSize,
-                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(barcodeElement.FontWeight),
-                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(barcodeElement.ForegroundColor)),
+                FontWeight = (FontWeight)fontWeightConverter.ConvertFromString(barcodeElement.FontWeight),
+                Foreground = foregroundBrush,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -709,24 +854,57 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateSignatureUIElement(SignatureElement signatureElement)
         {
+            var backgroundBrush = Brushes.White;
+            var borderBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(signatureElement.BackgroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    backgroundBrush = solidColorBrush;
+                }
+            }
+            catch { backgroundBrush = Brushes.White; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(signatureElement.BorderColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    borderBrush = solidColorBrush;
+                }
+            }
+            catch { borderBrush = Brushes.Black; }
+
             var border = new Border
             {
                 Width = signatureElement.Width,
                 Height = signatureElement.Height,
-                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.BackgroundColor)),
-                BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.BorderColor)),
+                Background = backgroundBrush,
+                BorderBrush = borderBrush,
                 BorderThickness = new Thickness(signatureElement.BorderWidth),
                 CornerRadius = new CornerRadius(signatureElement.CornerRadius),
                 Cursor = Cursors.Hand
             };
+
+            var fontWeightConverter = new FontWeightConverter();
+            var foregroundBrush = Brushes.Black;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(signatureElement.ForegroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    foregroundBrush = solidColorBrush;
+                }
+            }
+            catch { foregroundBrush = Brushes.Black; }
 
             var textBlock = new TextBlock
             {
                 Text = "签名区域",
                 FontFamily = new FontFamily(signatureElement.FontFamily),
                 FontSize = signatureElement.FontSize,
-                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(signatureElement.FontWeight),
-                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(signatureElement.ForegroundColor)),
+                FontWeight = (FontWeight)fontWeightConverter.ConvertFromString(signatureElement.FontWeight),
+                Foreground = foregroundBrush,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -739,14 +917,36 @@ namespace ReportTemplateEditor.Designer.Services
 
         private UIElement CreateAutoNumberUIElement(AutoNumberElement autoNumberElement)
         {
+            var foregroundBrush = Brushes.Black;
+            var backgroundBrush = Brushes.White;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(autoNumberElement.ForegroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    foregroundBrush = solidColorBrush;
+                }
+            }
+            catch { foregroundBrush = Brushes.Black; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(autoNumberElement.BackgroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    backgroundBrush = solidColorBrush;
+                }
+            }
+            catch { backgroundBrush = Brushes.White; }
+
+            var fontWeightConverter = new FontWeightConverter();
             var textBlock = new TextBlock
             {
                 Text = autoNumberElement.Prefix + "1" + autoNumberElement.Suffix,
                 FontFamily = new FontFamily(autoNumberElement.FontFamily),
                 FontSize = autoNumberElement.FontSize,
-                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(autoNumberElement.FontWeight),
-                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(autoNumberElement.ForegroundColor)),
-                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(autoNumberElement.BackgroundColor)),
+                FontWeight = (FontWeight)fontWeightConverter.ConvertFromString(autoNumberElement.FontWeight),
+                Foreground = foregroundBrush,
+                Background = backgroundBrush,
                 TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), autoNumberElement.TextAlignment),
                 Padding = new Thickness(2),
                 Cursor = Cursors.Hand,
@@ -835,20 +1035,75 @@ namespace ReportTemplateEditor.Designer.Services
                 Cursor = Cursors.Hand
             };
 
+            var labelForegroundBrush = Brushes.Black;
+            var labelBackgroundBrush = Brushes.White;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(labelInputBoxElement.LabelStyle.ForegroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    labelForegroundBrush = solidColorBrush;
+                }
+            }
+            catch { labelForegroundBrush = Brushes.Black; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(labelInputBoxElement.LabelStyle.BackgroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    labelBackgroundBrush = solidColorBrush;
+                }
+            }
+            catch { labelBackgroundBrush = Brushes.White; }
+
+            var fontWeightConverter = new FontWeightConverter();
+            var fontStyleConverter = new FontStyleConverter();
+
             var label = new TextBlock
             {
                 Text = labelInputBoxElement.LabelText,
                 FontFamily = new FontFamily(labelInputBoxElement.LabelStyle.FontFamily),
                 FontSize = labelInputBoxElement.LabelStyle.FontSize,
-                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(labelInputBoxElement.LabelStyle.FontWeight),
-                FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(labelInputBoxElement.LabelStyle.FontStyle),
-                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(labelInputBoxElement.LabelStyle.ForegroundColor)),
-                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(labelInputBoxElement.LabelStyle.BackgroundColor)),
+                FontWeight = (FontWeight)fontWeightConverter.ConvertFromString(labelInputBoxElement.LabelStyle.FontWeight),
+                FontStyle = (FontStyle)fontStyleConverter.ConvertFromString(labelInputBoxElement.LabelStyle.FontStyle),
+                Foreground = labelForegroundBrush,
+                Background = labelBackgroundBrush,
                 TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), labelInputBoxElement.LabelStyle.TextAlignment),
                 VerticalAlignment = (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), labelInputBoxElement.LabelStyle.VerticalAlignment),
                 Padding = new Thickness(labelInputBoxElement.LabelStyle.Padding.Left, labelInputBoxElement.LabelStyle.Padding.Top, labelInputBoxElement.LabelStyle.Padding.Right, labelInputBoxElement.LabelStyle.Padding.Bottom),
                 Margin = new Thickness(labelInputBoxElement.LabelStyle.Margin.Left, labelInputBoxElement.LabelStyle.Margin.Top, labelInputBoxElement.LabelStyle.Margin.Right, labelInputBoxElement.LabelStyle.Margin.Bottom)
             };
+
+            var inputForegroundBrush = Brushes.Black;
+            var inputBackgroundBrush = Brushes.White;
+            var inputBorderBrush = Brushes.Gray;
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.ForegroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    inputForegroundBrush = solidColorBrush;
+                }
+            }
+            catch { inputForegroundBrush = Brushes.Black; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.BackgroundColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    inputBackgroundBrush = solidColorBrush;
+                }
+            }
+            catch { inputBackgroundBrush = Brushes.White; }
+            try
+            {
+                var brush = new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.BorderColor);
+                if (brush is SolidColorBrush solidColorBrush)
+                {
+                    inputBorderBrush = solidColorBrush;
+                }
+            }
+            catch { inputBorderBrush = Brushes.Gray; }
 
             var textBox = new TextBox
             {
@@ -856,11 +1111,11 @@ namespace ReportTemplateEditor.Designer.Services
                 Height = labelInputBoxElement.InputStyle.Height,
                 FontFamily = new FontFamily(labelInputBoxElement.InputStyle.FontFamily),
                 FontSize = labelInputBoxElement.InputStyle.FontSize,
-                FontWeight = (FontWeight)new FontWeightConverter().ConvertFromString(labelInputBoxElement.InputStyle.FontWeight),
-                FontStyle = (FontStyle)new FontStyleConverter().ConvertFromString(labelInputBoxElement.InputStyle.FontStyle),
-                Foreground = (SolidColorBrush)(new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.ForegroundColor)),
-                Background = (SolidColorBrush)(new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.BackgroundColor)),
-                BorderBrush = (SolidColorBrush)(new BrushConverter().ConvertFrom(labelInputBoxElement.InputStyle.BorderColor)),
+                FontWeight = (FontWeight)fontWeightConverter.ConvertFromString(labelInputBoxElement.InputStyle.FontWeight),
+                FontStyle = (FontStyle)fontStyleConverter.ConvertFromString(labelInputBoxElement.InputStyle.FontStyle),
+                Foreground = inputForegroundBrush,
+                Background = inputBackgroundBrush,
+                BorderBrush = inputBorderBrush,
                 BorderThickness = new Thickness(labelInputBoxElement.InputStyle.BorderWidth),
                 TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), labelInputBoxElement.InputStyle.TextAlignment),
                 VerticalAlignment = (VerticalAlignment)Enum.Parse(typeof(VerticalAlignment), labelInputBoxElement.InputStyle.VerticalAlignment),
@@ -916,6 +1171,216 @@ namespace ReportTemplateEditor.Designer.Services
                 labelInputBoxElement.Width = container.ActualWidth;
                 labelInputBoxElement.Height = container.ActualHeight;
                 _elementSizeChanged?.Invoke(container);
+            }
+        }
+
+        private UIElement CreateTextNodeUIElement(TextNode textNode)
+        {
+            var foregroundColor = ParseColor(textNode.ForegroundColor ?? "#000000");
+            var backgroundColor = ParseColor(textNode.BackgroundColor ?? "#FFFFFF");
+
+            var textBlock = new TextBlock
+            {
+                Text = textNode.Text ?? string.Empty,
+                FontFamily = new FontFamily(textNode.FontFamily ?? "Microsoft YaHei"),
+                FontSize = textNode.FontSize > 0 ? textNode.FontSize : 12,
+                FontWeight = textNode.FontWeight == "Bold" ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = new SolidColorBrush(foregroundColor),
+                Background = new SolidColorBrush(backgroundColor),
+                TextAlignment = textNode.TextAlignment switch
+                {
+                    "Center" => TextAlignment.Center,
+                    "Right" => TextAlignment.Right,
+                    _ => TextAlignment.Left
+                },
+                VerticalAlignment = textNode.VerticalAlignment switch
+                {
+                    "Center" => VerticalAlignment.Center,
+                    "Bottom" => VerticalAlignment.Bottom,
+                    _ => VerticalAlignment.Top
+                },
+                Padding = new Thickness(4),
+                Cursor = Cursors.Hand,
+                Width = textNode.Width > 0 ? textNode.Width : double.NaN,
+                Height = textNode.Height > 0 ? textNode.Height : double.NaN,
+                MinWidth = 20,
+                MinHeight = 16
+            };
+
+            textBlock.MouseDown += (sender, e) => _elementMouseDown?.Invoke(textBlock, e);
+            textBlock.SizeChanged += (sender, e) => UpdateNodeSize(textBlock, textNode);
+
+            return textBlock;
+        }
+
+        private UIElement CreateImageNodeUIElement(ImageNode imageNode)
+        {
+            var borderColor = ParseColor(imageNode.BorderColor ?? "#CCCCCC");
+
+            var border = new Border
+            {
+                Background = Brushes.Transparent,
+                BorderBrush = new SolidColorBrush(borderColor),
+                BorderThickness = new Thickness(imageNode.BorderWidth > 0 ? imageNode.BorderWidth : 1),
+                CornerRadius = new CornerRadius(imageNode.CornerRadius),
+                Cursor = Cursors.Hand,
+                Width = imageNode.Width > 0 ? imageNode.Width : 100,
+                Height = imageNode.Height > 0 ? imageNode.Height : 100,
+                MinWidth = 20,
+                MinHeight = 20
+            };
+
+            var image = new Image
+            {
+                Stretch = imageNode.Stretch switch
+                {
+                    "Fill" => Stretch.Fill,
+                    "Uniform" => Stretch.Uniform,
+                    "UniformToFill" => Stretch.UniformToFill,
+                    "None" => Stretch.None,
+                    _ => Stretch.Uniform
+                },
+                Opacity = imageNode.Opacity > 0 ? imageNode.Opacity : 1.0
+            };
+
+            if (!string.IsNullOrEmpty(imageNode.ImagePath) && System.IO.File.Exists(imageNode.ImagePath))
+            {
+                try
+                {
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bitmap.UriSource = new Uri(imageNode.ImagePath);
+                    bitmap.EndInit();
+                    image.Source = bitmap;
+                }
+                catch
+                {
+                    image.Source = null;
+                }
+            }
+
+            border.Child = image;
+            border.MouseDown += (sender, e) => _elementMouseDown?.Invoke(border, e);
+            border.SizeChanged += (sender, e) => UpdateNodeSize(border, imageNode);
+
+            return border;
+        }
+
+        private UIElement CreateLineNodeUIElement(LineNode lineNode)
+        {
+            var lineColor = ParseColor(lineNode.LineColor ?? "#000000");
+
+            var line = new Line
+            {
+                Stroke = new SolidColorBrush(lineColor),
+                StrokeThickness = lineNode.LineWidth > 0 ? lineNode.LineWidth : 1,
+                StrokeDashArray = lineNode.LineStyle == "Dashed" ? new DoubleCollection(new[] { 4.0, 2.0 }) : null,
+                Cursor = Cursors.Hand,
+                X1 = 0,
+                Y1 = 0,
+                X2 = lineNode.Width > 0 ? lineNode.Width : 100,
+                Y2 = 0
+            };
+
+            var container = new Canvas
+            {
+                Width = lineNode.Width > 0 ? lineNode.Width : 100,
+                Height = lineNode.Height > 0 ? lineNode.Height : 2,
+                Background = Brushes.Transparent,
+                Cursor = Cursors.Hand
+            };
+
+            container.Children.Add(line);
+            container.MouseDown += (sender, e) => _elementMouseDown?.Invoke(container, e);
+            container.SizeChanged += (sender, e) => UpdateNodeSize(container, lineNode);
+
+            return container;
+        }
+
+        private UIElement CreateRectangleNodeUIElement(RectangleNode rectangleNode)
+        {
+            var fillColor = ParseColor(rectangleNode.FillColor ?? "#FFFFFF");
+            var borderColor = ParseColor(rectangleNode.BorderColor ?? "#000000");
+
+            var rectangle = new System.Windows.Shapes.Rectangle
+            {
+                Fill = new SolidColorBrush(fillColor)
+                {
+                    Opacity = rectangleNode.FillOpacity > 0 ? rectangleNode.FillOpacity : 1.0
+                },
+                Stroke = new SolidColorBrush(borderColor),
+                StrokeThickness = rectangleNode.BorderWidth > 0 ? rectangleNode.BorderWidth : 1,
+                RadiusX = rectangleNode.CornerRadius,
+                RadiusY = rectangleNode.CornerRadius,
+                Cursor = Cursors.Hand,
+                Width = rectangleNode.Width > 0 ? rectangleNode.Width : 100,
+                Height = rectangleNode.Height > 0 ? rectangleNode.Height : 100,
+                MinWidth = 20,
+                MinHeight = 20
+            };
+
+            rectangle.MouseDown += (sender, e) => _elementMouseDown?.Invoke(rectangle, e);
+            rectangle.SizeChanged += (sender, e) => UpdateNodeSize(rectangle, rectangleNode);
+
+            return rectangle;
+        }
+
+        private UIElement CreateDefaultNodeUIElement(ReportNode node)
+        {
+            var border = new Border
+            {
+                Background = new SolidColorBrush(Color.FromRgb(240, 240, 240)),
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(4),
+                Cursor = Cursors.Hand,
+                Width = node.Width > 0 ? node.Width : 100,
+                Height = node.Height > 0 ? node.Height : 50,
+                MinWidth = 20,
+                MinHeight = 20
+            };
+
+            var textBlock = new TextBlock
+            {
+                Text = node.Name ?? "Unknown",
+                FontSize = 12,
+                Foreground = Brushes.Black,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            border.Child = textBlock;
+            border.MouseDown += (sender, e) => _elementMouseDown?.Invoke(border, e);
+            border.SizeChanged += (sender, e) => UpdateNodeSize(border, node);
+
+            return border;
+        }
+
+        private void UpdateNodeSize(UIElement element, ReportNode node)
+        {
+            if (element is FrameworkElement frameworkElement && frameworkElement.ActualWidth > 0 && frameworkElement.ActualHeight > 0)
+            {
+                node.Width = frameworkElement.ActualWidth;
+                node.Height = frameworkElement.ActualHeight;
+                _elementSizeChanged?.Invoke(element);
+            }
+        }
+
+        private Color ParseColor(string colorString)
+        {
+            if (string.IsNullOrEmpty(colorString))
+            {
+                return Colors.Black;
+            }
+
+            try
+            {
+                return (Color)ColorConverter.ConvertFromString(colorString);
+            }
+            catch
+            {
+                return Colors.Black;
             }
         }
     }

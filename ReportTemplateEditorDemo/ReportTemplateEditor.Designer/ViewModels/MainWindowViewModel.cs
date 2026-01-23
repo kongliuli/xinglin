@@ -57,17 +57,16 @@ namespace ReportTemplateEditor.Designer.ViewModels
         #endregion
 
         #region 服务依赖（公共属性，用于从外部设置）
-
-        public CommandManager CommandManager { get; set; }
-        public List<UIElementWrapper> ElementWrappers { get; set; }
-        public ElementSelectionManager SelectionManager { get; set; }
-        public GridHelper GridHelper { get; set; }
-        public ZoomManager ZoomManager { get; set; }
-        public TemplateFileManager TemplateFileManager { get; set; }
-        public PropertyPanelManager PropertyPanelManager { get; set; }
-        public CanvasInteractionHandler CanvasInteractionHandler { get; set; }
-        public UIElementFactory UIElementFactory { get; set; }
-        public ITemplateRenderer Renderer { get; set; }
+        public CommandManager? CommandManager { get; set; }
+        public List<UIElementWrapper>? ElementWrappers { get; set; }
+        public ElementSelectionManager? SelectionManager { get; set; }
+        public GridHelper? GridHelper { get; set; }
+        public ZoomManager? ZoomManager { get; set; }
+        public TemplateFileManager? TemplateFileManager { get; set; }
+        public PropertyPanelManager? PropertyPanelManager { get; set; }
+        public CanvasInteractionHandler? CanvasInteractionHandler { get; set; }
+        public UIElementFactory? UIElementFactory { get; set; }
+        public ITemplateRenderer? Renderer { get; set; }
 
         #endregion
 
@@ -425,141 +424,150 @@ namespace ReportTemplateEditor.Designer.ViewModels
         #endregion
 
         #region 命令属性
-
         /// <summary>
         /// 新建模板命令
         /// </summary>
-        public ICommand NewTemplateCommand { get; private set; }
+        public ICommand? NewTemplateCommand { get; private set; }
 
         /// <summary>
         /// 打开模板命令
         /// </summary>
-        public ICommand OpenTemplateCommand { get; private set; }
+        public ICommand? OpenTemplateCommand { get; private set; }
 
         /// <summary>
         /// 保存模板命令
         /// </summary>
-        public ICommand SaveTemplateCommand { get; private set; }
+        public ICommand? SaveTemplateCommand { get; private set; }
 
         /// <summary>
         /// 另存为模板命令
         /// </summary>
-        public ICommand SaveAsTemplateCommand { get; private set; }
+        public ICommand? SaveAsTemplateCommand { get; private set; }
 
         /// <summary>
         /// 导出为JSON命令
         /// </summary>
-        public ICommand ExportToJsonCommand { get; private set; }
+        public ICommand? ExportToJsonCommand { get; private set; }
 
         /// <summary>
         /// 撤销命令
         /// </summary>
-        public ICommand UndoCommand { get; private set; }
+        public ICommand? UndoCommand { get; private set; }
 
         /// <summary>
         /// 重做命令
         /// </summary>
-        public ICommand RedoCommand { get; private set; }
+        public ICommand? RedoCommand { get; private set; }
 
         /// <summary>
         /// 删除选中元素命令
         /// </summary>
-        public ICommand DeleteSelectedElementsCommand { get; private set; }
+        public ICommand? DeleteSelectedElementsCommand { get; private set; }
 
         /// <summary>
         /// 上移图层命令
         /// </summary>
-        public ICommand MoveLayerUpCommand { get; private set; }
+        public ICommand? MoveLayerUpCommand { get; private set; }
 
         /// <summary>
         /// 下移图层命令
         /// </summary>
-        public ICommand MoveLayerDownCommand { get; private set; }
+        public ICommand? MoveLayerDownCommand { get; private set; }
 
         /// <summary>
         /// 置顶图层命令
         /// </summary>
-        public ICommand BringToFrontCommand { get; private set; }
+        public ICommand? BringToFrontCommand { get; private set; }
 
         /// <summary>
         /// 置底图层命令
         /// </summary>
-        public ICommand SendToBackCommand { get; private set; }
+        public ICommand? SendToBackCommand { get; private set; }
 
         /// <summary>
         /// 缩放命令
         /// </summary>
-        public ICommand ZoomCommand { get; private set; }
+        public ICommand? ZoomCommand { get; private set; }
 
         /// <summary>
         /// 重置缩放命令
         /// </summary>
-        public ICommand ResetZoomCommand { get; private set; }
+        public ICommand? ResetZoomCommand { get; private set; }
 
         /// <summary>
         /// 退出应用命令
         /// </summary>
-        public ICommand ExitCommand { get; private set; }
+        public ICommand? ExitCommand { get; private set; }
 
         /// <summary>
         /// 切换显示网格命令
         /// </summary>
-        public ICommand ToggleShowGridCommand { get; private set; }
+        public ICommand? ToggleShowGridCommand { get; private set; }
 
         /// <summary>
         /// 切换网格吸附命令
         /// </summary>
-        public ICommand ToggleSnapToGridCommand { get; private set; }
+        public ICommand? ToggleSnapToGridCommand { get; private set; }
 
         /// <summary>
         /// 缩放到50%命令
         /// </summary>
-        public ICommand ZoomTo50Command { get; private set; }
+        public ICommand? ZoomTo50Command { get; private set; }
 
         /// <summary>
         /// 缩放到75%命令
         /// </summary>
-        public ICommand ZoomTo75Command { get; private set; }
+        public ICommand? ZoomTo75Command { get; private set; }
 
         /// <summary>
         /// 缩放到100%命令
         /// </summary>
-        public ICommand ZoomTo100Command { get; private set; }
+        public ICommand? ZoomTo100Command { get; private set; }
 
         /// <summary>
         /// 缩放到150%命令
         /// </summary>
-        public ICommand ZoomTo150Command { get; private set; }
+        public ICommand? ZoomTo150Command { get; private set; }
 
         /// <summary>
         /// 缩放到200%命令
         /// </summary>
-        public ICommand ZoomTo200Command { get; private set; }
+        public ICommand? ZoomTo200Command { get; private set; }
+
+        /// <summary>
+        /// 适应宽度命令
+        /// </summary>
+        public ICommand? FitWidthCommand { get; private set; }
+
+        /// <summary>
+        /// 适应页面命令
+        /// </summary>
+        public ICommand? FitPageCommand { get; private set; }
 
         /// <summary>
         /// 模板属性命令
         /// </summary>
-        public ICommand TemplatePropertiesCommand { get; private set; }
+        public ICommand? TemplatePropertiesCommand { get; private set; }
 
         /// <summary>
         /// 预览模板命令
         /// </summary>
-        public ICommand PreviewTemplateCommand { get; private set; }
+        public ICommand? PreviewTemplateCommand { get; private set; }
 
         /// <summary>
         /// 加载测试数据命令
         /// </summary>
-        public ICommand LoadTestDataCommand { get; private set; }
+        public ICommand? LoadTestDataCommand { get; private set; }
 
         /// <summary>
         /// 刷新预览命令
         /// </summary>
-        public ICommand RefreshPreviewCommand { get; private set; }
+        public ICommand? RefreshPreviewCommand { get; private set; }
 
         /// <summary>
         /// 选择数据路径命令
         /// </summary>
-        public ICommand SelectDataPathCommand { get; private set; }
+        public ICommand? SelectDataPathCommand { get; private set; }
 
         #endregion
 
@@ -592,6 +600,8 @@ namespace ReportTemplateEditor.Designer.ViewModels
             ZoomTo100Command = new RelayCommand(() => ZoomLevel = 100);
             ZoomTo150Command = new RelayCommand(() => ZoomLevel = 150);
             ZoomTo200Command = new RelayCommand(() => ZoomLevel = 200);
+            FitWidthCommand = new RelayCommand(FitWidth);
+            FitPageCommand = new RelayCommand(FitPage);
             TemplatePropertiesCommand = new RelayCommand(TemplateProperties);
             PreviewTemplateCommand = new RelayCommand(PreviewTemplate);
             LoadTestDataCommand = new RelayCommand(LoadTestData);
@@ -1719,6 +1729,30 @@ namespace ReportTemplateEditor.Designer.ViewModels
                 ExceptionHandler.LogInfo("缩放级别已重置", "Zoom");
             },
             "重置缩放",
+            errorMessage => Status = errorMessage);
+        }
+
+        private void FitWidth()
+        {
+            ExceptionHandler.TryExecute(() =>
+            {
+                ZoomManager?.FitWidth();
+                Status = "已适应宽度";
+                ExceptionHandler.LogInfo("缩放已适应宽度", "Zoom");
+            },
+            "适应宽度",
+            errorMessage => Status = errorMessage);
+        }
+
+        private void FitPage()
+        {
+            ExceptionHandler.TryExecute(() =>
+            {
+                ZoomManager?.FitPage();
+                Status = "已适应页面";
+                ExceptionHandler.LogInfo("缩放已适应页面", "Zoom");
+            },
+            "适应页面",
             errorMessage => Status = errorMessage);
         }
 

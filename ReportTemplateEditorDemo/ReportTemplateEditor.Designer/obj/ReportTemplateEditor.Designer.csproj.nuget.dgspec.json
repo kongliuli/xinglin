@@ -36,6 +36,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1900"
+          ],
           "warnAsError": [
             "NU1605"
           ]
@@ -119,6 +122,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1900"
+          ],
           "warnAsError": [
             "NU1605"
           ]
@@ -202,6 +208,9 @@
           }
         },
         "warningProperties": {
+          "noWarn": [
+            "NU1900"
+          ],
           "warnAsError": [
             "NU1605"
           ]

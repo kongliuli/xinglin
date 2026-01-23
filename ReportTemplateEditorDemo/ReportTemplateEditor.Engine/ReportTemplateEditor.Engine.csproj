@@ -13,6 +13,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS8625;CS8612;CS8622;CS8619;NU1900</NoWarn>
   </PropertyGroup>
 
 </Project>

@@ -12,9 +12,9 @@ namespace ReportTemplateEditor.Designer.Services
         private readonly TemplateSerializationService _serializationService;
         private string _lastTemplatePath;
 
-        public event Action<ReportTemplateDefinition> TemplateLoaded;
-        public event Action<ReportTemplateDefinition> TemplateSaved;
-        public event Action<string> StatusChanged;
+        public event Action<ReportTemplateDefinition>? TemplateLoaded;
+        public event Action<ReportTemplateDefinition>? TemplateSaved;
+        public event Action<string>? StatusChanged;
 
         public TemplateFileManager(TemplateSerializationService serializationService)
         {
@@ -149,7 +149,7 @@ namespace ReportTemplateEditor.Designer.Services
             return false;
         }
 
-        public string ExportTemplateToJson(ReportTemplateDefinition template)
+        public string? ExportTemplateToJson(ReportTemplateDefinition template)
         {
             if (template == null)
                 return null;

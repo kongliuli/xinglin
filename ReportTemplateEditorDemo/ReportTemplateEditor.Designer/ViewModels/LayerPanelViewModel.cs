@@ -65,27 +65,27 @@ namespace ReportTemplateEditor.Designer.ViewModels
         /// <summary>
         /// 上移图层命令
         /// </summary>
-        public ICommand MoveLayerUpCommand { get; private set; }
+        public ICommand? MoveLayerUpCommand { get; private set; }
 
         /// <summary>
         /// 下移图层命令
         /// </summary>
-        public ICommand MoveLayerDownCommand { get; private set; }
+        public ICommand? MoveLayerDownCommand { get; private set; }
 
         /// <summary>
         /// 置顶图层命令
         /// </summary>
-        public ICommand BringToFrontCommand { get; private set; }
+        public ICommand? BringToFrontCommand { get; private set; }
 
         /// <summary>
         /// 置底图层命令
         /// </summary>
-        public ICommand SendToBackCommand { get; private set; }
+        public ICommand? SendToBackCommand { get; private set; }
 
         /// <summary>
         /// 切换图层可见性命令
         /// </summary>
-        public ICommand ToggleLayerVisibilityCommand { get; private set; }
+        public ICommand? ToggleLayerVisibilityCommand { get; private set; }
 
         #endregion
 

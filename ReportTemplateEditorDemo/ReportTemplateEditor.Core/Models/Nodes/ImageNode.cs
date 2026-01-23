@@ -1,5 +1,3 @@
-using System.Windows.Media.Imaging;
-
 namespace ReportTemplateEditor.Core.Models.Nodes
 {
     /// <summary>
@@ -26,5 +24,20 @@ namespace ReportTemplateEditor.Core.Models.Nodes
         /// 图像透明度
         /// </summary>
         public double Opacity { get; set; } = 1.0;
+
+        /// <summary>
+        /// 边框颜色
+        /// </summary>
+        public string BorderColor { get; set; } = "#CCCCCC";
+
+        /// <summary>
+        /// 边框宽度
+        /// </summary>
+        public double BorderWidth { get; set; } = 1;
+
+        /// <summary>
+        /// 圆角半径
+        /// </summary>
+        public double CornerRadius { get; set; } = 0;
     }
 }
