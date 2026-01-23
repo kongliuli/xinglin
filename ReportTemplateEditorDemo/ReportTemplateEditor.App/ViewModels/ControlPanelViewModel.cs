@@ -8,7 +8,7 @@ using System.Windows.Input;
 using System.Windows.Data;
 using System.ComponentModel;
 using WpfFrameworkElement = System.Windows.FrameworkElement;
-using WpfPanel = System.Windows.Controls.WrapPanel;
+using WpfPanel = System.Windows.Controls.StackPanel;
 using WpfBinding = System.Windows.Data.Binding;
 using WpfBindingMode = System.Windows.Data.BindingMode;
 using WpfUpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger;
@@ -118,6 +118,10 @@ namespace ReportTemplateEditor.App.ViewModels
             ControlContainer.Children.Clear();
             _controlMap.Clear();
 
+            var textElements = new List<ElementBase>();
+            var tableElements = new List<ElementBase>();
+            var otherElements = new List<ElementBase>();
+
             foreach (var element in CurrentTemplate.Elements)
             {
                 if (!element.IsVisible)
@@ -125,6 +129,22 @@ namespace ReportTemplateEditor.App.ViewModels
                     continue;
                 }
 
+                if (element is TextElement || element is LabelInputBoxElement)
+                {
+                    textElements.Add(element);
+                }
+                else if (element is TableElement)
+                {
+                    tableElements.Add(element);
+                }
+                else
+                {
+                    otherElements.Add(element);
+                }
+            }
+
+            foreach (var element in textElements.Concat(otherElements).Concat(tableElements))
+            {
                 try
                 {
                     var control = _controlGeneratorService.GenerateControl(element);

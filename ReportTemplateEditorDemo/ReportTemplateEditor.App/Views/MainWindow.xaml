@@ -21,25 +21,25 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Menu Grid.Row="0" Background="{DynamicResource RegionBrush}">
-            <MenuItem Header="文件">
-                <MenuItem Header="打开其他目录" Command="{Binding OpenOtherDirectoryCommand}"/>
-                <MenuItem Header="打开内置模板目录" Command="{Binding OpenBuiltInTemplatesCommand}"/>
+        <Menu Grid.Row="0" Background="#F0F0F0">
+            <MenuItem Header="文件" Foreground="#333333">
+                <MenuItem Header="打开其他目录" Command="{Binding OpenOtherDirectoryCommand}" Foreground="#333333"/>
+                <MenuItem Header="打开内置模板目录" Command="{Binding OpenBuiltInTemplatesCommand}" Foreground="#333333"/>
                 <Separator/>
-                <MenuItem Header="打开模板设计器" Command="{Binding OpenDesignerCommand}"/>
+                <MenuItem Header="打开模板设计器" Command="{Binding OpenDesignerCommand}" Foreground="#333333"/>
                 <Separator/>
-                <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}"/>
+                <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}" Foreground="#333333"/>
                 <Separator/>
-                <MenuItem Header="退出" Command="{Binding ExitCommand}"/>
+                <MenuItem Header="退出" Command="{Binding ExitCommand}" Foreground="#333333"/>
             </MenuItem>
-            <MenuItem Header="编辑">
-                <MenuItem Header="刷新模板" Command="{Binding TemplateTreeViewModel.RefreshCommand}"/>
-                <MenuItem Header="刷新控件" Command="{Binding ControlPanelViewModel.RefreshControlsCommand}"/>
-                <MenuItem Header="刷新预览" Command="{Binding PdfPreviewViewModel.RefreshPreviewCommand}"/>
+            <MenuItem Header="编辑" Foreground="#333333">
+                <MenuItem Header="刷新模板" Command="{Binding TemplateTreeViewModel.RefreshCommand}" Foreground="#333333"/>
+                <MenuItem Header="刷新控件" Command="{Binding ControlPanelViewModel.RefreshControlsCommand}" Foreground="#333333"/>
+                <MenuItem Header="刷新预览" Command="{Binding PdfPreviewViewModel.RefreshPreviewCommand}" Foreground="#333333"/>
             </MenuItem>
-            <MenuItem Header="打印">
-                <MenuItem Header="打印" Command="{Binding PdfPreviewViewModel.PrintCommand}"/>
-                <MenuItem Header="保存为PDF" Command="{Binding PdfPreviewViewModel.SavePdfCommand}"/>
+            <MenuItem Header="打印" Foreground="#333333">
+                <MenuItem Header="打印" Command="{Binding PdfPreviewViewModel.PrintCommand}" Foreground="#333333"/>
+                <MenuItem Header="保存为PDF" Command="{Binding PdfPreviewViewModel.SavePdfCommand}" Foreground="#333333"/>
             </MenuItem>
         </Menu>
 
@@ -55,7 +55,7 @@
             <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrush}"/>
             <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource BorderBrush}"/>
 
-            <Border Grid.Column="0" Background="{DynamicResource SecondaryRegionBrush}" CornerRadius="4">
+            <Border Grid.Column="0" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -64,11 +64,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,10" CornerRadius="4,4,0,0">
+                    <Border Grid.Row="0" Background="#4A90E2" Padding="15,10" CornerRadius="4,4,0,0">
                         <TextBlock Text="模板树" Foreground="White" FontSize="16" FontWeight="Bold"/>
                     </Border>
 
-                    <Border Grid.Row="1" Padding="10" Background="{DynamicResource RegionBrush}">
+                    <Border Grid.Row="1" Padding="10" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
                         <StackPanel>
                             <Button Content="选择模板目录" Command="{Binding SelectTemplateDirectoryCommand}" 
                                     Style="{StaticResource ButtonPrimary}" Margin="0,0,0,5"/>
@@ -80,23 +80,23 @@
                     <TreeView Grid.Row="2" ItemsSource="{Binding TemplateTreeViewModel.TreeItems}"
                               helpers:TreeViewHelper.SelectedItem="{Binding TemplateTreeViewModel.SelectedItem, Mode=TwoWay}"
                               SelectedItemChanged="TreeView_SelectedItemChanged"
-                              Margin="5">
+                              Margin="5" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1">
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Name}" Margin="5,0"/>
+                                    <TextBlock Text="{Binding Name}" Margin="5,0" Foreground="#333333" FontWeight="Medium"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
 
-                    <Border Grid.Row="3" Padding="10" Background="{DynamicResource RegionBrush}" CornerRadius="0,0,4,4">
-                        <TextBlock Text="{Binding TemplateTreeViewModel.StatusMessage}" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                    <Border Grid.Row="3" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
+                        <TextBlock Text="{Binding TemplateTreeViewModel.StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="2" Background="{DynamicResource SecondaryRegionBrush}" CornerRadius="4">
+            <Border Grid.Column="2" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -104,24 +104,24 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,10" CornerRadius="4,4,0,0">
+                    <Border Grid.Row="0" Background="#4A90E2" Padding="15,10" CornerRadius="4,4,0,0">
                         <TextBlock Text="控件面板" Foreground="White" FontSize="16" FontWeight="Bold"/>
                     </Border>
 
-                    <Border Grid.Row="1" Background="White" Margin="5" CornerRadius="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <Border Grid.Row="1" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                            <WrapPanel x:Name="ControlPanel" Margin="10" Background="White" Orientation="Horizontal" ItemWidth="Auto" ItemHeight="Auto">
-                            </WrapPanel>
+                            <StackPanel x:Name="ControlPanel" Margin="10" Background="White">
+                            </StackPanel>
                         </ScrollViewer>
                     </Border>
 
-                    <Border Grid.Row="2" Padding="10" Background="{DynamicResource RegionBrush}" CornerRadius="0,0,4,4">
-                        <TextBlock Text="{Binding ControlPanelViewModel.StatusMessage}" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
+                    <Border Grid.Row="2" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
+                        <TextBlock Text="{Binding ControlPanelViewModel.StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
                     </Border>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="4" Background="{DynamicResource SecondaryRegionBrush}" CornerRadius="4">
+            <Border Grid.Column="4" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -130,11 +130,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,10" CornerRadius="4,4,0,0">
+                    <Border Grid.Row="0" Background="#4A90E2" Padding="15,10" CornerRadius="4,4,0,0">
                         <TextBlock Text="PDF预览" Foreground="White" FontSize="16" FontWeight="Bold"/>
                     </Border>
 
-                    <Border Grid.Row="1" Padding="10" Background="{DynamicResource RegionBrush}">
+                    <Border Grid.Row="1" Padding="10" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
                         <StackPanel Orientation="Horizontal">
                             <Button Content="打印" Command="{Binding PdfPreviewViewModel.PrintCommand}" 
                                     Style="{StaticResource ButtonPrimary}" Margin="0,0,5,0" Width="80"/>
@@ -151,7 +151,7 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="2" Background="White" Margin="5" CornerRadius="4" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <Border Grid.Row="2" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                             <Image Source="{Binding PdfPreviewViewModel.PreviewImage}" 
                                    Stretch="Uniform" 
@@ -164,10 +164,10 @@
                         </ScrollViewer>
                     </Border>
 
-                    <Border Grid.Row="3" Padding="10" Background="{DynamicResource RegionBrush}" CornerRadius="0,0,4,4">
+                    <Border Grid.Row="3" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
                         <StackPanel>
-                            <TextBlock Text="{Binding PdfPreviewViewModel.StatusMessage}" Foreground="{DynamicResource PrimaryTextBrush}" TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding PdfPreviewViewModel.ZoomLevel, StringFormat='缩放: {0:P0}'}" Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding PdfPreviewViewModel.StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding PdfPreviewViewModel.ZoomLevel, StringFormat='缩放: {0:P0}'}" Foreground="#666666" Margin="0,5,0,0"/>
                         </StackPanel>
                     </Border>
                 </Grid>

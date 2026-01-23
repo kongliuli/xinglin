@@ -52,37 +52,39 @@ namespace ReportTemplateEditor.App.Services
 
         private WpfFrameworkElement GenerateTextControl(TextElement element)
         {
-            var container = new StackPanel
+            var container = new Grid
             {
-                Margin = new Thickness(4)
+                Margin = new Thickness(2, 2, 4, 2),
+                Width = 300
             };
+
+            container.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            container.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
             var label = new TextBlock
             {
                 Text = element.Text,
-                FontFamily = new WpfFontFamily(element.FontFamily),
-                FontSize = Math.Max(12, element.FontSize),
-                FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
-                FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
-                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 6)
+                FontSize = 12,
+                FontWeight = FontWeights.Medium,
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.LabelForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.DarkGray),
+                Margin = new Thickness(0, 0, 0, 2),
+                TextWrapping = TextWrapping.Wrap
             };
+            Grid.SetRow(label, 0);
 
             var textBox = new System.Windows.Controls.TextBox
             {
-                FontFamily = new WpfFontFamily(element.FontFamily),
-                FontSize = Math.Max(12, element.FontSize),
-                FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
-                FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
-                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(6),
-                MinWidth = 180,
-                Height = Math.Max(28, element.Height),
-                VerticalContentAlignment = VerticalAlignment.Center
+                Padding = new Thickness(4),
+                Width = 290,
+                Height = 24,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                FontSize = 12,
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black)
             };
+            Grid.SetRow(textBox, 1);
 
             if (!string.IsNullOrEmpty(element.DataBindingPath))
             {
@@ -103,17 +105,8 @@ namespace ReportTemplateEditor.App.Services
                 Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                 BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(8),
-                MinWidth = 180,
-                Effect = new System.Windows.Media.Effects.DropShadowEffect
-                {
-                    Color = Colors.Gray,
-                    Direction = 315,
-                    ShadowDepth = 2,
-                    Opacity = 0.2,
-                    BlurRadius = 4
-                }
+                CornerRadius = new CornerRadius(3),
+                Padding = new Thickness(6)
             };
 
             UpdateControlFromElement(border, element);
@@ -183,7 +176,7 @@ namespace ReportTemplateEditor.App.Services
                 Text = labelText,
                 FontSize = Math.Max(12, element.LabelFontSize),
                 FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.LabelFontWeight),
-                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.LabelForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.DarkGray),
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 6),
                 Height = 20,
@@ -194,14 +187,15 @@ namespace ReportTemplateEditor.App.Services
 
             var textBox = new System.Windows.Controls.TextBox
             {
-                Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
                 Padding = new Thickness(6),
                 Width = element.InputWidth > 0 ? element.InputWidth : 140,
                 Height = element.InputHeight > 0 ? element.InputHeight : 28,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                MaxLength = element.MaxLength > 0 ? element.MaxLength : int.MaxValue
+                MaxLength = element.MaxLength > 0 ? element.MaxLength : int.MaxValue,
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black)
             };
 
             if (!string.IsNullOrEmpty(element.DefaultValue))
@@ -248,79 +242,83 @@ namespace ReportTemplateEditor.App.Services
         {
             var container = new StackPanel
             {
-                Margin = new Thickness(4)
+                Margin = new Thickness(2)
             };
 
             var label = new TextBlock
             {
                 Text = $"表格 ({element.Rows}行 x {element.Columns}列)",
-                FontFamily = new WpfFontFamily("Microsoft YaHei"),
-                FontSize = 14,
-                FontWeight = FontWeights.Bold,
-                Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                Margin = new Thickness(0, 0, 0, 6)
+                FontSize = 12,
+                FontWeight = FontWeights.Medium,
+                Foreground = new BrushConverter().ConvertFrom(ColorConstants.LabelForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.DarkGray),
+                Margin = new Thickness(0, 0, 0, 4)
             };
 
             var grid = new Grid
             {
-                Background = new BrushConverter().ConvertFrom(element.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                Background = new BrushConverter().ConvertFrom(ColorConstants.TableEvenRowBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                 ShowGridLines = true,
-                MaxWidth = 600
+                MaxWidth = 500,
+                Effect = new System.Windows.Media.Effects.DropShadowEffect
+                {
+                    Color = Colors.Gray,
+                    Direction = 315,
+                    ShadowDepth = 2,
+                    Opacity = 0.15,
+                    BlurRadius = 6
+                }
             };
 
             for (int i = 0; i < element.Rows; i++)
             {
-                grid.RowDefinitions.Add(new RowDefinition());
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(28) });
             }
 
             for (int i = 0; i < element.Columns; i++)
             {
-                grid.ColumnDefinitions.Add(new ColumnDefinition());
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             }
 
             foreach (var cell in element.Cells)
             {
                 var columnConfig = element.ColumnsConfig.FirstOrDefault(c => c.ColumnIndex == cell.ColumnIndex);
 
-                if (cell.IsEditable && columnConfig != null)
+                if (columnConfig != null)
                 {
                     var isReferenceColumn = cell.ColumnIndex == 3;
+                    var isHeaderRow = cell.RowIndex == element.HeaderRowIndex;
 
                     if (isReferenceColumn)
                     {
                         var textBlock = new TextBlock
                         {
                             Text = cell.Content,
-                            FontFamily = new WpfFontFamily(cell.FontFamily),
-                            FontSize = Math.Max(10, cell.FontSize),
-                            FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
-                            Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
+                            FontSize = 11,
+                            FontWeight = FontWeights.Bold,
+                            Foreground = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black),
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.LightGray),
+                            TextAlignment = TextAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             Margin = new Thickness(1),
-                            Padding = new Thickness(5)
+                            Padding = new Thickness(4)
                         };
 
                         Grid.SetRow(textBlock, cell.RowIndex);
                         Grid.SetColumn(textBlock, cell.ColumnIndex);
-                        Grid.SetRowSpan(textBlock, cell.RowSpan);
-                        Grid.SetColumnSpan(textBlock, cell.ColumnSpan);
                         grid.Children.Add(textBlock);
                     }
                     else if (columnConfig.Type == ColumnType.ComboBox)
                     {
                         var comboBox = new System.Windows.Controls.ComboBox
                         {
-                            FontFamily = new WpfFontFamily(cell.FontFamily),
-                            FontSize = Math.Max(10, cell.FontSize),
-                            FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
-                            Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            FontSize = 11,
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
-                            Padding = new Thickness(5),
-                            VerticalContentAlignment = VerticalAlignment.Center
+                            Padding = new Thickness(3),
+                            VerticalContentAlignment = VerticalAlignment.Center,
+                            Margin = new Thickness(1),
+                            Width = 85
                         };
 
                         if (columnConfig.DropdownOptions != null && columnConfig.DropdownOptions.Count > 0)
@@ -348,22 +346,16 @@ namespace ReportTemplateEditor.App.Services
 
                         Grid.SetRow(comboBox, cell.RowIndex);
                         Grid.SetColumn(comboBox, cell.ColumnIndex);
-                        Grid.SetRowSpan(comboBox, cell.RowSpan);
-                        Grid.SetColumnSpan(comboBox, cell.ColumnSpan);
                         grid.Children.Add(comboBox);
                     }
                     else if (columnConfig.Type == ColumnType.CheckBox)
                     {
                         var checkBox = new System.Windows.Controls.CheckBox
                         {
-                            FontFamily = new WpfFontFamily(cell.FontFamily),
-                            FontSize = Math.Max(10, cell.FontSize),
-                            FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
-                            Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            FontSize = 11,
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
-                            Padding = new Thickness(5),
                             VerticalContentAlignment = VerticalAlignment.Center,
                             Margin = new Thickness(1)
                         };
@@ -385,26 +377,56 @@ namespace ReportTemplateEditor.App.Services
 
                         Grid.SetRow(checkBox, cell.RowIndex);
                         Grid.SetColumn(checkBox, cell.ColumnIndex);
-                        Grid.SetRowSpan(checkBox, cell.RowSpan);
-                        Grid.SetColumnSpan(checkBox, cell.ColumnSpan);
                         grid.Children.Add(checkBox);
+                    }
+                    else if (columnConfig.Type == ColumnType.DatePicker)
+                    {
+                        var datePicker = new System.Windows.Controls.DatePicker
+                        {
+                            FontSize = 11,
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            BorderThickness = new Thickness(1),
+                            Padding = new Thickness(3),
+                            VerticalContentAlignment = VerticalAlignment.Center,
+                            Margin = new Thickness(1),
+                            Width = 85
+                        };
+
+                        if (!string.IsNullOrEmpty(cell.DataBindingPath))
+                        {
+                            var binding = new WpfBinding(cell.DataBindingPath)
+                            {
+                                Mode = WpfBindingMode.TwoWay,
+                                UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
+                            };
+                            datePicker.SetBinding(System.Windows.Controls.DatePicker.SelectedDateProperty, binding);
+                        }
+
+                        if (!string.IsNullOrEmpty(columnConfig.DefaultValue) && DateTime.TryParse(columnConfig.DefaultValue, out var defaultDate))
+                        {
+                            datePicker.SelectedDate = defaultDate;
+                        }
+
+                        Grid.SetRow(datePicker, cell.RowIndex);
+                        Grid.SetColumn(datePicker, cell.ColumnIndex);
+                        grid.Children.Add(datePicker);
                     }
                     else
                     {
                         var textBox = new System.Windows.Controls.TextBox
                         {
                             Text = cell.Content,
-                            FontFamily = new WpfFontFamily(cell.FontFamily),
-                            FontSize = Math.Max(10, cell.FontSize),
-                            FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
-                            Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.SelectionColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                            FontSize = 11,
+                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                             BorderThickness = new Thickness(1),
-                            Padding = new Thickness(5),
-                            TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
+                            Padding = new Thickness(4),
+                            TextAlignment = TextAlignment.Center,
                             VerticalContentAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1)
+                            Margin = new Thickness(1),
+                            Width = 85,
+                            Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black)
                         };
 
                         if (!string.IsNullOrEmpty(cell.DataBindingPath))
@@ -424,31 +446,28 @@ namespace ReportTemplateEditor.App.Services
 
                         Grid.SetRow(textBox, cell.RowIndex);
                         Grid.SetColumn(textBox, cell.ColumnIndex);
-                        Grid.SetRowSpan(textBox, cell.RowSpan);
-                        Grid.SetColumnSpan(textBox, cell.ColumnSpan);
                         grid.Children.Add(textBox);
                     }
                 }
                 else
                 {
+                    var isHeaderRow = cell.RowIndex == element.HeaderRowIndex;
                     var textBlock = new TextBlock
                     {
                         Text = cell.Content,
-                        FontFamily = new WpfFontFamily(cell.FontFamily),
-                        FontSize = Math.Max(10, cell.FontSize),
-                        FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(cell.FontWeight),
-                        Foreground = new BrushConverter().ConvertFrom(cell.ForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                        Background = new BrushConverter().ConvertFrom(ColorConstants.HoverColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                        TextAlignment = (TextAlignment)Enum.Parse(typeof(TextAlignment), cell.TextAlignment),
+                        FontSize = 11,
+                        FontWeight = isHeaderRow ? FontWeights.Bold : FontWeights.Normal,
+                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black),
+                        Background = new BrushConverter().ConvertFrom(isHeaderRow ? ColorConstants.TableHeaderBackgroundColor : (cell.RowIndex % 2 == 0 ? ColorConstants.TableEvenRowBackgroundColor : ColorConstants.TableOddRowBackgroundColor)) as WpfBrush ?? new SolidColorBrush(isHeaderRow ? Colors.LightGray : Colors.White),
+                        TextAlignment = TextAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(1),
-                        Padding = new Thickness(5)
+                        Padding = new Thickness(4),
+                        MinWidth = 60
                     };
 
                     Grid.SetRow(textBlock, cell.RowIndex);
                     Grid.SetColumn(textBlock, cell.ColumnIndex);
-                    Grid.SetRowSpan(textBlock, cell.RowSpan);
-                    Grid.SetColumnSpan(textBlock, cell.ColumnSpan);
                     grid.Children.Add(textBlock);
                 }
             }
@@ -462,18 +481,8 @@ namespace ReportTemplateEditor.App.Services
                 Background = new BrushConverter().ConvertFrom(ColorConstants.BackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
                 BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.BorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(8),
-                MinWidth = 280,
-                MaxWidth = 600,
-                Effect = new System.Windows.Media.Effects.DropShadowEffect
-                {
-                    Color = Colors.Gray,
-                    Direction = 315,
-                    ShadowDepth = 2,
-                    Opacity = 0.2,
-                    BlurRadius = 4
-                }
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(8)
             };
 
             UpdateControlFromElement(border, element);

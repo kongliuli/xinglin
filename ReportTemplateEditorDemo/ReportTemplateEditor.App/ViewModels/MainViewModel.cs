@@ -243,7 +243,6 @@ namespace ReportTemplateEditor.App.ViewModels
         {
             try
             {
-                // 获取designer可执行文件路径
                 string designerExePath = System.IO.Path.Combine(
                     AppDomain.CurrentDomain.BaseDirectory,
                     "ReportTemplateEditor.Designer.exe"
@@ -251,18 +250,31 @@ namespace ReportTemplateEditor.App.ViewModels
 
                 if (System.IO.File.Exists(designerExePath))
                 {
-                    // 启动designer应用程序
-                    System.Diagnostics.Process.Start(designerExePath);
+                    var startInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = designerExePath,
+                        UseShellExecute = true
+                    };
+                    System.Diagnostics.Process.Start(startInfo);
                     StatusMessage = "已启动设计器";
                 }
                 else
                 {
-                    StatusMessage = "设计器可执行文件不存在，请先构建项目";
+                    var message = "设计器可执行文件不存在。请先构建ReportTemplateEditor.Designer项目。\n" +
+                                 "构建步骤：\n" +
+                                 "1. 在Visual Studio中打开解决方案\n" +
+                                 "2. 右键点击ReportTemplateEditor.Designer项目\n" +
+                                 "3. 选择'生成'或'重新生成'\n" +
+                                 "4. 生成完成后再次尝试打开设计器";
+                    StatusMessage = message;
+                    System.Windows.MessageBox.Show(message, "提示", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"启动设计器失败: {ex.Message}";
+                var message = $"启动设计器失败: {ex.Message}\n请确保Designer项目已正确构建。";
+                StatusMessage = message;
+                System.Windows.MessageBox.Show(message, "错误", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 System.Diagnostics.Debug.WriteLine($"启动设计器失败: {ex}");
             }
         }

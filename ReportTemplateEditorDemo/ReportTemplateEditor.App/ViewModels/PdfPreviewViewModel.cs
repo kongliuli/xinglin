@@ -4,6 +4,10 @@ using ReportTemplateEditor.Core.Models;
 using ReportTemplateEditor.App.Services;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
+using System.Timers;
+using System;
+using System.Windows.Threading;
 
 namespace ReportTemplateEditor.App.ViewModels
 {
@@ -11,6 +15,10 @@ namespace ReportTemplateEditor.App.ViewModels
     {
         private readonly IPdfPreviewService _pdfPreviewService;
         private readonly IPrintService _printService;
+        private readonly Dispatcher _dispatcher;
+        private System.Timers.Timer _debounceTimer;
+        private bool _isPreviewGenerating;
+        private object _previewLock = new object();
 
         [ObservableProperty]
         private ReportTemplateDefinition? _currentTemplate;
@@ -53,6 +61,12 @@ namespace ReportTemplateEditor.App.ViewModels
         {
             _pdfPreviewService = pdfPreviewService;
             _printService = printService;
+            _dispatcher = Dispatcher.CurrentDispatcher;
+
+            // 初始化防抖计时器，300毫秒延迟
+            _debounceTimer = new System.Timers.Timer(300);
+            _debounceTimer.AutoReset = false;
+            _debounceTimer.Elapsed += async (sender, e) => await _dispatcher.InvokeAsync(() => GeneratePreviewAsync());
 
             LoadTemplateCommand = new RelayCommand<ReportTemplateDefinition>(LoadTemplate);
             RefreshPreviewCommand = new RelayCommand(RefreshPreview);
@@ -66,7 +80,7 @@ namespace ReportTemplateEditor.App.ViewModels
             CanPrint = _printService.CanPrint;
         }
 
-        private void LoadTemplate(ReportTemplateDefinition? template)
+        private async void LoadTemplate(ReportTemplateDefinition? template)
         {
             if (template == null)
             {
@@ -80,7 +94,7 @@ namespace ReportTemplateEditor.App.ViewModels
                 StatusMessage = "正在生成预览...";
 
                 CurrentTemplate = template;
-                GeneratePreview();
+                await GeneratePreviewAsync();
                 StatusMessage = "预览已生成";
             }
             catch (System.Exception ex)
@@ -93,11 +107,11 @@ namespace ReportTemplateEditor.App.ViewModels
             }
         }
 
-        private void RefreshPreview()
+        private async void RefreshPreview()
         {
             if (CurrentTemplate != null)
             {
-                GeneratePreview();
+                await GeneratePreviewAsync();
                 StatusMessage = "预览已刷新";
             }
         }
@@ -105,8 +119,9 @@ namespace ReportTemplateEditor.App.ViewModels
         private void UpdateData(object? data)
         {
             BoundData = data;
-            GeneratePreview();
-            StatusMessage = "数据已更新";
+            // 使用防抖机制，避免频繁触发预览生成
+            _debounceTimer.Stop();
+            _debounceTimer.Start();
         }
 
         private void Print()
@@ -178,20 +193,68 @@ namespace ReportTemplateEditor.App.ViewModels
             return CurrentTemplate != null;
         }
 
-        private void GeneratePreview()
+        private async Task GeneratePreviewAsync()
         {
+            // 防重入：如果预览正在生成中，则直接返回
+            if (_isPreviewGenerating)
+            {
+                return;
+            }
+
             if (CurrentTemplate == null)
             {
                 return;
             }
 
+            lock (_previewLock)
+            {
+                if (_isPreviewGenerating)
+                {
+                    return;
+                }
+                _isPreviewGenerating = true;
+            }
+
             try
             {
-                PreviewImage = _pdfPreviewService.GeneratePreviewImage(CurrentTemplate, BoundData);
+                IsLoading = true;
+                StatusMessage = "正在生成预览...";
+
+                // 异步生成预览图像
+                var previewImage = await Task.Run(() =>
+                {
+                    try
+                    {
+                        return _pdfPreviewService.GeneratePreviewImage(CurrentTemplate, BoundData);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"预览生成异常: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"内部异常: {ex.InnerException?.Message}");
+                        return null;
+                    }
+                });
+
+                if (previewImage != null)
+                {
+                    PreviewImage = previewImage;
+                    StatusMessage = "预览已生成";
+                }
+                else
+                {
+                    StatusMessage = "预览生成失败，请检查模板数据";
+                }
             }
             catch (System.Exception ex)
             {
                 StatusMessage = $"生成预览失败: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"生成预览异常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+            }
+            finally
+            {
+                _isPreviewGenerating = false;
+                IsLoading = false;
             }
         }
 
@@ -205,11 +268,20 @@ namespace ReportTemplateEditor.App.ViewModels
             {
                 savePdfCommand.NotifyCanExecuteChanged();
             }
+
+            // 模板变更时立即生成预览
+            if (value != null)
+            {
+                _debounceTimer.Stop();
+                _ = GeneratePreviewAsync();
+            }
         }
 
         partial void OnBoundDataChanged(object? value)
         {
-            GeneratePreview();
+            // 使用防抖机制，避免频繁触发预览生成
+            _debounceTimer.Stop();
+            _debounceTimer.Start();
         }
     }
 }

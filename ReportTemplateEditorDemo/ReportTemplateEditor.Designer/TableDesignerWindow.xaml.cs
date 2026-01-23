@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using Newtonsoft.Json;
 using ReportTemplateEditor.Core.Models.Elements;
+using ReportTemplateEditor.Core.Models.SharedData;
+using ReportTemplateEditor.Core.Services;
 
 namespace ReportTemplateEditor.Designer
 {
@@ -27,6 +31,9 @@ namespace ReportTemplateEditor.Designer
         // 单元格UI元素映射，用于快速查找
         private Dictionary<(int, int), Border> _cellUIMap = new Dictionary<(int, int), Border>();
         
+        // 共享数据解析器
+        private SharedDataResolver? _sharedDataResolver;
+        
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -35,11 +42,34 @@ namespace ReportTemplateEditor.Designer
         {
             InitializeComponent();
             
+            // 初始化共享数据解析器
+            InitializeSharedDataResolver();
+            
             // 深拷贝表格元素，避免直接修改原对象
             _tableElement = DeepCopyTableElement(tableElement);
             
             // 初始化UI
             InitializeTablePreview();
+        }
+        
+        /// <summary>
+        /// 初始化共享数据解析器
+        /// </summary>
+        private void InitializeSharedDataResolver()
+        {
+            try
+            {
+                var sharedDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SharedData");
+                if (Directory.Exists(sharedDataPath))
+                {
+                    _sharedDataResolver = new SharedDataResolver(sharedDataPath);
+                    _ = _sharedDataResolver.LoadAllAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"初始化SharedDataResolver失败: {ex.Message}");
+            }
         }
         
         /// <summary>
@@ -101,7 +131,8 @@ namespace ReportTemplateEditor.Designer
                         Type = column.Type,
                         DropdownOptions = new List<string>(column.DropdownOptions),
                         IsEditable = column.IsEditable,
-                        DefaultValue = column.DefaultValue
+                        DefaultValue = column.DefaultValue,
+                        DropdownCategoryRef = column.DropdownCategoryRef
                     });
                 }
             }
@@ -358,6 +389,17 @@ namespace ReportTemplateEditor.Designer
                     DefaultValue = string.Empty
                 };
                 _tableElement.ColumnsConfig.Add(columnConfig);
+            }
+            
+            // 如果列类型是ComboBox且有DropdownCategoryRef，从SharedData加载选项
+            if (columnConfig.Type == ColumnType.ComboBox && !string.IsNullOrEmpty(columnConfig.DropdownCategoryRef) && _sharedDataResolver != null)
+            {
+                var category = _sharedDataResolver.ResolveDropdownCategoryRef(columnConfig.DropdownCategoryRef);
+                if (category != null && category.Options != null)
+                {
+                    columnConfig.DropdownOptions.Clear();
+                    columnConfig.DropdownOptions.AddRange(category.Options);
+                }
             }
             
             // 更新列类型

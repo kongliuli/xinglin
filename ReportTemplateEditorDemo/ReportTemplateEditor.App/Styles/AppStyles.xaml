@@ -14,12 +14,20 @@
     <Color x:Key="WarningColor">#FFC107</Color>
     <Color x:Key="ErrorColor">#DC3545</Color>
     <Color x:Key="InfoColor">#17A2B8</Color>
-    <Color x:Key="TextColor">#333333</Color>
-    <Color x:Key="LightTextColor">#666666</Color>
-    <Color x:Key="BorderColor">#E0E0E0</Color>
+    <Color x:Key="TextColor">#2C3E50</Color>
+    <Color x:Key="LightTextColor">#5A6C7D</Color>
+    <Color x:Key="BorderColor">#D1D9E6</Color>
     <Color x:Key="BackgroundColor">#FFFFFF</Color>
     <Color x:Key="DisabledColor">#A0A0A0</Color>
-    <Color x:Key="HoverColor">#F0F0F0</Color>
+    <Color x:Key="HoverColor">#F5F7FA</Color>
+    <Color x:Key="InputBackgroundColor">#FAFBFC</Color>
+    <Color x:Key="InputBorderColor">#B8C4D4</Color>
+    <Color x:Key="InputForegroundColor">#2C3E50</Color>
+    <Color x:Key="LabelForegroundColor">#34495E</Color>
+    <Color x:Key="TableHeaderBackgroundColor">#F0F4F8</Color>
+    <Color x:Key="TableHeaderForegroundColor">#2C3E50</Color>
+    <Color x:Key="TableEvenRowBackgroundColor">#FFFFFF</Color>
+    <Color x:Key="TableOddRowBackgroundColor">#FAFBFC</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>

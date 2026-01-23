@@ -38,10 +38,17 @@
         
         <!-- 单元格样式 -->
         <Style TargetType="Border" x:Key="CellBorderStyle">
-            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="2" ShadowDepth="1" Direction="270"/>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F0F8FF"/>
@@ -54,16 +61,30 @@
             <Setter Property="Background" Value="#D0E8FF"/>
             <Setter Property="BorderBrush" Value="#4A90E2"/>
             <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#4A90E2" Opacity="0.3" BlurRadius="4" ShadowDepth="2" Direction="270"/>
+                </Setter.Value>
+            </Setter>
         </Style>
         
         <!-- 表头单元格样式 -->
         <Style TargetType="Border" x:Key="HeaderCellBorderStyle" BasedOn="{StaticResource CellBorderStyle}">
-            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="BorderBrush" Value="#666666"/>
+            <Setter Property="BorderThickness" Value="1,1,1,2"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="3" ShadowDepth="1.5" Direction="270"/>
+                </Setter.Value>
+            </Setter>
         </Style>
         
         <!-- 表头文本样式 -->
         <Style TargetType="TextBlock" x:Key="HeaderTextStyle">
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#333333"/>
         </Style>
     </Window.Resources>
     
@@ -246,6 +267,7 @@
                                         <ComboBoxItem Content="文本输入框" Tag="TextBox" IsSelected="True"/>
                                         <ComboBoxItem Content="下拉选择框" Tag="ComboBox"/>
                                         <ComboBoxItem Content="复选框" Tag="CheckBox"/>
+                                        <ComboBoxItem Content="日期选择器" Tag="DatePicker"/>
                                     </ComboBox>
                                     
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="可编辑：" VerticalAlignment="Center"/>

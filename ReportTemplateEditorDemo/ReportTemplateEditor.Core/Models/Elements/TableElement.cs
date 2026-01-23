@@ -16,7 +16,11 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// <summary>
         /// 复选框
         /// </summary>
-        CheckBox
+        CheckBox,
+        /// <summary>
+        /// 日期选择器
+        /// </summary>
+        DatePicker
     }
 
     /// <summary>
@@ -148,6 +152,81 @@ namespace ReportTemplateEditor.Core.Models.Elements
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// 确保表格数据的完整性
+        /// 自动创建缺失的单元格、列配置和列宽
+        /// </summary>
+        public void EnsureDataIntegrity()
+        {
+            if (Cells == null)
+            {
+                Cells = new List<TableCell>();
+            }
+
+            if (ColumnsConfig == null)
+            {
+                ColumnsConfig = new List<TableColumn>();
+            }
+
+            if (ColumnWidths == null)
+            {
+                ColumnWidths = new List<double>();
+            }
+
+            if (RowHeights == null)
+            {
+                RowHeights = new List<double>();
+            }
+
+            for (int row = 0; row < Rows; row++)
+            {
+                for (int col = 0; col < Columns; col++)
+                {
+                    var cell = Cells.FirstOrDefault(c => c.RowIndex == row && c.ColumnIndex == col);
+                    if (cell == null)
+                    {
+                        cell = new TableCell
+                        {
+                            RowIndex = row,
+                            ColumnIndex = col,
+                            Content = string.Empty,
+                            FontFamily = "Microsoft YaHei",
+                            FontSize = 12,
+                            FontWeight = "Normal",
+                            ForegroundColor = "#000000",
+                            BackgroundColor = row == HeaderRowIndex ? "#F0F0F0" : "#FFFFFF",
+                            TextAlignment = "Left",
+                            VerticalAlignment = "Center",
+                            IsEditable = false
+                        };
+                        Cells.Add(cell);
+                    }
+                }
+            }
+
+            while (ColumnsConfig.Count < Columns)
+            {
+                ColumnsConfig.Add(new TableColumn
+                {
+                    ColumnIndex = ColumnsConfig.Count,
+                    Type = ColumnType.TextBox,
+                    IsEditable = false,
+                    DefaultValue = string.Empty,
+                    DropdownOptions = new List<string>()
+                });
+            }
+
+            while (ColumnWidths.Count < Columns)
+            {
+                ColumnWidths.Add(20.0);
+            }
+
+            while (RowHeights.Count < Rows)
+            {
+                RowHeights.Add(8.0);
+            }
         }
     }
 

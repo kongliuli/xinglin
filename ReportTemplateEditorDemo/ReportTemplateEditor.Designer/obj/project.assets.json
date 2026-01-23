@@ -696,11 +696,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
+      "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
       "projectName": "ReportTemplateEditor.Designer",
-      "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
+      "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
       "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-      "outputPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\obj\\",
+      "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -722,11 +722,11 @@
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
           "projectReferences": {
-            "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
-              "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
+            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
+              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
             },
-            "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
-              "projectPath": "D:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
+            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
+              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
             }
           }
         }
@@ -778,5 +778,13 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1900",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "获取包漏洞数据时出错: 由于在 60000 毫秒内未接收到数据，“https://api.nuget.org/v3/vulnerabilities/vulnerability.base.json”的下载超时。"
+    }
+  ]
 }

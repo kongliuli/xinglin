@@ -9,15 +9,23 @@ namespace ReportTemplateEditor.App.Services
         public const string WarningColor = "#FFC107";
         public const string ErrorColor = "#DC3545";
         public const string InfoColor = "#17A2B8";
-        public const string TextColor = "#333333";
-        public const string LightTextColor = "#666666";
-        public const string BorderColor = "#E0E0E0";
+        public const string TextColor = "#2C3E50";
+        public const string LightTextColor = "#5A6C7D";
+        public const string BorderColor = "#D1D9E6";
         public const string BackgroundColor = "#FFFFFF";
         public const string DisabledColor = "#A0A0A0";
-        public const string HoverColor = "#F0F0F0";
+        public const string HoverColor = "#F5F7FA";
         public const string SelectionColor = "#0078D7";
         public const string GridLineColor = "#E0E0E0";
         public const string PrimaryTextColor = "#FFFFFF";
         public const string SecondaryTextColor = "#FFFFFF";
+        public const string InputBackgroundColor = "#FAFBFC";
+        public const string InputBorderColor = "#B8C4D4";
+        public const string InputForegroundColor = "#2C3E50";
+        public const string LabelForegroundColor = "#34495E";
+        public const string TableHeaderBackgroundColor = "#F0F4F8";
+        public const string TableHeaderForegroundColor = "#2C3E50";
+        public const string TableEvenRowBackgroundColor = "#FFFFFF";
+        public const string TableOddRowBackgroundColor = "#FAFBFC";
     }
 }

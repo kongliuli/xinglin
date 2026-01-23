@@ -45,6 +45,29 @@ namespace ReportTemplateEditor.App.Services
                 return new ObservableCollection<TemplateTreeItem> { rootItem };
             }
 
+            // 递归加载所有子目录和文件
+            LoadDirectoryRecursive(rootItem, directoryPath);
+
+            return new ObservableCollection<TemplateTreeItem> { rootItem };
+        }
+
+        private void LoadDirectoryRecursive(TemplateTreeItem parentItem, string directoryPath)
+        {
+            // 加载当前目录的JSON文件
+            var jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly);
+            foreach (var file in jsonFiles)
+            {
+                var templateItem = new TemplateTreeItem
+                {
+                    Name = Path.GetFileNameWithoutExtension(file),
+                    FullPath = file,
+                    Type = TreeItemType.TemplateFile,
+                    Parent = parentItem
+                };
+                parentItem.Children.Add(templateItem);
+            }
+
+            // 递归加载子目录
             var directories = Directory.GetDirectories(directoryPath);
             foreach (var dir in directories)
             {
@@ -53,43 +76,19 @@ namespace ReportTemplateEditor.App.Services
                     Name = Path.GetFileName(dir),
                     FullPath = dir,
                     Type = TreeItemType.Category,
-                    Parent = rootItem,
+                    Parent = parentItem,
                     IsExpanded = true
                 };
 
-                var jsonFiles = Directory.GetFiles(dir, "*.json", SearchOption.TopDirectoryOnly);
-                foreach (var file in jsonFiles)
-                {
-                    var templateItem = new TemplateTreeItem
-                    {
-                        Name = Path.GetFileNameWithoutExtension(file),
-                        FullPath = file,
-                        Type = TreeItemType.TemplateFile,
-                        Parent = categoryItem
-                    };
-                    categoryItem.Children.Add(templateItem);
-                }
+                // 递归加载子目录内容
+                LoadDirectoryRecursive(categoryItem, dir);
 
+                // 只有当子目录包含模板文件或其他子目录时才添加
                 if (categoryItem.Children.Count > 0)
                 {
-                    rootItem.Children.Add(categoryItem);
+                    parentItem.Children.Add(categoryItem);
                 }
             }
-
-            var rootJsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly);
-            foreach (var file in rootJsonFiles)
-            {
-                var templateItem = new TemplateTreeItem
-                {
-                    Name = Path.GetFileNameWithoutExtension(file),
-                    FullPath = file,
-                    Type = TreeItemType.TemplateFile,
-                    Parent = rootItem
-                };
-                rootItem.Children.Add(templateItem);
-            }
-
-            return new ObservableCollection<TemplateTreeItem> { rootItem };
         }
 
         public async Task<ReportTemplateDefinition> LoadTemplateFromFileAsync(string filePath)

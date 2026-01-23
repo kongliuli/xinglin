@@ -3,6 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ReportTemplateEditor.Core.Models;
 using ReportTemplateEditor.Core.Models.Elements;
+using ReportTemplateEditor.Core.Services;
 using ReportTemplateEditor.Engine;
 using System.IO;
 
@@ -20,6 +21,29 @@ namespace ReportTemplateEditor.App.Services
     public class PdfPreviewService : IPdfPreviewService
     {
         private readonly DataBindingEngine _dataBindingEngine = new DataBindingEngine();
+        private SharedDataResolver? _sharedDataResolver;
+
+        public PdfPreviewService()
+        {
+            InitializeSharedDataResolver();
+        }
+
+        private void InitializeSharedDataResolver()
+        {
+            try
+            {
+                var sharedDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SharedData");
+                if (Directory.Exists(sharedDataPath))
+                {
+                    _sharedDataResolver = new SharedDataResolver(sharedDataPath);
+                    _ = _sharedDataResolver.LoadAllAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"初始化SharedDataResolver失败: {ex.Message}");
+            }
+        }
 
         public byte[] GeneratePdf(ReportTemplateDefinition template, object? data = null)
         {
@@ -37,6 +61,18 @@ namespace ReportTemplateEditor.App.Services
         {
             try
             {
+                if (template == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("生成预览图像失败: 模板为空");
+                    return null;
+                }
+
+                if (template.Elements == null || template.Elements.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("生成预览图像失败: 模板元素为空");
+                    return null;
+                }
+
                 var document = CreateDocument(template, data);
                 var pdfBytes = document.GeneratePdf();
                 
@@ -56,6 +92,7 @@ namespace ReportTemplateEditor.App.Services
             {
                 System.Diagnostics.Debug.WriteLine($"生成预览图像失败: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"内部异常: {ex.InnerException?.Message}");
             }
             
             return null;
@@ -175,13 +212,22 @@ namespace ReportTemplateEditor.App.Services
 
             void ComposeTableElement(IContainer container, TableElement element, object? data)
             {
+                element.EnsureDataIntegrity();
+
                 container.Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
                         for (int i = 0; i < element.Columns; i++)
                         {
-                            columns.RelativeColumn();
+                            if (element.ColumnWidths != null && i < element.ColumnWidths.Count && element.ColumnWidths[i] > 0)
+                            {
+                                columns.ConstantColumn((float)element.ColumnWidths[i]);
+                            }
+                            else
+                            {
+                                columns.RelativeColumn();
+                            }
                         }
                     });
 
@@ -193,21 +239,79 @@ namespace ReportTemplateEditor.App.Services
                             if (cell != null)
                             {
                                 string content = cell.Content;
+
                                 if (!string.IsNullOrEmpty(cell.DataBindingPath) && data != null)
                                 {
                                     content = _dataBindingEngine.GetValue(data, cell.DataBindingPath, cell.FormatString)?.ToString() ?? content;
                                 }
+                                else if (!string.IsNullOrEmpty(cell.DataPathRef) && _sharedDataResolver != null)
+                                {
+                                    var dataPathTemplate = _sharedDataResolver.ResolveDataPathRef(cell.DataPathRef);
+                                    if (dataPathTemplate != null && data != null)
+                                    {
+                                        var path = dataPathTemplate.Path;
+                                        if (cell.DataPathIndex.HasValue)
+                                        {
+                                            path = path.Replace("{index}", cell.DataPathIndex.Value.ToString());
+                                        }
+                                        content = _dataBindingEngine.GetValue(data, path, dataPathTemplate.FormatString)?.ToString() ?? content;
+                                    }
+                                }
 
-                                table.Cell()
+                                var cellBuilder = table.Cell()
                                     .Border((float)element.BorderWidth)
                                     .BorderColor(GetColor(element.BorderColor))
                                     .Background(GetColor(cell.BackgroundColor))
-                                    .AlignLeft()
-                                    .AlignMiddle()
-                                    .Padding((float)element.CellPadding)
-                                    .Text(content)
+                                    .Padding((float)element.CellPadding);
+
+                                if (!string.IsNullOrEmpty(cell.TextAlignment))
+                                {
+                                    switch (cell.TextAlignment.ToLower())
+                                    {
+                                        case "center":
+                                            cellBuilder.AlignCenter();
+                                            break;
+                                        case "right":
+                                            cellBuilder.AlignRight();
+                                            break;
+                                        default:
+                                            cellBuilder.AlignLeft();
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    cellBuilder.AlignLeft();
+                                }
+
+                                if (!string.IsNullOrEmpty(cell.VerticalAlignment))
+                                {
+                                    switch (cell.VerticalAlignment.ToLower())
+                                    {
+                                        case "center":
+                                            cellBuilder.AlignMiddle();
+                                            break;
+                                        case "bottom":
+                                            cellBuilder.AlignBottom();
+                                            break;
+                                        default:
+                                            cellBuilder.AlignTop();
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    cellBuilder.AlignMiddle();
+                                }
+
+                                var textDescriptor = cellBuilder.Text(content)
                                     .FontSize((float)cell.FontSize)
                                     .FontColor(GetColor(cell.ForegroundColor));
+
+                                if (cell.FontWeight == "Bold")
+                                {
+                                    textDescriptor.Bold();
+                                }
                             }
                             else
                             {
