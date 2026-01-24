@@ -69,16 +69,28 @@ public static class DIContainerBuilder
             throw new InvalidOperationException("配置文件格式无效");
         }
 
-        return Build(config);
+        return Build(config, configPath);
     }
 
     public static IContainer Build(SystemConfig config)
+    {
+        return Build(config, null);
+    }
+
+    public static IContainer Build(SystemConfig config, string configFilePath)
     {
         var builder = new ContainerBuilder();
         
         // 注册核心服务
         builder.RegisterInstance(config).As<SystemConfig>().SingleInstance();
-        builder.RegisterType<ConfigurationManager>().As<IConfigurationManager>().SingleInstance();
+        builder.Register(c => new ConfigurationManager(config, configFilePath)).As<IConfigurationManager>().SingleInstance();
+        
+        // 注册日志服务
+        builder.RegisterType<Logging.LogConfig>().AsSelf().SingleInstance();
+        builder.RegisterType<Logging.Logger>().As<Core.Logging.ILogger>().SingleInstance();
+        
+        // 注册异常处理服务
+        builder.RegisterType<Exceptions.ExceptionHandler>().AsSelf().SingleInstance();
         
         // 根据运行模式注册组件
         RegisterComponentsByRunningMode(builder, config);
@@ -202,10 +214,12 @@ public interface IConfigurationManager
 public class ConfigurationManager : IConfigurationManager
 {
     private readonly SystemConfig _config;
+    private readonly string _configFilePath;
 
-    public ConfigurationManager(SystemConfig config)
+    public ConfigurationManager(SystemConfig config, string configFilePath = null)
     {
         _config = config;
+        _configFilePath = configFilePath;
     }
 
     public SystemConfig GetSystemConfig()
@@ -215,22 +229,70 @@ public class ConfigurationManager : IConfigurationManager
 
     public T GetSection<T>(string sectionPath)
     {
-        // 简单实现，根据sectionPath获取配置节
-        // 实际项目中可以使用更复杂的配置路径解析
-        throw new NotImplementedException("GetSection 方法尚未实现");
+        if (string.IsNullOrEmpty(sectionPath))
+        {
+            throw new ArgumentNullException(nameof(sectionPath));
+        }
+
+        // 处理简单的配置节路径，如 "ClientConfig"、"InternalServerConfig"
+        var sections = sectionPath.Split('.');
+        object current = _config;
+
+        foreach (var section in sections)
+        {
+            var property = current.GetType().GetProperty(section, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (property == null)
+            {
+                throw new KeyNotFoundException($"配置节 '{sectionPath}' 不存在");
+            }
+            current = property.GetValue(current);
+        }
+
+        return (T)current;
     }
 
     public void UpdateSection<T>(string sectionPath, T value)
     {
-        // 简单实现，根据sectionPath更新配置节
-        // 实际项目中可以使用更复杂的配置路径解析
-        throw new NotImplementedException("UpdateSection 方法尚未实现");
+        if (string.IsNullOrEmpty(sectionPath))
+        {
+            throw new ArgumentNullException(nameof(sectionPath));
+        }
+        if (value == null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        // 处理简单的配置节路径，如 "ClientConfig"、"InternalServerConfig"
+        var sections = sectionPath.Split('.');
+        object current = _config;
+
+        for (int i = 0; i < sections.Length - 1; i++)
+        {
+            var property = current.GetType().GetProperty(sections[i], System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (property == null)
+            {
+                throw new KeyNotFoundException($"配置节 '{sectionPath}' 不存在");
+            }
+            current = property.GetValue(current);
+        }
+
+        var targetProperty = current.GetType().GetProperty(sections.Last(), System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        if (targetProperty == null)
+        {
+            throw new KeyNotFoundException($"配置节 '{sectionPath}' 不存在");
+        }
+
+        targetProperty.SetValue(current, value);
     }
 
     public void Save()
     {
-        // 保存配置到文件
-        // 实际项目中需要实现配置持久化
-        throw new NotImplementedException("Save 方法尚未实现");
+        if (string.IsNullOrEmpty(_configFilePath))
+        {
+            throw new InvalidOperationException("配置文件路径未设置，无法保存配置");
+        }
+
+        var json = JsonSerializer.Serialize(_config, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(_configFilePath, json);
     }
 }
