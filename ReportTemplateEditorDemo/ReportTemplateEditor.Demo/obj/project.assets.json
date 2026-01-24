@@ -636,11 +636,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\ReportTemplateEditor.Demo.csproj",
+      "projectUniqueName": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\ReportTemplateEditor.Demo.csproj",
       "projectName": "ReportTemplateEditor.Demo",
-      "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\ReportTemplateEditor.Demo.csproj",
+      "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\ReportTemplateEditor.Demo.csproj",
       "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-      "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\obj\\",
+      "outputPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Demo\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -662,11 +662,11 @@
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
           "projectReferences": {
-            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
-              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
+            "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
+              "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
             },
-            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
-              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
+            "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
+              "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
             }
           }
         }

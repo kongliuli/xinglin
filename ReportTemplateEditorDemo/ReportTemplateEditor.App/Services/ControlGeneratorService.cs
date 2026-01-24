@@ -125,8 +125,8 @@ namespace ReportTemplateEditor.App.Services
                 Text = element.Text,
                 FontFamily = new WpfFontFamily(element.FontFamily),
                 FontSize = Math.Max(12, element.FontSize),
-                FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.FontWeight),
-                FontStyle = (WpfFontStyle)new FontStyleConverter().ConvertFromString(element.FontStyle),
+                FontWeight = new FontWeightConverter().ConvertFromString(element.FontWeight) as WpfFontWeight? ?? FontWeights.Normal,
+                FontStyle = new FontStyleConverter().ConvertFromString(element.FontStyle) as WpfFontStyle? ?? FontStyles.Normal,
                 Foreground = new BrushConverter().ConvertFrom(ColorConstants.TextColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 6)
@@ -175,7 +175,7 @@ namespace ReportTemplateEditor.App.Services
             {
                 Text = labelText,
                 FontSize = Math.Max(12, element.LabelFontSize),
-                FontWeight = (WpfFontWeight)new FontWeightConverter().ConvertFromString(element.LabelFontWeight),
+                FontWeight = new FontWeightConverter().ConvertFromString(element.LabelFontWeight) as WpfFontWeight? ?? FontWeights.Normal,
                 Foreground = new BrushConverter().ConvertFrom(ColorConstants.LabelForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.DarkGray),
                 TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, 0, 0, 6),
@@ -279,196 +279,225 @@ namespace ReportTemplateEditor.App.Services
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             }
 
+            // 确保所有列都有对应的 columnConfig
+            for (int i = 0; i < element.Columns; i++)
+            {
+                if (!element.ColumnsConfig.Any(c => c.ColumnIndex == i))
+                {
+                    System.Diagnostics.Debug.WriteLine($"为列 {i} 创建默认配置");
+                    element.ColumnsConfig.Add(new TableColumn
+                    {
+                        ColumnIndex = i,
+                        Type = ColumnType.TextBox,
+                        IsEditable = true,
+                        DefaultValue = string.Empty,
+                        DropdownOptions = new List<string>()
+                    });
+                }
+            }
+
             foreach (var cell in element.Cells)
             {
                 var columnConfig = element.ColumnsConfig.FirstOrDefault(c => c.ColumnIndex == cell.ColumnIndex);
+                var isHeaderRow = cell.RowIndex == element.HeaderRowIndex;
 
-                if (columnConfig != null)
+                // 确保 columnConfig 不为 null
+                if (columnConfig == null)
                 {
-                    var isReferenceColumn = cell.ColumnIndex == 3;
-                    var isHeaderRow = cell.RowIndex == element.HeaderRowIndex;
-
-                    if (isReferenceColumn)
+                    columnConfig = new TableColumn
                     {
-                        var textBlock = new TextBlock
-                        {
-                            Text = cell.Content,
-                            FontSize = 11,
-                            FontWeight = FontWeights.Bold,
-                            Foreground = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black),
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.LightGray),
-                            TextAlignment = TextAlignment.Center,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1),
-                            Padding = new Thickness(4)
-                        };
-
-                        Grid.SetRow(textBlock, cell.RowIndex);
-                        Grid.SetColumn(textBlock, cell.ColumnIndex);
-                        grid.Children.Add(textBlock);
-                    }
-                    else if (columnConfig.Type == ColumnType.ComboBox)
-                    {
-                        var comboBox = new System.Windows.Controls.ComboBox
-                        {
-                            FontSize = 11,
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            BorderThickness = new Thickness(1),
-                            Padding = new Thickness(3),
-                            VerticalContentAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1),
-                            Width = 85
-                        };
-
-                        if (columnConfig.DropdownOptions != null && columnConfig.DropdownOptions.Count > 0)
-                        {
-                            foreach (var option in columnConfig.DropdownOptions)
-                            {
-                                comboBox.Items.Add(option);
-                            }
-                        }
-
-                        if (!string.IsNullOrEmpty(cell.DataBindingPath))
-                        {
-                            var binding = new WpfBinding(cell.DataBindingPath)
-                            {
-                                Mode = WpfBindingMode.TwoWay,
-                                UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
-                            };
-                            comboBox.SetBinding(System.Windows.Controls.ComboBox.SelectedValueProperty, binding);
-                        }
-
-                        if (!string.IsNullOrEmpty(columnConfig.DefaultValue))
-                        {
-                            comboBox.SelectedValue = columnConfig.DefaultValue;
-                        }
-
-                        Grid.SetRow(comboBox, cell.RowIndex);
-                        Grid.SetColumn(comboBox, cell.ColumnIndex);
-                        grid.Children.Add(comboBox);
-                    }
-                    else if (columnConfig.Type == ColumnType.CheckBox)
-                    {
-                        var checkBox = new System.Windows.Controls.CheckBox
-                        {
-                            FontSize = 11,
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            BorderThickness = new Thickness(1),
-                            VerticalContentAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1)
-                        };
-
-                        if (!string.IsNullOrEmpty(cell.DataBindingPath))
-                        {
-                            var binding = new WpfBinding(cell.DataBindingPath)
-                            {
-                                Mode = WpfBindingMode.TwoWay,
-                                UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
-                            };
-                            checkBox.SetBinding(System.Windows.Controls.CheckBox.IsCheckedProperty, binding);
-                        }
-
-                        if (!string.IsNullOrEmpty(columnConfig.DefaultValue) && columnConfig.DefaultValue == "阳性")
-                        {
-                            checkBox.IsChecked = true;
-                        }
-
-                        Grid.SetRow(checkBox, cell.RowIndex);
-                        Grid.SetColumn(checkBox, cell.ColumnIndex);
-                        grid.Children.Add(checkBox);
-                    }
-                    else if (columnConfig.Type == ColumnType.DatePicker)
-                    {
-                        var datePicker = new System.Windows.Controls.DatePicker
-                        {
-                            FontSize = 11,
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            BorderThickness = new Thickness(1),
-                            Padding = new Thickness(3),
-                            VerticalContentAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1),
-                            Width = 85
-                        };
-
-                        if (!string.IsNullOrEmpty(cell.DataBindingPath))
-                        {
-                            var binding = new WpfBinding(cell.DataBindingPath)
-                            {
-                                Mode = WpfBindingMode.TwoWay,
-                                UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
-                            };
-                            datePicker.SetBinding(System.Windows.Controls.DatePicker.SelectedDateProperty, binding);
-                        }
-
-                        if (!string.IsNullOrEmpty(columnConfig.DefaultValue) && DateTime.TryParse(columnConfig.DefaultValue, out var defaultDate))
-                        {
-                            datePicker.SelectedDate = defaultDate;
-                        }
-
-                        Grid.SetRow(datePicker, cell.RowIndex);
-                        Grid.SetColumn(datePicker, cell.ColumnIndex);
-                        grid.Children.Add(datePicker);
-                    }
-                    else
-                    {
-                        var textBox = new System.Windows.Controls.TextBox
-                        {
-                            Text = cell.Content,
-                            FontSize = 11,
-                            Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
-                            BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
-                            BorderThickness = new Thickness(1),
-                            Padding = new Thickness(4),
-                            TextAlignment = TextAlignment.Center,
-                            VerticalContentAlignment = VerticalAlignment.Center,
-                            Margin = new Thickness(1),
-                            Width = 85,
-                            Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black)
-                        };
-
-                        if (!string.IsNullOrEmpty(cell.DataBindingPath))
-                        {
-                            var binding = new WpfBinding(cell.DataBindingPath)
-                            {
-                                Mode = WpfBindingMode.TwoWay,
-                                UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
-                            };
-                            textBox.SetBinding(System.Windows.Controls.TextBox.TextProperty, binding);
-                        }
-
-                        if (!string.IsNullOrEmpty(columnConfig.DefaultValue))
-                        {
-                            textBox.Text = columnConfig.DefaultValue;
-                        }
-
-                        Grid.SetRow(textBox, cell.RowIndex);
-                        Grid.SetColumn(textBox, cell.ColumnIndex);
-                        grid.Children.Add(textBox);
-                    }
+                        ColumnIndex = cell.ColumnIndex,
+                        Type = ColumnType.TextBox,
+                        IsEditable = true,
+                        DefaultValue = string.Empty,
+                        DropdownOptions = new List<string>()
+                    };
                 }
-                else
+
+                // 如果是表头行，生成特殊样式的文本块
+                if (isHeaderRow)
                 {
-                    var isHeaderRow = cell.RowIndex == element.HeaderRowIndex;
                     var textBlock = new TextBlock
                     {
                         Text = cell.Content,
                         FontSize = 11,
-                        FontWeight = isHeaderRow ? FontWeights.Bold : FontWeights.Normal,
-                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black),
-                        Background = new BrushConverter().ConvertFrom(isHeaderRow ? ColorConstants.TableHeaderBackgroundColor : (cell.RowIndex % 2 == 0 ? ColorConstants.TableEvenRowBackgroundColor : ColorConstants.TableOddRowBackgroundColor)) as WpfBrush ?? new SolidColorBrush(isHeaderRow ? Colors.LightGray : Colors.White),
+                        FontWeight = FontWeights.Bold,
+                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black),
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.TableHeaderBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.LightGray),
                         TextAlignment = TextAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(1),
-                        Padding = new Thickness(4),
-                        MinWidth = 60
+                        Padding = new Thickness(4)
                     };
 
                     Grid.SetRow(textBlock, cell.RowIndex);
                     Grid.SetColumn(textBlock, cell.ColumnIndex);
                     grid.Children.Add(textBlock);
+                }
+                else if (columnConfig.Type == ColumnType.ComboBox)
+                {
+                    var comboBox = new System.Windows.Controls.ComboBox
+                    {
+                        FontSize = 11,
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                        BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                        BorderThickness = new Thickness(1),
+                        Padding = new Thickness(3),
+                        VerticalContentAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(1),
+                        Width = 85,
+                        IsEditable = false // 确保下拉框只能从选项中选择
+                    };
+
+                    // 添加下拉框选项
+                    if (columnConfig.DropdownOptions != null && columnConfig.DropdownOptions.Count > 0)
+                    {
+                        foreach (var option in columnConfig.DropdownOptions)
+                        {
+                            comboBox.Items.Add(option);
+                        }
+                    }
+                    else
+                    {
+                        // 如果模板中没有提供选项，添加默认的"阴性"和"阳性"选项
+                        comboBox.Items.Add("阴性");
+                        comboBox.Items.Add("阳性");
+                    }
+
+                    // 设置数据绑定
+                    if (!string.IsNullOrEmpty(cell.DataBindingPath))
+                    {
+                        var binding = new WpfBinding(cell.DataBindingPath)
+                        {
+                            Mode = WpfBindingMode.TwoWay,
+                            UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
+                        };
+                        comboBox.SetBinding(System.Windows.Controls.ComboBox.SelectedValueProperty, binding);
+                    }
+
+                    // 设置默认选中值
+                    if (!string.IsNullOrEmpty(columnConfig.DefaultValue))
+                    {
+                        // 如果默认值在选项列表中，使用该值
+                        if (comboBox.Items.Contains(columnConfig.DefaultValue))
+                        {
+                            comboBox.SelectedValue = columnConfig.DefaultValue;
+                        }
+                        else
+                        {
+                            // 否则，选择第一个选项
+                            comboBox.SelectedIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        // 如果没有默认值，选择第一个选项
+                        comboBox.SelectedIndex = 0;
+                    }
+
+                    Grid.SetRow(comboBox, cell.RowIndex);
+                    Grid.SetColumn(comboBox, cell.ColumnIndex);
+                    grid.Children.Add(comboBox);
+                }
+                else if (columnConfig.Type == ColumnType.CheckBox)
+                {
+                    var checkBox = new System.Windows.Controls.CheckBox
+                    {
+                        FontSize = 11,
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                        BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                        BorderThickness = new Thickness(1),
+                        VerticalContentAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(1)
+                    };
+
+                    if (!string.IsNullOrEmpty(cell.DataBindingPath))
+                    {
+                        var binding = new WpfBinding(cell.DataBindingPath)
+                        {
+                            Mode = WpfBindingMode.TwoWay,
+                            UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
+                        };
+                        checkBox.SetBinding(System.Windows.Controls.CheckBox.IsCheckedProperty, binding);
+                    }
+
+                    if (!string.IsNullOrEmpty(columnConfig.DefaultValue) && columnConfig.DefaultValue == "阳性")
+                    {
+                        checkBox.IsChecked = true;
+                    }
+
+                    Grid.SetRow(checkBox, cell.RowIndex);
+                    Grid.SetColumn(checkBox, cell.ColumnIndex);
+                    grid.Children.Add(checkBox);
+                }
+                else if (columnConfig.Type == ColumnType.DatePicker)
+                {
+                    var datePicker = new System.Windows.Controls.DatePicker
+                    {
+                        FontSize = 11,
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                        BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                        BorderThickness = new Thickness(1),
+                        Padding = new Thickness(3),
+                        VerticalContentAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(1),
+                        Width = 85
+                    };
+
+                    if (!string.IsNullOrEmpty(cell.DataBindingPath))
+                    {
+                        var binding = new WpfBinding(cell.DataBindingPath)
+                        {
+                            Mode = WpfBindingMode.TwoWay,
+                            UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
+                        };
+                        datePicker.SetBinding(System.Windows.Controls.DatePicker.SelectedDateProperty, binding);
+                    }
+
+                    if (!string.IsNullOrEmpty(columnConfig.DefaultValue) && DateTime.TryParse(columnConfig.DefaultValue, out var defaultDate))
+                    {
+                        datePicker.SelectedDate = defaultDate;
+                    }
+
+                    Grid.SetRow(datePicker, cell.RowIndex);
+                    Grid.SetColumn(datePicker, cell.ColumnIndex);
+                    grid.Children.Add(datePicker);
+                }
+                else
+                {
+                    var textBox = new System.Windows.Controls.TextBox
+                    {
+                        Text = cell.Content,
+                        FontSize = 11,
+                        Background = new BrushConverter().ConvertFrom(ColorConstants.InputBackgroundColor) as WpfBrush ?? new SolidColorBrush(Colors.White),
+                        BorderBrush = new BrushConverter().ConvertFrom(ColorConstants.InputBorderColor) as WpfBrush ?? new SolidColorBrush(Colors.Gray),
+                        BorderThickness = new Thickness(1),
+                        Padding = new Thickness(4),
+                        TextAlignment = TextAlignment.Center,
+                        VerticalContentAlignment = VerticalAlignment.Center,
+                        Margin = new Thickness(1),
+                        Width = 85,
+                        Foreground = new BrushConverter().ConvertFrom(ColorConstants.InputForegroundColor) as WpfBrush ?? new SolidColorBrush(Colors.Black)
+                    };
+
+                    if (!string.IsNullOrEmpty(cell.DataBindingPath))
+                    {
+                        var binding = new WpfBinding(cell.DataBindingPath)
+                        {
+                            Mode = WpfBindingMode.TwoWay,
+                            UpdateSourceTrigger = WpfUpdateSourceTrigger.PropertyChanged
+                        };
+                        textBox.SetBinding(System.Windows.Controls.TextBox.TextProperty, binding);
+                    }
+
+                    if (!string.IsNullOrEmpty(columnConfig.DefaultValue))
+                    {
+                        textBox.Text = columnConfig.DefaultValue;
+                    }
+
+                    Grid.SetRow(textBox, cell.RowIndex);
+                    Grid.SetColumn(textBox, cell.ColumnIndex);
+                    grid.Children.Add(textBox);
                 }
             }
 

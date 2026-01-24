@@ -2,47 +2,32 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- 颜色资源 -->
-    <sys:String x:Key="PrimaryColor">#0066CC</sys:String>
-    <sys:String x:Key="SecondaryColor">#0099FF</sys:String>
-    <sys:String x:Key="AccentColor">#FF6600</sys:String>
-    <sys:String x:Key="SuccessColor">#28A745</sys:String>
-    <sys:String x:Key="WarningColor">#FFC107</sys:String>
-    <sys:String x:Key="ErrorColor">#DC3545</sys:String>
-    <sys:String x:Key="InfoColor">#17A2B8</sys:String>
-    <sys:String x:Key="TextColor">#333333</sys:String>
-    <sys:String x:Key="LightTextColor">#666666</sys:String>
-    <sys:String x:Key="BorderColor">#E0E0E0</sys:String>
-    <sys:String x:Key="BackgroundColor">#FFFFFF</sys:String>
-    <sys:String x:Key="DisabledColor">#A0A0A0</sys:String>
-    <sys:String x:Key="HoverColor">#F0F0F0</sys:String>
+    <!-- 非颜色资源保持不变 -->
+    <sys:Double x:Key="SmallMargin">2</sys:Double>
+    <sys:Double x:Key="MediumMargin">5</sys:Double>
+    <sys:Double x:Key="LargeMargin">10</sys:Double>
 
-    <!-- 画笔资源 -->
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
-    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
-    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
-    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}"/>
-    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
-    <SolidColorBrush x:Key="LightTextBrush" Color="{StaticResource LightTextColor}"/>
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}"/>
-    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}"/>
-    <SolidColorBrush x:Key="SelectionBrush" Color="#0078D7"/>
-    <SolidColorBrush x:Key="GridLineBrush" Color="#E0E0E0"/>
+    <sys:Double x:Key="SmallPadding">4</sys:Double>
+    <sys:Double x:Key="MediumPadding">8</sys:Double>
+    <sys:Double x:Key="LargePadding">12</sys:Double>
+
+    <sys:Double x:Key="SmallCornerRadius">2</sys:Double>
+    <sys:Double x:Key="MediumCornerRadius">4</sys:Double>
+    <sys:Double x:Key="LargeCornerRadius">6</sys:Double>
+
+    <sys:Double x:Key="SmallFontSize">12</sys:Double>
+    <sys:Double x:Key="MediumFontSize">14</sys:Double>
+    <sys:Double x:Key="LargeFontSize">16</sys:Double>
 
     <!-- 按钮样式 -->
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        <Setter Property="Background" Value="#0066CC"/>
+        <Setter Property="Foreground" Value="White"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="10,5"/>
-        <Setter Property="Margin" Value="{StaticResource MediumMargin}"/>
+        <Setter Property="Margin" Value="5"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="FontSize" Value="{StaticResource MediumFontSize}"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -51,7 +36,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{StaticResource MediumCornerRadius}"
+                            CornerRadius="4"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter x:Name="ContentPresenter"
                                           Content="{TemplateBinding Content}"
@@ -62,14 +47,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="#0099FF"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="#FF6600"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource DisabledBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="#A0A0A0"/>
+                            <Setter Property="Foreground" Value="#666666"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -77,8 +62,8 @@
         </Setter>
     </Style>
 
-    <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-        <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#0099FF"/>
     </Style>
 
     <Style x:Key="IconButtonStyle" TargetType="Button">
@@ -99,7 +84,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                            <Setter Property="Background" Value="#F0F0F0"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5"/>
@@ -112,7 +97,7 @@
 
     <!-- 文本框样式 -->
     <Style x:Key="DefaultTextBoxStyle" TargetType="TextBox">
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="5"/>
         <Setter Property="Margin" Value="5"/>
@@ -126,7 +111,7 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{StaticResource SmallCornerRadius}">
+                            CornerRadius="2">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto">
                             <TextBox x:Name="PART_EditableTextBox"
                                      Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}"
@@ -137,24 +122,24 @@
                                      Padding="{TemplateBinding Padding}"
                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </ScrollViewer>
-        </Border>
-        <ControlTemplate.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource DisabledBrush}"/>
-                <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
-            </Trigger>
-            <Trigger Property="IsFocused" Value="True">
-                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
-            </Trigger>
-        </ControlTemplate.Triggers>
-    </ControlTemplate>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Border" Property="Background" Value="#A0A0A0"/>
+                            <Setter Property="Foreground" Value="#666666"/>
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#0066CC"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
     <!-- 组合框样式 -->
     <Style x:Key="DefaultComboBoxStyle" TargetType="ComboBox">
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="5"/>
         <Setter Property="Margin" Value="5"/>
@@ -178,8 +163,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border Background="{StaticResource BackgroundBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
+                    <Border Background="#FFFFFF"
+                            BorderBrush="#E0E0E0"
                             BorderThickness="1"
                             CornerRadius="3"
                             Padding="{TemplateBinding Padding}">
@@ -197,10 +182,10 @@
                                 <TextBlock Text="{Binding DisplayName}"
                                            FontWeight="Bold"
                                            FontSize="14"
-                                           Foreground="{StaticResource TextBrush}"/>
+                                           Foreground="#333333"/>
                                 <TextBlock Text="{Binding Description}"
                                            FontSize="11"
-                                           Foreground="{StaticResource LightTextBrush}"
+                                           Foreground="#666666"
                                            TextWrapping="Wrap"
                                            MaxWidth="200"/>
                             </StackPanel>
@@ -208,10 +193,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                            <Setter Property="Background" Value="#F0F0F0"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                            <Setter Property="Background" Value="#0066CC"/>
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -224,7 +209,7 @@
     <Style x:Key="PropertyPanelStyle" TargetType="GroupBox">
         <Setter Property="Margin" Value="5"/>
         <Setter Property="Padding" Value="10"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="HeaderTemplate">
             <Setter.Value>
@@ -232,7 +217,7 @@
                     <TextBlock Text="{Binding}"
                                FontWeight="Bold"
                                FontSize="14"
-                               Foreground="{StaticResource PrimaryBrush}"/>
+                               Foreground="#0066CC"/>
                 </DataTemplate>
             </Setter.Value>
         </Setter>
@@ -242,13 +227,13 @@
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Margin" Value="0,0,5,0"/>
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="Foreground" Value="#333333"/>
     </Style>
 
     <Style x:Key="PropertyValueStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Margin" Value="0,0,10,0"/>
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="Foreground" Value="#333333"/>
     </Style>
 
     <!-- 图层项样式 -->
@@ -260,8 +245,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border Background="{StaticResource BackgroundBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
+                    <Border Background="#FFFFFF"
+                            BorderBrush="#E0E0E0"
                             BorderThickness="1"
                             CornerRadius="2"
                             Padding="{TemplateBinding Padding}">
@@ -280,7 +265,7 @@
                                            Text="{Binding DisplayName}"
                                            FontSize="12"
                                            VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextBrush}"/>
+                                           Foreground="#333333"/>
                             <CheckBox Grid.Column="2"
                                       IsChecked="{Binding IsVisible}"
                                       Margin="5,0,0,0"
@@ -289,10 +274,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource HoverBrush}"/>
+                            <Setter Property="Background" Value="#F0F0F0"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                            <Setter Property="Background" Value="#0066CC"/>
                             <Setter Property="Foreground" Value="White"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -303,15 +288,15 @@
 
     <!-- 状态栏样式 -->
     <Style x:Key="StatusBarStyle" TargetType="StatusBar">
-        <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="BorderBrush" Value="#E0E0E0"/>
         <Setter Property="BorderThickness" Value="0,1,0,0"/>
         <Setter Property="Padding" Value="5"/>
     </Style>
 
     <Style x:Key="StatusTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="Foreground" Value="#333333"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
@@ -331,7 +316,7 @@
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Margin" Value="0,0,5,0"/>
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="Foreground" Value="#333333"/>
     </Style>
 
     <!-- 滑块样式 -->
@@ -345,7 +330,7 @@
     <!-- 元素数据模板 -->
     <DataTemplate x:Key="TextElementDataTemplate">
         <Border Background="White"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="#E0E0E0"
                 BorderThickness="1"
                 CornerRadius="3"
                 Padding="5"
@@ -354,18 +339,18 @@
                 <TextBlock Text="{Binding Text}"
                            FontWeight="Bold"
                            FontSize="14"
-                           Foreground="{StaticResource TextBrush}"
+                           Foreground="#333333"
                            TextWrapping="Wrap"/>
                 <TextBlock Text="{Binding FontFamily}"
                            FontSize="10"
-                           Foreground="{StaticResource LightTextBrush}"/>
+                           Foreground="#666666"/>
             </StackPanel>
         </Border>
     </DataTemplate>
 
     <DataTemplate x:Key="ImageElementDataTemplate">
         <Border Background="White"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="#E0E0E0"
                 BorderThickness="1"
                 CornerRadius="3"
                 Padding="5"
@@ -374,11 +359,11 @@
                 <TextBlock Text="{Binding Source}"
                            FontWeight="Bold"
                            FontSize="12"
-                           Foreground="{StaticResource TextBrush}"
+                           Foreground="#333333"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="200"/>
                 <TextBlock FontSize="10"
-                           Foreground="{StaticResource LightTextBrush}">
+                           Foreground="#666666">
                     <Run Text="{Binding Width}"/>
                     <Run Text=" x "/>
                     <Run Text="{Binding Height}"/>
@@ -389,7 +374,7 @@
 
     <DataTemplate x:Key="TableElementDataTemplate">
         <Border Background="White"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="#E0E0E0"
                 BorderThickness="1"
                 CornerRadius="3"
                 Padding="5"
@@ -397,7 +382,7 @@
             <StackPanel>
                 <TextBlock FontWeight="Bold"
                            FontSize="12"
-                           Foreground="{StaticResource TextBrush}">
+                           Foreground="#333333">
                     <Run Text="{Binding Rows}"/>
                     <Run Text=" 行 x "/>
                     <Run Text="{Binding Columns}"/>
@@ -405,7 +390,7 @@
                 </TextBlock>
                 <TextBlock Text="{Binding DataSource}"
                            FontSize="10"
-                           Foreground="{StaticResource LightTextBrush}"
+                           Foreground="#666666"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="200"/>
             </StackPanel>
@@ -414,7 +399,7 @@
 
     <DataTemplate x:Key="ShapeElementDataTemplate">
         <Border Background="White"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="#E0E0E0"
                 BorderThickness="1"
                 CornerRadius="3"
                 Padding="5"
@@ -423,9 +408,9 @@
                 <TextBlock Text="{Binding ShapeType}"
                            FontWeight="Bold"
                            FontSize="12"
-                           Foreground="{StaticResource TextBrush}"/>
+                           Foreground="#333333"/>
                 <TextBlock FontSize="10"
-                           Foreground="{StaticResource LightTextBrush}">
+                           Foreground="#666666">
                     <Run Text="{Binding Width}"/>
                     <Run Text=" x "/>
                     <Run Text="{Binding Height}"/>
@@ -436,7 +421,7 @@
 
     <DataTemplate x:Key="BarcodeElementDataTemplate">
         <Border Background="White"
-                BorderBrush="{StaticResource BorderBrush}"
+                BorderBrush="#E0E0E0"
                 BorderThickness="1"
                 CornerRadius="3"
                 Padding="5"
@@ -445,10 +430,10 @@
                 <TextBlock Text="{Binding BarcodeType}"
                            FontWeight="Bold"
                            FontSize="12"
-                           Foreground="{StaticResource TextBrush}"/>
+                           Foreground="#333333"/>
                 <TextBlock Text="{Binding Data}"
                            FontSize="10"
-                           Foreground="{StaticResource LightTextBrush}"
+                           Foreground="#666666"
                            TextTrimming="CharacterEllipsis"
                            MaxWidth="200"/>
             </StackPanel>
@@ -476,11 +461,11 @@
         </Border>
         <ControlTemplate.Triggers>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource DisabledBrush}"/>
-                <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+                <Setter TargetName="Border" Property="Background" Value="#A0A0A0"/>
+                <Setter Property="Foreground" Value="#666666"/>
             </Trigger>
             <Trigger Property="IsFocused" Value="True">
-                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                <Setter TargetName="Border" Property="BorderBrush" Value="#0066CC"/>
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
@@ -500,7 +485,7 @@
                         Width="20"
                         Height="20"
                         Background="{Binding Background}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderBrush="#E0E0E0"
                         BorderThickness="1"
                         CornerRadius="2"/>
                 <TextBlock Grid.Column="1"
@@ -530,7 +515,7 @@
                            Margin="5,0"/>
                 <Path Grid.Column="1"
                       Data="M0,0 L10,10 L20,0 Z"
-                      Fill="{StaticResource TextBrush}"
+                      Fill="#333333"
                       Width="10"
                       Height="10"
                       VerticalAlignment="Center"

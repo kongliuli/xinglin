@@ -15,7 +15,7 @@ namespace ReportTemplateEditor.App.Services
 
         void SavePdfToFile(ReportTemplateDefinition template, string filePath, object? data = null);
 
-        System.Windows.Media.Imaging.BitmapImage GeneratePreviewImage(ReportTemplateDefinition template, object? data = null);
+        System.Windows.Media.Imaging.BitmapImage? GeneratePreviewImage(ReportTemplateDefinition template, object? data = null);
     }
 
     public class PdfPreviewService : IPdfPreviewService
@@ -38,6 +38,12 @@ namespace ReportTemplateEditor.App.Services
                     _sharedDataResolver = new SharedDataResolver(sharedDataPath);
                     _ = _sharedDataResolver.LoadAllAsync();
                 }
+                else
+                {
+                    // 如果SharedData目录不存在，创建它
+                    Directory.CreateDirectory(sharedDataPath);
+                    _sharedDataResolver = new SharedDataResolver(sharedDataPath);
+                }
             }
             catch (Exception ex)
             {
@@ -47,17 +53,33 @@ namespace ReportTemplateEditor.App.Services
 
         public byte[] GeneratePdf(ReportTemplateDefinition template, object? data = null)
         {
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template), "模板不能为空");
+            }
             var document = CreateDocument(template, data);
+            if (document == null)
+            {
+                throw new InvalidOperationException("无法创建文档");
+            }
             return document.GeneratePdf();
         }
 
         public void SavePdfToFile(ReportTemplateDefinition template, string filePath, object? data = null)
         {
+            if (template == null)
+            {
+                throw new ArgumentNullException(nameof(template), "模板不能为空");
+            }
             var document = CreateDocument(template, data);
+            if (document == null)
+            {
+                throw new InvalidOperationException("无法创建文档");
+            }
             document.GeneratePdf(filePath);
         }
 
-        public System.Windows.Media.Imaging.BitmapImage GeneratePreviewImage(ReportTemplateDefinition template, object? data = null)
+        public System.Windows.Media.Imaging.BitmapImage? GeneratePreviewImage(ReportTemplateDefinition template, object? data = null)
         {
             try
             {
@@ -147,29 +169,47 @@ namespace ReportTemplateEditor.App.Services
 
             void ComposeElement(IContainer container, ElementBase element, object? data)
             {
-                switch (element.Type)
+                try
                 {
-                    case "Text":
-                        ComposeTextElement(container, (TextElement)element, data);
-                        break;
-                    case "Label":
-                        ComposeLabelElement(container, (LabelElement)element, data);
-                        break;
-                    case "Table":
-                        ComposeTableElement(container, (TableElement)element, data);
-                        break;
-                    case "Image":
-                        ComposeImageElement(container, (ImageElement)element, data);
-                        break;
-                    case "Line":
-                        ComposeLineElement(container, (LineElement)element, data);
-                        break;
-                    case "Rectangle":
-                        ComposeRectangleElement(container, (RectangleElement)element, data);
-                        break;
-                    case "Ellipse":
-                        ComposeEllipseElement(container, (EllipseElement)element, data);
-                        break;
+                    // 使用类型转换而不是字符串匹配，更可靠
+                    switch (element)
+                    {
+                        case LabelInputBoxElement labelInputBoxElement:
+                            ComposeLabelInputBoxElement(container, labelInputBoxElement, data);
+                            break;
+                        case LabelElement labelElement:
+                            ComposeLabelElement(container, labelElement, data);
+                            break;
+                        case TextElement textElement:
+                            ComposeTextElement(container, textElement, data);
+                            break;
+                        case TableElement tableElement:
+                            ComposeTableElement(container, tableElement, data);
+                            break;
+                        case ImageElement imageElement:
+                            ComposeImageElement(container, imageElement, data);
+                            break;
+                        case LineElement lineElement:
+                            ComposeLineElement(container, lineElement, data);
+                            break;
+                        case RectangleElement rectangleElement:
+                            ComposeRectangleElement(container, rectangleElement, data);
+                            break;
+                        case EllipseElement ellipseElement:
+                            ComposeEllipseElement(container, ellipseElement, data);
+                            break;
+                        default:
+                            // 处理未知类型，避免崩溃
+                            System.Diagnostics.Debug.WriteLine($"未知元素类型: {element.GetType().Name}");
+                            ComposeTextElement(container, new TextElement { Text = $"未知元素: {element.GetType().Name}" }, data);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"渲染元素失败: {element.GetType().Name}, 错误: {ex.Message}");
+                    // 渲染一个错误信息，而不是崩溃
+                    ComposeTextElement(container, new TextElement { Text = $"元素渲染错误: {ex.Message}" }, data);
                 }
             }
 
@@ -208,6 +248,27 @@ namespace ReportTemplateEditor.App.Services
                     .FontSize((float)element.FontSize)
                     .FontColor(GetColor(element.ForegroundColor))
                     .Bold();
+            }
+
+            void ComposeLabelInputBoxElement(IContainer container, LabelInputBoxElement element, object? data)
+            {
+                string text = element.LabelText;
+                if (!string.IsNullOrEmpty(element.DataBindingPath) && data != null)
+                {
+                    text = _dataBindingEngine.GetValue(data, element.DataBindingPath, element.FormatString)?.ToString() ?? text;
+                }
+
+                container
+                    .Width((float)element.Width)
+                    .Height((float)element.Height)
+                    .Background(GetColor(element.BackgroundColor))
+                    .Border((float)element.BorderWidth)
+                    .BorderColor(GetColor(element.BorderColor))
+                    .AlignLeft()
+                    .AlignMiddle()
+                    .Text(text)
+                    .FontSize((float)element.FontSize)
+                    .FontColor(GetColor(element.ForegroundColor));
             }
 
             void ComposeTableElement(IContainer container, TableElement element, object? data)

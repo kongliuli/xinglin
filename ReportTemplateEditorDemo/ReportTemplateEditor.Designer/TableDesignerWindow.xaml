@@ -27,7 +27,12 @@
         </Style>
         
         <!-- 删除按钮样式 -->
-        <Style TargetType="Button" x:Key="DeleteButtonStyle" BasedOn="{StaticResource ActionButtonStyle}">
+        <Style TargetType="Button" x:Key="DeleteButtonStyle">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="5,0,5,0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Background" Value="#E74C3C"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
@@ -57,27 +62,43 @@
         </Style>
         
         <!-- 选中单元格样式 -->
-        <Style TargetType="Border" x:Key="SelectedCellBorderStyle" BasedOn="{StaticResource CellBorderStyle}">
-            <Setter Property="Background" Value="#D0E8FF"/>
+        <Style TargetType="Border" x:Key="SelectedCellBorderStyle">
             <Setter Property="BorderBrush" Value="#4A90E2"/>
             <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Background" Value="#D0E8FF"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect Color="#4A90E2" Opacity="0.3" BlurRadius="4" ShadowDepth="2" Direction="270"/>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F8FF"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         
         <!-- 表头单元格样式 -->
-        <Style TargetType="Border" x:Key="HeaderCellBorderStyle" BasedOn="{StaticResource CellBorderStyle}">
-            <Setter Property="Background" Value="#E8E8E8"/>
+        <Style TargetType="Border" x:Key="HeaderCellBorderStyle">
             <Setter Property="BorderBrush" Value="#666666"/>
             <Setter Property="BorderThickness" Value="1,1,1,2"/>
+            <Setter Property="Background" Value="#E8E8E8"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect Color="#000000" Opacity="0.15" BlurRadius="3" ShadowDepth="1.5" Direction="270"/>
                 </Setter.Value>
             </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F8FF"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         
         <!-- 表头文本样式 -->
@@ -115,10 +136,10 @@
                 
                 <!-- 行/列操作按钮 -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                    <Button Content="添加行" Click="AddRow_Click" Style="{StaticResource ActionButtonStyle}"/>
-                    <Button Content="删除行" Click="DeleteRow_Click" Style="{StaticResource DeleteButtonStyle}" x:Name="btnDeleteRow" IsEnabled="False"/>
-                    <Button Content="添加列" Click="AddColumn_Click" Style="{StaticResource ActionButtonStyle}"/>
-                    <Button Content="删除列" Click="DeleteColumn_Click" Style="{StaticResource DeleteButtonStyle}" x:Name="btnDeleteColumn" IsEnabled="False"/>
+                    <Button Content="添加行" Click="AddRow_Click" Style=""/>
+                    <Button Content="删除行" Click="DeleteRow_Click" Style="" x:Name="btnDeleteRow" IsEnabled="False"/>
+                    <Button Content="添加列" Click="AddColumn_Click" Style=""/>
+                    <Button Content="删除列" Click="DeleteColumn_Click" Style="" x:Name="btnDeleteColumn" IsEnabled="False"/>
                 </StackPanel>
                 
                 <!-- 当前选择信息 -->
@@ -322,8 +343,8 @@
         <!-- 底部按钮栏 -->
         <Border Grid.Row="2" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="确定" Click="OkButton_Click" Style="{StaticResource ActionButtonStyle}"/>
-                <Button Content="取消" Click="CancelButton_Click" Style="{StaticResource ActionButtonStyle}"/>
+                <Button Content="确定" Click="OkButton_Click" Style=""/>
+                <Button Content="取消" Click="CancelButton_Click" Style=""/>
             </StackPanel>
         </Border>
     </Grid>

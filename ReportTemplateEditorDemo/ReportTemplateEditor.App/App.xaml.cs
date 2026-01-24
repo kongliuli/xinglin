@@ -41,6 +41,7 @@ namespace ReportTemplateEditor.App
             services.AddSingleton<IControlGeneratorService, ControlGeneratorService>();
             services.AddSingleton<IPdfPreviewService, PdfPreviewService>();
             services.AddSingleton<IPrintService, PrintService>();
+            services.AddSingleton<TemplateService>();
             services.AddSingleton<TemplateTreeViewModel>();
             services.AddSingleton<ControlPanelViewModel>();
             services.AddSingleton<PdfPreviewViewModel>();

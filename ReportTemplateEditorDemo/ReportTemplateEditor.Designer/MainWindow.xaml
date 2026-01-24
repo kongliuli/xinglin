@@ -55,7 +55,7 @@
                 <DrawingBrush.Drawing>
                     <DrawingGroup>
                         <!-- 纸张纹理背景 -->
-                        <GeometryDrawing Brush="{StaticResource PaperTextureBrush}">
+                        <GeometryDrawing Brush="#FFFFFF">
                             <GeometryDrawing.Geometry>
                                 <RectangleGeometry Rect="0,0,10,10"/>
                             </GeometryDrawing.Geometry>
@@ -68,27 +68,27 @@
             
             <!-- 工具箱项样式 -->
             <Style TargetType="ListBoxItem" x:Key="ToolboxItemStyle">
-                <Setter Property="Padding" Value="{StaticResource MediumPadding}"/>
-                <Setter Property="Margin" Value="{StaticResource SmallMargin}"/>
-                <Setter Property="Background" Value="{StaticResource HoverColor}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="Background" Value="#F0F0F0"/>
+                <Setter Property="BorderBrush" Value="#E0E0E0"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{StaticResource HoverColor}"/>
+                        <Setter Property="Background" Value="#F0F0F0"/>
                     </Trigger>
                     <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
-                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                        <Setter Property="Background" Value="#F0F0F0"/>
+                        <Setter Property="BorderBrush" Value="#0066CC"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
             
             <!-- 属性面板分组样式 -->
             <Style TargetType="Expander" x:Key="PropertyGroupStyle">
-                <Setter Property="Background" Value="{StaticResource HoverColor}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="Background" Value="#F0F0F0"/>
+                <Setter Property="BorderBrush" Value="#E0E0E0"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Margin" Value="0,5,0,0"/>
             </Style>
@@ -208,7 +208,7 @@
                 <TextBlock Grid.Row="0" Text="工具箱" FontWeight="Bold" Padding="10" Background="#F0F0F0"/>
                 
                 <ListBox Grid.Row="1" Margin="5" x:Name="toolboxList" 
-                         ItemContainerStyle="{StaticResource ToolboxItemStyle}" 
+                         ItemContainerStyle="" 
                          PreviewMouseLeftButtonDown="ToolboxItem_PreviewMouseLeftButtonDown">
                     <ListBoxItem Tag="Text">
                         <StackPanel Orientation="Horizontal">
@@ -294,7 +294,7 @@
                 <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#E8E8E8">
                     <Grid>
                         <!-- 打印纸背景 -->
-                        <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{StaticResource PaperShadow}">
+                        <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1">
                             <Canvas x:Name="designCanvas" Width="210" Height="297" Background="Transparent" 
                                     AllowDrop="True" Drop="DesignCanvas_Drop" 
                                     DragOver="DesignCanvas_DragOver" 
@@ -337,13 +337,13 @@
                     </Grid.RowDefinitions>
                     
                     <!-- 图层管理标题 -->
-                    <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="{StaticResource MediumPadding}" CornerRadius="4,4,0,0">
-                        <TextBlock Text="图层管理" FontWeight="Bold" Foreground="White" FontSize="{StaticResource MediumFontSize}"/>
+                    <Border Grid.Row="0" Background="#0066CC" Padding="8" CornerRadius="4,4,0,0">
+                        <TextBlock Text="图层管理" FontWeight="Bold" Foreground="White" FontSize="14"/>
                     </Border>
                     
                     <!-- 图层列表 -->
-                    <Border Grid.Row="1" Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="0,0,4,4">
-                        <DockPanel Margin="{StaticResource SmallMargin}">
+                    <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
+                        <DockPanel Margin="2">
                             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
                                 <Button Content="上移" Command="{Binding MoveLayerUpCommand}" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
                                         Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
@@ -362,13 +362,13 @@
                                      Background="#FFFFFF" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Margin="{StaticResource SmallMargin}" Padding="{StaticResource MediumPadding}" CornerRadius="2"
-                                                Background="{StaticResource HoverColor}"
-                                                BorderBrush="{StaticResource BorderBrush}"
+                                        <Border Margin="2" Padding="8" CornerRadius="2"
+                                                Background="#F0F0F0"
+                                                BorderBrush="#E0E0E0"
                                                 BorderThickness="1">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding ModelElement.Type}" Margin="0,0,10,0" FontWeight="Medium"/>
-                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="{StaticResource SmallFontSize}" Foreground="{StaticResource LightTextColor}"/>
+                                                <TextBlock Text="({Binding ModelElement.X:F1}, {Binding ModelElement.Y:F1})" FontSize="12" Foreground="#666666"/>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -389,24 +389,24 @@
                     </Grid.RowDefinitions>
                     
                     <!-- 属性面板标题 -->
-                    <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="{StaticResource MediumPadding}" CornerRadius="4,4,0,0">
-                        <TextBlock Text="属性" FontWeight="Bold" Foreground="White" FontSize="{StaticResource MediumFontSize}"/>
+                    <Border Grid.Row="0" Background="#0066CC" Padding="8" CornerRadius="4,4,0,0">
+                        <TextBlock Text="属性" FontWeight="Bold" Foreground="White" FontSize="14"/>
                     </Border>
                     
                     <TabControl Grid.Row="1" x:Name="propertyPanel" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" TabStripPlacement="Top">
                         <TabItem Header="属性">
                             <TabItem.HeaderTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                    <TextBlock Text="{Binding}" Padding="8" FontWeight="Medium"/>
                                 </DataTemplate>
                             </TabItem.HeaderTemplate>
                             <ScrollViewer Margin="5">
                                 <StackPanel>
                                     <!-- 选择信息 -->
-                                    <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="{StaticResource LightTextColor}" Margin="0,0,0,10"/>
+                                    <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="#666666" Margin="0,0,0,10"/>
                                     
                                     <!-- 位置和大小属性 -->
-                                    <Expander Header="位置和大小" Style="{StaticResource PropertyGroupStyle}">
+                                    <Expander Header="位置和大小" Style="">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -419,25 +419,25 @@
                                                 <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
                                             
-                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
-                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
-                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="2" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
-                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
-                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="2" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
-                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
-                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="2" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="{StaticResource SmallMargin}" FontWeight="Medium" Foreground="{StaticResource TextColor}"/>
-                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="{StaticResource SmallMargin}" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
-                                                     Background="{StaticResource HoverColor}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
-                                                     Padding="{StaticResource MediumPadding}" FontWeight="Medium"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="3" Grid.Column="1" Margin="2" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
                                             
                                             <!-- 全局字体设置 -->
                                             <CheckBox x:Name="chkIgnoreGlobalFontSize" Content="忽略全局字体设置" Margin="0,10,0,0" IsChecked="{Binding IgnoreGlobalFontSize}"/>
@@ -447,7 +447,7 @@
                                     </Expander>
                                     
                                     <!-- 外观属性 -->
-                                    <Expander Header="外观" Style="{StaticResource PropertyGroupStyle}">
+                                    <Expander Header="外观" Style="">
                                         <StackPanel>
                                             <!-- 基本外观 -->
                                             <Grid>
@@ -538,7 +538,7 @@
                                     </Expander>
                                     
                                     <!-- 文本属性 -->
-                                    <Expander Header="文本" Style="{StaticResource PropertyGroupStyle}">
+                                    <Expander Header="文本" Style="">
                                         <StackPanel>
                                             <!-- 基本文本属性 -->
                                             <Grid>
@@ -621,7 +621,7 @@
                                     </Expander>
                                     
                                     <!-- 数据绑定属性 -->
-                                    <Expander Header="数据绑定" Style="{StaticResource PropertyGroupStyle}">
+                                    <Expander Header="数据绑定" Style="">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
@@ -644,7 +644,7 @@
                                     </Expander>
                                     
                                     <!-- 标签输入框属性 -->
-                                    <Expander Header="标签输入框属性" Style="{StaticResource PropertyGroupStyle}" Visibility="Collapsed" x:Name="labelInputBoxPropertiesPanel">
+                                    <Expander Header="标签输入框属性" Style="" Visibility="Collapsed" x:Name="labelInputBoxPropertiesPanel">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>

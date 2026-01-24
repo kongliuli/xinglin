@@ -18,6 +18,19 @@
           "buildTransitive/CommunityToolkit.Mvvm.targets": {}
         }
       },
+      "HandyControl/3.5.1": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/HandyControl.dll": {
+            "related": ".deps.json;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/HandyControl.dll": {
+            "related": ".deps.json;.xml"
+          }
+        }
+      },
       "Microsoft.Extensions.Caching.Abstractions/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -316,6 +329,63 @@
         "lib/netstandard2.1/CommunityToolkit.Mvvm.dll",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.pdb",
         "lib/netstandard2.1/CommunityToolkit.Mvvm.xml"
+      ]
+    },
+    "HandyControl/3.5.1": {
+      "sha512": "i2i0xrLev7F1MFnhf0DP1CNCdGw8hVJ0HJrI0kxRv02ZJgaAzLzDTgAXDPY8GAoD3aYnBLSgM74lBHZ844KQnQ==",
+      "type": "package",
+      "path": "handycontrol/3.5.1",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "handycontrol.3.5.1.nupkg.sha512",
+        "handycontrol.nuspec",
+        "icon.png",
+        "lib/net40/HandyControl.dll",
+        "lib/net40/HandyControl.xml",
+        "lib/net45/HandyControl.dll",
+        "lib/net45/HandyControl.xml",
+        "lib/net451/HandyControl.dll",
+        "lib/net451/HandyControl.xml",
+        "lib/net452/HandyControl.dll",
+        "lib/net452/HandyControl.xml",
+        "lib/net46/HandyControl.dll",
+        "lib/net46/HandyControl.xml",
+        "lib/net461/HandyControl.dll",
+        "lib/net461/HandyControl.xml",
+        "lib/net462/HandyControl.dll",
+        "lib/net462/HandyControl.xml",
+        "lib/net47/HandyControl.dll",
+        "lib/net47/HandyControl.xml",
+        "lib/net471/HandyControl.dll",
+        "lib/net471/HandyControl.xml",
+        "lib/net472/HandyControl.dll",
+        "lib/net472/HandyControl.xml",
+        "lib/net48/HandyControl.dll",
+        "lib/net48/HandyControl.xml",
+        "lib/net481/HandyControl.dll",
+        "lib/net481/HandyControl.xml",
+        "lib/net5.0/HandyControl.deps.json",
+        "lib/net5.0/HandyControl.dll",
+        "lib/net5.0/HandyControl.xml",
+        "lib/net6.0/HandyControl.deps.json",
+        "lib/net6.0/HandyControl.dll",
+        "lib/net6.0/HandyControl.xml",
+        "lib/net7.0/HandyControl.deps.json",
+        "lib/net7.0/HandyControl.dll",
+        "lib/net7.0/HandyControl.xml",
+        "lib/net8.0/HandyControl.deps.json",
+        "lib/net8.0/HandyControl.dll",
+        "lib/net8.0/HandyControl.xml",
+        "lib/netcoreapp3.0/HandyControl.deps.json",
+        "lib/netcoreapp3.0/HandyControl.dll",
+        "lib/netcoreapp3.0/HandyControl.xml",
+        "lib/netcoreapp3.1/HandyControl.deps.json",
+        "lib/netcoreapp3.1/HandyControl.dll",
+        "lib/netcoreapp3.1/HandyControl.xml",
+        "tools/VisualStudioToolsManifest.xml"
       ]
     },
     "Microsoft.Extensions.Caching.Abstractions/8.0.0": {
@@ -684,6 +754,7 @@
   "projectFileDependencyGroups": {
     "net9.0-windows7.0": [
       "CommunityToolkit.Mvvm >= 8.4.0",
+      "HandyControl >= 3.5.1",
       "QuestPDF >= 2024.12.1",
       "ReportTemplateEditor.Core >= 1.0.0",
       "ReportTemplateEditor.Engine >= 1.0.0"
@@ -696,11 +767,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
+      "projectUniqueName": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
       "projectName": "ReportTemplateEditor.Designer",
-      "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
+      "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\ReportTemplateEditor.Designer.csproj",
       "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-      "outputPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\obj\\",
+      "outputPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Designer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -722,11 +793,11 @@
         "net9.0-windows7.0": {
           "targetAlias": "net9.0-windows",
           "projectReferences": {
-            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
-              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
+            "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj": {
+              "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj"
             },
-            "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
-              "projectPath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
+            "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj": {
+              "projectPath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Engine\\ReportTemplateEditor.Engine.csproj"
             }
           }
         }
@@ -753,6 +824,10 @@
           "CommunityToolkit.Mvvm": {
             "target": "Package",
             "version": "[8.4.0, )"
+          },
+          "HandyControl": {
+            "target": "Package",
+            "version": "[3.5.1, )"
           },
           "QuestPDF": {
             "target": "Package",

@@ -44,7 +44,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
         public ICommand ElementChangedCommand { get; }
 
-        public ControlPanelViewModel(IControlGeneratorService controlGeneratorService)
+        public ControlPanelViewModel(IControlGeneratorService controlGeneratorService, TemplateService templateService)
         {
             _controlGeneratorService = controlGeneratorService;
 

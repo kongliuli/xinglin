@@ -10,6 +10,7 @@ namespace ReportTemplateEditor.App.ViewModels
     public partial class MainViewModel : ViewModelBase
     {
         private readonly ITemplateLoaderService _templateLoaderService;
+        private readonly TemplateService _templateService;
 
         public TemplateTreeViewModel TemplateTreeViewModel { get; }
         public ControlPanelViewModel ControlPanelViewModel { get; }
@@ -33,11 +34,13 @@ namespace ReportTemplateEditor.App.ViewModels
 
         public MainViewModel(
             ITemplateLoaderService templateLoaderService,
+            TemplateService templateService,
             TemplateTreeViewModel templateTreeViewModel,
             ControlPanelViewModel controlPanelViewModel,
             PdfPreviewViewModel pdfPreviewViewModel)
         {
             _templateLoaderService = templateLoaderService;
+            _templateService = templateService;
             TemplateTreeViewModel = templateTreeViewModel;
             ControlPanelViewModel = controlPanelViewModel;
             PdfPreviewViewModel = pdfPreviewViewModel;
@@ -103,19 +106,43 @@ namespace ReportTemplateEditor.App.ViewModels
             {
                 IsBusy = true;
                 StatusMessage = $"正在加载模板: {item.Name}";
+                System.Diagnostics.Debug.WriteLine($"开始加载模板: {item.Name}, 路径: {item.FullPath}");
 
-                var template = await LoadTemplateDataAsync(item.FullPath);
+                // 使用 TemplateService 加载模板
+                var template = await _templateService.LoadTemplateAsync(item.FullPath);
+                System.Diagnostics.Debug.WriteLine($"模板加载成功: {template.Name}, 包含 {template.Elements.Count} 个元素");
                 WindowTitle = $"报告模板编辑器 - {template.Name}";
 
+                // 创建并设置样本数据
+                System.Diagnostics.Debug.WriteLine("开始创建样本数据");
                 var data = CreateSampleDataForTemplate(template);
-                UpdateViewModelsWithTemplate(template, data);
+                System.Diagnostics.Debug.WriteLine($"样本数据创建成功");
+                _templateService.SetCurrentData(data);
 
-                StatusMessage = $"已加载模板: {template.Name}，包含 {template.Elements.Count} 个元素";
+                // 手动更新所有视图模型
+                System.Diagnostics.Debug.WriteLine("开始更新ControlPanelViewModel");
+                ControlPanelViewModel.LoadTemplateCommand.Execute(template);
+                ControlPanelViewModel.UpdateDataCommand.Execute(data);
+                System.Diagnostics.Debug.WriteLine("ControlPanelViewModel更新成功");
+                
+                System.Diagnostics.Debug.WriteLine("开始更新PdfPreviewViewModel");
+                PdfPreviewViewModel.LoadTemplateCommand.Execute(template);
+                PdfPreviewViewModel.UpdateDataCommand.Execute(data);
+                System.Diagnostics.Debug.WriteLine("PdfPreviewViewModel更新成功");
+
+                StatusMessage = $"已加载模板: {template.Name}，包含 {template.Elements.Count} 个元素，路径: {item.FullPath}";
+                System.Diagnostics.Debug.WriteLine($"模板加载完成: {template.Name}");
             }
             catch (System.Exception ex)
             {
                 StatusMessage = $"加载失败: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine($"加载模板失败: {ex}");
+                System.Diagnostics.Debug.WriteLine($"加载模板失败: {item.Name}, 错误: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"内部异常: {ex.InnerException.Message}");
+                    System.Diagnostics.Debug.WriteLine($"内部异常堆栈跟踪: {ex.InnerException.StackTrace}");
+                }
             }
             finally
             {
@@ -123,7 +150,7 @@ namespace ReportTemplateEditor.App.ViewModels
             }
         }
 
-        private bool ValidateTemplateItem(TemplateTreeItem? item)
+        private bool ValidateTemplateItem([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] TemplateTreeItem? item)
         {
             if (item == null)
             {
@@ -187,7 +214,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
         private void SaveTemplate()
         {
-            var template = ControlPanelViewModel.CurrentTemplate;
+            var template = _templateService.CurrentTemplate;
             if (template == null)
             {
                 StatusMessage = "没有可保存的模板";
@@ -213,7 +240,8 @@ namespace ReportTemplateEditor.App.ViewModels
                     IsBusy = true;
                     StatusMessage = $"正在保存模板: {template.Name}";
 
-                    _templateLoaderService.SaveTemplateToFile(template, saveFileDialog.FileName);
+                    // 使用 TemplateService 保存模板
+                    _templateService.SaveTemplate(template, saveFileDialog.FileName);
                     WindowTitle = $"报告模板编辑器 - {template.Name}";
                     StatusMessage = $"模板已保存到: {saveFileDialog.FileName}";
                 }
@@ -231,7 +259,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
         private bool CanExecuteSaveTemplate()
         {
-            return ControlPanelViewModel.CurrentTemplate != null;
+            return _templateService.CurrentTemplate != null;
         }
 
         private void Exit()

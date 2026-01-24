@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "0Vw+IIKpdkw=",
+  "dgSpecHash": "HyVwixQ75kA=",
   "success": true,
-  "projectFilePath": "d:\\Code\\杏林\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
+  "projectFilePath": "D:\\Code\\xinglin\\ReportTemplateEditorDemo\\ReportTemplateEditor.Core\\ReportTemplateEditor.Core.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\8.0.0\\microsoft.extensions.caching.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\microsoft.extensions.caching.memory\\8.0.0\\microsoft.extensions.caching.memory.8.0.0.nupkg.sha512",

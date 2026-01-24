@@ -29,7 +29,6 @@
 
         <!-- 数据路径树 -->
         <TreeView x:Name="pathTreeView" Grid.Row="1" Margin="5" 
-                  ItemTemplate="{DynamicResource DataPathItemTemplate}"
                   SelectedItemChanged="pathTreeView_SelectedItemChanged">
             <TreeView.Resources>
                 <HierarchicalDataTemplate x:Key="DataPathItemTemplate" ItemsSource="{Binding Children}">
@@ -39,18 +38,7 @@
                                    FontWeight="{Binding FontWeight}" 
                                    Foreground="{Binding Foreground}" />
                     </StackPanel>
-                    <HierarchicalDataTemplate.Triggers>
-                        <DataTrigger Binding="{Binding IsCollection}" Value="True">
-                            <Setter TargetName="itemIcon" Property="Source" Value="{StaticResource CollectionIcon}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding IsObject}" Value="True">
-                            <Setter TargetName="itemIcon" Property="Source" Value="{StaticResource ObjectIcon}"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding IsProperty}" Value="True">
-                            <Setter TargetName="itemIcon" Property="Source" Value="{StaticResource PropertyIcon}"/>
-                        </DataTrigger>
-                    </HierarchicalDataTemplate.Triggers>
-                </HierarchicalDataTemplate>
+                    </HierarchicalDataTemplate>
 
                 <!-- 图标资源 -->
                 <DrawingImage x:Key="CollectionIcon">

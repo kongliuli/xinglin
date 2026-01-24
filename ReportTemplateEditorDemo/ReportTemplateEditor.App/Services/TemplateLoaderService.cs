@@ -93,26 +93,48 @@ namespace ReportTemplateEditor.App.Services
 
         public async Task<ReportTemplateDefinition> LoadTemplateFromFileAsync(string filePath)
         {
-            if (!File.Exists(filePath))
+            try
             {
-                throw new FileNotFoundException($"模板文件不存在: {filePath}");
+                System.Diagnostics.Debug.WriteLine($"开始加载模板文件: {filePath}");
+                
+                if (!File.Exists(filePath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"模板文件不存在: {filePath}");
+                    throw new FileNotFoundException($"模板文件不存在: {filePath}");
+                }
+
+                var jsonContent = File.ReadAllText(filePath);
+                System.Diagnostics.Debug.WriteLine($"模板文件内容长度: {jsonContent.Length} 字符");
+                
+                var settings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                };
+                var template = JsonConvert.DeserializeObject<ReportTemplateDefinition>(jsonContent, settings);
+                if (template == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"无法解析模板文件: {filePath}");
+                    throw new InvalidOperationException($"无法解析模板文件: {filePath}");
+                }
+                template.FilePath = filePath;
+                System.Diagnostics.Debug.WriteLine($"模板解析成功: {template.Name}, 包含 {template.Elements.Count} 个元素");
+
+                await _sharedDataResolver.LoadAllAsync();
+                System.Diagnostics.Debug.WriteLine($"共享数据加载成功");
+                ResolveTemplateReferencesAsync(template);
+                System.Diagnostics.Debug.WriteLine($"模板引用解析成功");
+
+                return template;
             }
-
-            var jsonContent = File.ReadAllText(filePath);
-            var settings = new JsonSerializerSettings
+            catch (Exception ex)
             {
-                TypeNameHandling = TypeNameHandling.Auto
-            };
-            var template = JsonConvert.DeserializeObject<ReportTemplateDefinition>(jsonContent, settings);
-            template.FilePath = filePath;
-
-            await _sharedDataResolver.LoadAllAsync();
-            await ResolveTemplateReferencesAsync(template);
-
-            return template;
+                System.Diagnostics.Debug.WriteLine($"加载模板文件失败: {filePath}, 错误: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+                throw;
+            }
         }
 
-        private async Task ResolveTemplateReferencesAsync(ReportTemplateDefinition template)
+        private void ResolveTemplateReferencesAsync(ReportTemplateDefinition template)
         {
             foreach (var textElement in template.Elements.OfType<TextElement>())
             {
@@ -121,12 +143,12 @@ namespace ReportTemplateEditor.App.Services
 
             foreach (var labelInput in template.Elements.OfType<LabelInputBoxElement>())
             {
-                await ResolveLabelInputBoxReferencesAsync(labelInput);
+                ResolveLabelInputBoxReferencesAsync(labelInput);
             }
 
             foreach (var table in template.Elements.OfType<TableElement>())
             {
-                await ResolveTableReferencesAsync(table);
+                ResolveTableReferencesAsync(table);
             }
         }
 
@@ -148,7 +170,7 @@ namespace ReportTemplateEditor.App.Services
             }
         }
 
-        private async Task ResolveLabelInputBoxReferencesAsync(LabelInputBoxElement labelInput)
+        private void ResolveLabelInputBoxReferencesAsync(LabelInputBoxElement labelInput)
         {
             if (!string.IsNullOrEmpty(labelInput.LabelRef))
             {
@@ -193,7 +215,7 @@ namespace ReportTemplateEditor.App.Services
             }
         }
 
-        private async Task ResolveTableReferencesAsync(TableElement table)
+        private void ResolveTableReferencesAsync(TableElement table)
         {
             foreach (var columnConfig in table.ColumnsConfig)
             {

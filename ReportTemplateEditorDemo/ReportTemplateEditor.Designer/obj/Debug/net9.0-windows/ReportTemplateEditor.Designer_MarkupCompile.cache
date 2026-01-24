@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\
+D:\Code\xinglin\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\obj\Debug\net9.0-windows\
 ReportTemplateEditor.Designer
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-d:\Code\杏林\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\App.xaml
+D:\Code\xinglin\ReportTemplateEditorDemo\ReportTemplateEditor.Designer\App.xaml
 6-2054939800
 152019972207
 301173219561
-211-2017782182
+212646969292
 Controls\DataPathSelector.xaml;DataPathSelectorWindow.xaml;MainWindow.xaml;Styles\CommonStyles.xaml;Styles\SharedStyles.xaml;TableDesignerWindow.xaml;
 
 False

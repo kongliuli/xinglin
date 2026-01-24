@@ -57,7 +57,7 @@ namespace ReportTemplateEditor.App.ViewModels
 
         public ICommand ResetZoomCommand { get; }
 
-        public PdfPreviewViewModel(IPdfPreviewService pdfPreviewService, IPrintService printService)
+        public PdfPreviewViewModel(IPdfPreviewService pdfPreviewService, IPrintService printService, TemplateService templateService)
         {
             _pdfPreviewService = pdfPreviewService;
             _printService = printService;
