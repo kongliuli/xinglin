@@ -1,0 +1,88 @@
+<UserControl x:Class="Xinglin.ReportTemplateEditor.WPF.Views.TemplateTreeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views"
+             xmlns:viewModels="clr-namespace:Xinglin.ReportTemplateEditor.WPF.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="300"
+             Background="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" Text="模板树" FontWeight="Bold" FontSize="16" Margin="5"/>
+        
+        <!-- 模板树 -->
+        <TreeView Grid.Row="1" Margin="5" 
+                  ItemsSource="{Binding TreeNodes}" 
+                  SelectedItemChanged="TreeView_SelectedItemChanged">
+            
+            <!-- 树节点样式 -->
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Padding" Value="2,1"/>
+                    <!-- 右键菜单 -->
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="编辑" Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" 
+                                          CommandParameter="{Binding}"/>
+                                <MenuItem Header="删除"/>
+                                <Separator/>
+                                <MenuItem Header="添加子元素">
+                                    <MenuItem Header="文本元素"/>
+                                    <MenuItem Header="图片元素"/>
+                                    <MenuItem Header="线条元素"/>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            
+            <!-- 树节点模板 -->
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:TemplateTreeNodeViewModel}" 
+                                          ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal" 
+                                ToolTip="{Binding Type}">
+                        <!-- 节点图标 -->
+                        <Image Width="16" Height="16" Margin="0,0,5,0">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Type}" Value="Template">
+                                            <Setter Property="Source" Value="/Resources/template_icon.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type}" Value="Text">
+                                            <Setter Property="Source" Value="/Resources/text_icon.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type}" Value="Image">
+                                            <Setter Property="Source" Value="/Resources/image_icon.png"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Type}" Value="Line">
+                                            <Setter Property="Source" Value="/Resources/line_icon.png"/>
+                                        </DataTrigger>
+                                        <Trigger Property="Source" Value="">
+                                            <Setter Property="Source" Value="/Resources/element_icon.png"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+                        <!-- 节点名称 -->
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</UserControl>

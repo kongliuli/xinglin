@@ -47,7 +47,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Trace(string message, Exception exception = null, params object[] args);
+    void Trace(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 记录调试级别的日志
@@ -55,7 +55,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Debug(string message, Exception exception = null, params object[] args);
+    void Debug(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 记录信息级别的日志
@@ -63,7 +63,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Info(string message, Exception exception = null, params object[] args);
+    void Info(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 记录警告级别的日志
@@ -71,7 +71,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Warn(string message, Exception exception = null, params object[] args);
+    void Warn(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 记录错误级别的日志
@@ -79,7 +79,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Error(string message, Exception exception = null, params object[] args);
+    void Error(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 记录致命级别的日志
@@ -87,7 +87,7 @@ public interface ILogger
     /// <param name="message">日志消息</param>
     /// <param name="exception">异常对象（可选）</param>
     /// <param name="args">格式化参数（可选）</param>
-    void Fatal(string message, Exception exception = null, params object[] args);
+    void Fatal(string message, Exception? exception = null, params object[] args);
     
     /// <summary>
     /// 设置日志级别

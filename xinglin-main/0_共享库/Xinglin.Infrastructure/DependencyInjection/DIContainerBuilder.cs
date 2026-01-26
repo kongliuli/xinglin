@@ -2,10 +2,15 @@ using Autofac;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using Xinglin.Core.Communication;
+using Xinglin.Core.Logging;
+using Xinglin.Infrastructure.Logging;
 using Xinglin.Infrastructure.Communication;
+using Xinglin.Infrastructure.Services;
+using Xinglin.Security;
 
 namespace Xinglin.Infrastructure.DependencyInjection;
 
@@ -92,8 +97,16 @@ public static class DIContainerBuilder
         // 注册异常处理服务
         builder.RegisterType<Exceptions.ExceptionHandler>().AsSelf().SingleInstance();
         
+        // 注册授权验证相关服务
+        builder.RegisterType<Services.MachineCodeService>().As<Security.IMachineCodeService>().SingleInstance();
+        builder.RegisterType<Services.LicenseService>().As<Security.ILicenseService>().SingleInstance();
+        builder.RegisterType<Services.PermissionStatusService>().As<Security.IPermissionStatusService>().SingleInstance();
+        
         // 根据运行模式注册组件
         RegisterComponentsByRunningMode(builder, config);
+        
+        // 注册授权验证服务（依赖于通信代理，需在通信代理注册后注册）
+        builder.RegisterType<Services.VerificationService>().As<Security.IVerificationService>().SingleInstance();
         
         // 注册模块
         RegisterModules(builder, config);

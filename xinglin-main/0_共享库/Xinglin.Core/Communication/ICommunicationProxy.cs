@@ -7,7 +7,7 @@ namespace Xinglin.Core.Communication;
 // 通信代理接口
 public interface ICommunicationProxy
 {
-    Task<TResponse> SendRequestAsync<TRequest, TResponse>(string endpoint, TRequest request, HttpMethod method = null);
+    Task<TResponse> SendRequestAsync<TRequest, TResponse>(string endpoint, TRequest request, HttpMethod? method = null);
     Task<TResponse> GetAsync<TResponse>(string endpoint);
     Task<bool> IsConnectedAsync();
     Task InitializeAsync(CommunicationConfig config);
@@ -26,7 +26,7 @@ public class CommunicationConfig
 // 服务端通信网关接口
 public interface IServerGateway
 {
-    Task<TResponse> SendRequestAsync<TRequest, TResponse>(string serverType, string endpoint, TRequest request, HttpMethod method = null);
+    Task<TResponse> SendRequestAsync<TRequest, TResponse>(string serverType, string endpoint, TRequest request, HttpMethod? method = null);
     Task<bool> IsServerConnectedAsync(string serverType);
     Task InitializeAsync(ServerGatewayConfig config);
 }

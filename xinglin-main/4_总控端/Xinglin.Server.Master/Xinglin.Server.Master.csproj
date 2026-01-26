@@ -11,4 +11,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\0_共享库\Xinglin.Core\Xinglin.Core.csproj" />
+    <ProjectReference Include="..\..\0_共享库\Xinglin.Infrastructure\Xinglin.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

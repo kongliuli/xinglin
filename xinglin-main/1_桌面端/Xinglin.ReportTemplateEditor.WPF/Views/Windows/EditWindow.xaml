@@ -1,0 +1,17 @@
+<Window x:Class="Xinglin.ReportTemplateEditor.WPF.Views.Windows.EditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views.Windows"
+        xmlns:views="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views"
+        mc:Ignorable="d"
+        Title="模板编辑" Height="768" Width="1024"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="White">
+    <Grid>
+        <!-- 编辑面板 -->
+        <views:EditPanelView DataContext="{Binding}"/>
+    </Grid>
+</Window>

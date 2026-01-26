@@ -1,0 +1,51 @@
+{
+  "RunningMode": "SingleClient",
+  "ClientConfig": {
+    "AppName": "杏林病理检验报告系统",
+    "Version": "1.0.0",
+    "MachineCode": ""
+  },
+  "InternalServerConfig": {
+    "BaseUrl": "http://localhost:5000",
+    "ApiKey": ""
+  },
+  "ExternalServerConfig": {
+    "BaseUrl": "https://external.xinglin.com",
+    "ApiKey": ""
+  },
+  "MasterServerConfig": {
+    "BaseUrl": "https://master.xinglin.com",
+    "ApiKey": ""
+  },
+  "Modules": [
+    {
+      "Name": "Common",
+      "Enabled": true,
+      "Dependencies": []
+    },
+    {
+      "Name": "Core",
+      "Enabled": true,
+      "Dependencies": ["Common"]
+    },
+    {
+      "Name": "DataAdapters",
+      "Enabled": true,
+      "Dependencies": ["Core"]
+    },
+    {
+      "Name": "Infrastructure",
+      "Enabled": true,
+      "Dependencies": ["Core", "DataAdapters"]
+    },
+    {
+      "Name": "Security",
+      "Enabled": true,
+      "Dependencies": ["Core"]
+    }
+  ],
+  "Dependencies": {
+    "Xinglin.Core.Services.ITemplateService": "Xinglin.Infrastructure.Services.TemplateService",
+    "Xinglin.Core.Services.ITemplateSerializationService": "Xinglin.Infrastructure.Services.TemplateSerializationService"
+  }
+}
