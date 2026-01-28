@@ -9,57 +9,134 @@
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="800"
              Background="White">
-    <!-- 元素模板 -->
+    <!-- 引用样式资源 -->
     <UserControl.Resources>
-        <DataTemplate x:Key="TextElementTemplate">
-            <controls:TextControl Element="{Binding}" ViewType="Edit"/>
-        </DataTemplate>
-        
-        <DataTemplate x:Key="ImageElementTemplate">
-            <controls:ImageControl Element="{Binding}" ViewType="Edit"/>
-        </DataTemplate>
-        
-        <DataTemplate x:Key="LineElementTemplate">
-            <controls:LineControl Element="{Binding}" ViewType="Edit"/>
-        </DataTemplate>
-        
-        <!-- 元素模板选择器 -->
-        <selectors:ElementTemplateSelector x:Key="ElementTemplateSelector"
-                                           TextElementTemplate="{StaticResource TextElementTemplate}"
-                                           ImageElementTemplate="{StaticResource ImageElementTemplate}"
-                                           LineElementTemplate="{StaticResource LineElementTemplate}"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/CommonStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- 元素模板 -->
+            <DataTemplate x:Key="TextElementTemplate">
+                <controls:TextControl Element="{Binding}" ViewType="Edit"/>
+            </DataTemplate>
+            
+            <DataTemplate x:Key="ImageElementTemplate">
+                <controls:ImageControl Element="{Binding}" ViewType="Edit"/>
+            </DataTemplate>
+            
+            <DataTemplate x:Key="LineElementTemplate">
+                <controls:LineControl Element="{Binding}" ViewType="Edit"/>
+            </DataTemplate>
+            
+            <!-- 元素模板选择器 -->
+            <selectors:ElementTemplateSelector x:Key="ElementTemplateSelector"
+                                               TextElementTemplate="{StaticResource TextElementTemplate}"
+                                               ImageElementTemplate="{StaticResource ImageElementTemplate}"
+                                               LineElementTemplate="{StaticResource LineElementTemplate}"/>
+        </ResourceDictionary>
     </UserControl.Resources>
     
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
         <!-- 工具栏 -->
-        <Border Grid.Row="0" Margin="5" Background="#F0F0F0" CornerRadius="3">
-            <StackPanel Orientation="Horizontal" Margin="5" Background="#F0F0F0">
-            <TextBlock Text="编辑面板" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <Button Content="添加文本" Command="{Binding AddTextElementCommand}"/>
-            <Button Content="添加图片" Command="{Binding AddImageElementCommand}"/>
-            <Button Content="添加线条" Command="{Binding AddLineElementCommand}"/>
-            <Button Content="保存" Command="{Binding SaveCommand}" Margin="0,0,10,0"/>
-            <Button Content="取消" Command="{Binding CancelCommand}"/>
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="5" Background="#F0F0F0" CornerRadius="4">
+            <StackPanel Orientation="Horizontal" Margin="10" Background="#F0F0F0">
+                <TextBlock Text="编辑面板" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="#333333"/>
+                <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                    <TextBlock Text="缩放:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#333333"/>
+                    <Button Content="50%" Command="{Binding ZoomCommand}" CommandParameter="0.5" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,5,0"/>
+                    <Button Content="100%" Command="{Binding ZoomCommand}" CommandParameter="1.0" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,5,0"/>
+                    <Button Content="200%" Command="{Binding ZoomCommand}" CommandParameter="2.0" Style="{StaticResource PrimaryButtonStyle}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                    <Button Content="保存" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,10,0"/>
+                    <Button Content="取消" Command="{Binding CancelCommand}" Style="{StaticResource PrimaryButtonStyle}"/>
+                </StackPanel>
             </StackPanel>
         </Border>
         
+        <!-- 控件箱 -->
+        <Border Grid.Row="1" Grid.Column="0" Margin="5" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- 控件箱标题 -->
+                <Border Grid.Row="0" Background="#0066CC" Padding="10" CornerRadius="4,4,0,0">
+                    <TextBlock Text="控件箱" Foreground="White" FontSize="14" FontWeight="Bold"/>
+                </Border>
+                
+                <!-- 搜索框 -->
+                <Border Grid.Row="1" Padding="10" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,1,1,0">
+                    <TextBox Text="{Binding ToolboxViewModel.SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="搜索控件..."
+                             Style="{StaticResource DefaultTextBoxStyle}"/>
+                </Border>
+                
+                <!-- 控件列表 -->
+                <Border Grid.Row="2" Padding="5">
+                    <ListBox ItemsSource="{Binding ToolboxViewModel.FilteredWidgetsList}"
+                             ItemContainerStyle="{StaticResource ToolboxItemStyle}"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" MouseLeftButtonDown="ListBoxItem_MouseLeftButtonDown"
+                                            Tag="{Binding Type}">
+                                    <Border Width="32" Height="32" Background="#F0F0F0" CornerRadius="4"
+                                            Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DisplayName}" 
+                                                   FontSize="12" FontWeight="Bold" 
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="#0066CC" TextTrimming="CharacterEllipsis"/>
+                                    </Border>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="14" Foreground="#333333"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#666666"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </Grid>
+        </Border>
+        
         <!-- 编辑画布 -->
-        <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Background="White" Margin="5">
+        <Border Grid.Row="1" Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Background="White" Margin="5" CornerRadius="4">
             <ItemsControl ItemsSource="{Binding Elements}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Canvas Background="#F8F8F8" Width="800" Height="1000"/>
+                        <Canvas Width="800" Height="1000">
+                            <!-- 网格背景 -->
+                            <Canvas.Background>
+                                <VisualBrush TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute" Viewbox="0,0,20,20" ViewboxUnits="Absolute">
+                                    <VisualBrush.Visual>
+                                        <Grid Width="20" Height="20" Background="#F8F8F8">
+                                            <Path Data="M 20,0 L 0,0 0,20" Stroke="#E0E0E0" StrokeThickness="0.5"/>
+                                        </Grid>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Canvas.Background>
+                        </Canvas>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemContainerStyle>
                     <Style TargetType="ContentPresenter">
                         <Setter Property="Canvas.Left" Value="{Binding X}"/>
                         <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                        <Setter Property="Canvas.ZIndex" Value="{Binding ZIndex}"/>
                     </Style>
                 </ItemsControl.ItemContainerStyle>
                 <ItemsControl.ItemTemplate>

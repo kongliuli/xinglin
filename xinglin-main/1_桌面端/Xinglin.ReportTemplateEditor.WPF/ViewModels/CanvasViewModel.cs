@@ -5,17 +5,27 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
     /// <summary>
     /// 画布视图模型，用于编辑面板，负责展示和编辑布局结构
     /// </summary>
-    public class CanvasViewModel : INotifyPropertyChanged
+    public class CanvasViewModel : ViewModelBase
     {
         private readonly MainViewModel _mainViewModel;
         private TemplateElement _selectedElement;
         private readonly DragDropService _dragDropService;
+        private ToolboxViewModel _toolboxViewModel;
         
         public CanvasViewModel(MainViewModel mainViewModel)
         {
             _mainViewModel = mainViewModel;
             _dragDropService = new DragDropService();
             InitializeViewModel();
+        }
+        
+        /// <summary>
+        /// 工具箱ViewModel
+        /// </summary>
+        public ToolboxViewModel ToolboxViewModel
+        {
+            get => _toolboxViewModel;
+            set => SetProperty(ref _toolboxViewModel, value);
         }
         
         private void InitializeViewModel()
@@ -31,6 +41,159 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             MoveElementToTopCommand = new RelayCommand<object>(MoveElementToTop, CanMoveElement);
             MoveElementToBottomCommand = new RelayCommand<object>(MoveElementToBottom, CanMoveElement);
             EditTableElementCommand = new RelayCommand<object>(EditTableElement, CanEditTableElement);
+            ZoomCommand = new RelayCommand<object>(Zoom, CanZoom);
+            
+            // 初始化工具箱ViewModel
+            ToolboxViewModel = new ToolboxViewModel(AddWidget);
+        }
+        
+        /// <summary>
+        /// 添加控件到画布
+        /// </summary>
+        /// <param name="widgetType">控件类型</param>
+        /// <param name="dropPoint">放置位置</param>
+        private void AddWidget(string widgetType, System.Windows.Point dropPoint)
+        {
+            switch (widgetType)
+            {
+                case "Text":
+                    AddTextElement(null);
+                    break;
+                case "Image":
+                    AddImageElement(null);
+                    break;
+                case "Line":
+                    AddLineElement(null);
+                    break;
+                case "Table":
+                    AddTableElement(null);
+                    break;
+                case "Label":
+                    AddLabelElement();
+                    break;
+                case "Number":
+                    AddNumberElement();
+                    break;
+                case "Date":
+                    AddDateElement();
+                    break;
+                case "Dropdown":
+                    AddDropdownElement();
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// 添加标签元素
+        /// </summary>
+        private void AddLabelElement()
+        {
+            var labelElement = new TemplateElement
+            {
+                ElementId = System.Guid.NewGuid().ToString(),
+                ElementType = "Label",
+                X = 100,
+                Y = 100,
+                Width = 200,
+                Height = 30,
+                DefaultValue = "新标签",
+                Style = new ElementStyle
+                {
+                    FontFamily = "微软雅黑",
+                    FontSize = 12,
+                    FontColor = "#000000",
+                    TextAlignment = "Left"
+                }
+            };
+            
+            AddElement(labelElement);
+        }
+        
+        /// <summary>
+        /// 添加数字元素
+        /// </summary>
+        private void AddNumberElement()
+        {
+            var numberElement = new TemplateElement
+            {
+                ElementId = System.Guid.NewGuid().ToString(),
+                ElementType = "Number",
+                X = 100,
+                Y = 150,
+                Width = 100,
+                Height = 30,
+                Label = "数字",
+                LabelWidth = 80,
+                DefaultValue = "0",
+                IsRequired = false,
+                Style = new ElementStyle
+                {
+                    FontFamily = "微软雅黑",
+                    FontSize = 12,
+                    FontColor = "#000000",
+                    TextAlignment = "Right"
+                }
+            };
+            
+            AddElement(numberElement);
+        }
+        
+        /// <summary>
+        /// 添加日期元素
+        /// </summary>
+        private void AddDateElement()
+        {
+            var dateElement = new TemplateElement
+            {
+                ElementId = System.Guid.NewGuid().ToString(),
+                ElementType = "Date",
+                X = 100,
+                Y = 200,
+                Width = 150,
+                Height = 30,
+                Label = "日期",
+                LabelWidth = 80,
+                DefaultValue = DateTime.Now.ToString("yyyy-MM-dd"),
+                IsRequired = false,
+                Style = new ElementStyle
+                {
+                    FontFamily = "微软雅黑",
+                    FontSize = 12,
+                    FontColor = "#000000",
+                    TextAlignment = "Left"
+                }
+            };
+            
+            AddElement(dateElement);
+        }
+        
+        /// <summary>
+        /// 添加下拉选择元素
+        /// </summary>
+        private void AddDropdownElement()
+        {
+            var dropdownElement = new TemplateElement
+            {
+                ElementId = System.Guid.NewGuid().ToString(),
+                ElementType = "Dropdown",
+                X = 100,
+                Y = 250,
+                Width = 150,
+                Height = 30,
+                Label = "选择",
+                LabelWidth = 80,
+                DefaultValue = "选项1",
+                IsRequired = false,
+                Style = new ElementStyle
+                {
+                    FontFamily = "微软雅黑",
+                    FontSize = 12,
+                    FontColor = "#000000",
+                    TextAlignment = "Left"
+                }
+            };
+            
+            AddElement(dropdownElement);
         }
         
         /// <summary>
@@ -121,6 +284,29 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 编辑表格元素命令
         /// </summary>
         public ICommand EditTableElementCommand { get; private set; }
+        
+        /// <summary>
+        /// 缩放命令
+        /// </summary>
+        public ICommand ZoomCommand { get; private set; }
+        
+        /// <summary>
+        /// 当前缩放比例
+        /// </summary>
+        private double _currentZoom = 1.0;
+        
+        /// <summary>
+        /// 当前缩放比例
+        /// </summary>
+        public double CurrentZoom
+        {
+            get => _currentZoom;
+            set
+            {
+                _currentZoom = value;
+                OnPropertyChanged();
+            }
+        }
         
         /// <summary>
         /// 拖拽服务
@@ -404,6 +590,30 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="parameter">命令参数</param>
         /// <returns>是否可以添加元素</returns>
         private bool CanAddElement(object parameter)
+        {
+            return true;
+        }
+        
+        /// <summary>
+        /// 执行缩放操作
+        /// </summary>
+        /// <param name="parameter">缩放比例参数</param>
+        private void Zoom(object parameter)
+        {
+            if (double.TryParse(parameter.ToString(), out double zoomFactor))
+            {
+                CurrentZoom = zoomFactor;
+                // 这里可以添加实际的缩放逻辑，例如调整Canvas的变换
+                Console.WriteLine($"缩放比例设置为: {zoomFactor * 100}%");
+            }
+        }
+        
+        /// <summary>
+        /// 是否可以执行缩放操作
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        /// <returns>是否可以执行缩放操作</returns>
+        private bool CanZoom(object parameter)
         {
             return true;
         }
