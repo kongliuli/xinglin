@@ -56,6 +56,14 @@ namespace Xinglin.ReportTemplateEditor.WPF.Commands
         {
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
+        
+        /// <summary>
+        /// 触发命令可执行状态变化
+        /// </summary>
+        public void RaiseCanExecuteChanged()
+        {
+            RefreshCommand();
+        }
     }
     
     /// <summary>
@@ -112,6 +120,14 @@ namespace Xinglin.ReportTemplateEditor.WPF.Commands
         public void RefreshCommand()
         {
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }
+        
+        /// <summary>
+        /// 触发命令可执行状态变化
+        /// </summary>
+        public void RaiseCanExecuteChanged()
+        {
+            RefreshCommand();
         }
     }
 }

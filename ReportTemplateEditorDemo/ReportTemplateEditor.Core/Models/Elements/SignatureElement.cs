@@ -25,7 +25,7 @@ namespace ReportTemplateEditor.Core.Models.Elements
         /// <summary>
         /// 背景颜色
         /// </summary>
-        public string BackgroundColor { get; set; } = "#FFFFFF";
+        public new string BackgroundColor { get; set; } = "#FFFFFF";
 
         /// <summary>
         /// 边框颜色

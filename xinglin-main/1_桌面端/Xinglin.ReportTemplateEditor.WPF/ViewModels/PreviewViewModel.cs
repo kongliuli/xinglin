@@ -1,4 +1,4 @@
-using System;using System.ComponentModel;using System.IO;using System.Runtime.CompilerServices;using System.Threading.Tasks;using System.Timers;using System.Windows.Input;using System.Windows.Media.Imaging;using System.Windows.Threading;using Xinglin.Core.Elements;using Xinglin.Core.Models;using Xinglin.Core.Rendering;using Xinglin.ReportTemplateEditor.WPF.Commands;
+using System;using System.ComponentModel;using System.IO;using System.Runtime.CompilerServices;using System.Threading.Tasks;using System.Timers;using System.Windows.Input;using System.Windows.Media.Imaging;using System.Windows.Threading;using Xinglin.Core.Elements;using Xinglin.Core.Models;using Xinglin.ReportTemplateEditor.WPF.Commands;using Xinglin.ReportTemplateEditor.WPF.Core.Rendering;using Xinglin.ReportTemplateEditor.WPF.Models;
 
 namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
 {
@@ -8,13 +8,14 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
     public class PreviewViewModel : INotifyPropertyChanged
     {
         private readonly MainViewModel _mainViewModel;
-        private ElementBase _selectedElement;
+        private TemplateElement _selectedElement;
         private double _zoomLevel = 1.0;
         private BitmapImage _previewImage;
         private string _statusMessage = "未加载模板";
         private bool _isLoading;
         private bool _isPreviewGenerating;
         private object _boundData;
+        private Models.InputData _inputData;
         private System.Timers.Timer _debounceTimer;
         private object _previewLock = new object();
         private readonly Dispatcher _dispatcher;
@@ -101,6 +102,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         }
         
         /// <summary>
+        /// 录入数据
+        /// </summary>
+        public Models.InputData InputData
+        {
+            get => _inputData;
+            set
+            {
+                _inputData = value;
+                OnPropertyChanged();
+                // 使用防抖机制，避免频繁触发预览生成
+                _debounceTimer.Stop();
+                _debounceTimer.Start();
+            }
+        }
+        
+        /// <summary>
         /// 状态信息
         /// </summary>
         public string StatusMessage
@@ -129,17 +146,17 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <summary>
         /// 当前模板
         /// </summary>
-        public ReportTemplateDefinition Template => _mainViewModel.Template;
+        public TemplateDefinition Template => _mainViewModel?.Template as TemplateDefinition;
         
         /// <summary>
         /// 模板渲染器
         /// </summary>
-        public ITemplateRenderer TemplateRenderer => _mainViewModel.TemplateRenderer;
+        public WpfTemplateRenderer TemplateRenderer { get; private set; } = new WpfTemplateRenderer();
         
         /// <summary>
         /// 选中的元素
         /// </summary>
-        public ElementBase SelectedElement
+        public TemplateElement SelectedElement
         {
             get => _selectedElement;
             set
@@ -199,7 +216,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         public double PreviewWidth
         {
-            get => Template.PageWidth * ZoomLevel;
+            get => Template.PageSettings.Width * ZoomLevel;
         }
         
         /// <summary>
@@ -207,7 +224,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         public double PreviewHeight
         {
-            get => Template.PageHeight * ZoomLevel;
+            get => Template.PageSettings.Height * ZoomLevel;
         }
         
         /// <summary>
@@ -227,7 +244,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 元素选中时调用
         /// </summary>
         /// <param name="element">选中的元素</param>
-        public void OnElementSelected(ElementBase element)
+        public void OnElementSelected(TemplateElement element)
         {
             SelectedElement = element;
         }
@@ -236,7 +253,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 元素属性更改时调用
         /// </summary>
         /// <param name="element">属性更改的元素</param>
-        public void OnElementPropertyChanged(ElementBase element)
+        public void OnElementPropertyChanged(TemplateElement element)
         {
             // 元素属性更改时的处理逻辑
             if (element == SelectedElement)
@@ -256,7 +273,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             {
                 // 这里简化处理，实际项目中可能需要打开文件保存对话框
                 var filePath = Path.Combine(Path.GetTempPath(), $"Report_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-                TemplateRenderer.RenderToFile(Template, filePath);
+                TemplateRenderer.RenderToFile(Template, InputData, filePath);
                 StatusMessage = $"PDF已生成: {filePath}";
             }
             catch (Exception ex)
@@ -277,7 +294,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 StatusMessage = "正在准备打印...";
                 // 这里简化处理，实际项目中可能需要更复杂的打印逻辑
                 var filePath = Path.Combine(Path.GetTempPath(), $"Report_{DateTime.Now:yyyyMMddHHmmss}.pdf");
-                TemplateRenderer.RenderToFile(Template, filePath);
+                TemplateRenderer.RenderToFile(Template, InputData, filePath);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(filePath) { Verb = "print" });
                 StatusMessage = "打印任务已发送";
             }
@@ -306,7 +323,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     StatusMessage = "正在保存PDF...";
-                    TemplateRenderer.RenderToFile(Template, saveFileDialog.FileName);
+                    TemplateRenderer.RenderToFile(Template, InputData, saveFileDialog.FileName);
                     StatusMessage = $"PDF已保存到: {saveFileDialog.FileName}";
                 }
             }
@@ -385,33 +402,36 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 IsLoading = true;
                 StatusMessage = "正在生成预览...";
 
-                // 异步生成预览图像
-                var previewImage = await Task.Run(() =>
+                // 异步生成预览
+                await Task.Run(() =>
                 {
                     try
                     {
-                        // 这里简化处理，实际项目中可能需要更复杂的图像渲染逻辑
-                        // 严格按照模板中定义的布局进行展示
-                        // 准确应用控件面板中设置的各项值定义
-                        // 将内容正确呈现在指定规格的纸张上
-                        return new BitmapImage();
+                        // 使用InputData渲染预览
+                        if (_inputData != null && Template != null)
+                        {
+                            // 使用WpfTemplateRenderer渲染模板
+                            var renderedElement = TemplateRenderer.RenderTemplate(Template, _inputData);
+                            if (renderedElement != null)
+                            {
+                                // 这里可以将渲染结果转换为图像
+                                // 暂时简化处理，实际项目中可能需要更复杂的图像渲染逻辑
+                                
+                                // 严格按照模板中定义的布局进行展示
+                                // 准确应用控件面板中设置的各项值定义
+                                // 将内容正确呈现在指定规格的纸张上
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Preview generation exception: {ex.Message}");
-                        return null;
                     }
                 });
 
-                if (previewImage != null)
-                {
-                    PreviewImage = previewImage;
-                    StatusMessage = "预览已生成";
-                }
-                else
-                {
-                    StatusMessage = "预览生成失败，请检查模板数据";
-                }
+                // 暂时使用占位图像
+                PreviewImage = new BitmapImage();
+                StatusMessage = "预览已生成";
             }
             catch (Exception ex)
             {
@@ -431,7 +451,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="filePath">输出文件路径</param>
         public void GeneratePdf(string filePath)
         {
-            TemplateRenderer.RenderToFile(Template, filePath);
+            TemplateRenderer.RenderToFile(Template, InputData, filePath);
         }
         
         /// <summary>

@@ -1,4 +1,4 @@
-using System.ComponentModel;using System.Runtime.CompilerServices;using Xinglin.Core.Elements;using Xinglin.Core.Models;
+using System.ComponentModel;using System.Runtime.CompilerServices;using Xinglin.Core.Models;using Xinglin.ReportTemplateEditor.WPF.Models;
 
 namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
 {
@@ -8,7 +8,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
     public class PropertyPanelViewModel : INotifyPropertyChanged
     {
         private readonly MainViewModel _mainViewModel;
-        private ElementBase _selectedElement;
+        private TemplateElement _selectedElement;
         
         public PropertyPanelViewModel(MainViewModel mainViewModel)
         {
@@ -24,12 +24,12 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <summary>
         /// 当前模板
         /// </summary>
-        public ReportTemplateDefinition Template => _mainViewModel.Template;
+        public object Template => _mainViewModel.Template;
         
         /// <summary>
         /// 选中的元素
         /// </summary>
-        public ElementBase SelectedElement
+        public TemplateElement SelectedElement
         {
             get => _selectedElement;
             set
@@ -75,7 +75,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 元素选中时调用
         /// </summary>
         /// <param name="element">选中的元素</param>
-        public void OnElementSelected(ElementBase element)
+        public void OnElementSelected(TemplateElement element)
         {
             SelectedElement = element;
         }

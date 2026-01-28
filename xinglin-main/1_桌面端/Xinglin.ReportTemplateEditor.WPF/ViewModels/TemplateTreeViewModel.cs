@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Xinglin.ReportTemplateEditor.WPF.Commands;
 using Xinglin.Core.Elements;
 using Xinglin.Core.Models;
+using Xinglin.ReportTemplateEditor.WPF.Models;
 
 namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
 {
@@ -150,7 +151,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 从模板定义构建树结构
         /// </summary>
         /// <param name="template">模板定义</param>
-        public void BuildTreeFromTemplate(ReportTemplateDefinition template)
+        public void BuildTreeFromTemplate(object template)
         {
             if (template == null)
                 return;
@@ -158,67 +159,113 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             // 清空现有节点
             TreeNodes.Clear();
             
-            // 创建根节点
-            var rootNode = new TemplateTreeNodeViewModel
+            // 处理TemplateDefinition类型
+            if (template is TemplateDefinition templateDef)
             {
-                Name = template.Name,
-                Type = "Template",
-                Data = template,
-                IsExpanded = true
-            };
-            
-            // 添加元素节点
-            foreach (var element in template.Elements)
-            {
-                var elementNode = CreateElementNode(element);
-                rootNode.Children.Add(elementNode);
+                // 创建根节点
+                var rootNode = new TemplateTreeNodeViewModel
+                {
+                    Name = templateDef.TemplateName,
+                    Type = "Template",
+                    Data = templateDef,
+                    IsExpanded = true
+                };
+                
+                // 添加全局元素节点
+                if (templateDef.ElementCollection?.GlobalElements != null)
+                {
+                    foreach (var element in templateDef.ElementCollection.GlobalElements)
+                    {
+                        var elementNode = CreateElementNode(element);
+                        rootNode.Children.Add(elementNode);
+                    }
+                }
+                
+                // 添加区域节点
+                if (templateDef.ElementCollection?.Zones != null)
+                {
+                    foreach (var zone in templateDef.ElementCollection.Zones)
+                    {
+                        var zoneNode = new TemplateTreeNodeViewModel
+                        {
+                            Name = zone.ZoneId,
+                            Type = "Zone",
+                            Data = zone,
+                            IsExpanded = true
+                        };
+                        
+                        // 添加区域内元素节点
+                        if (zone.Elements != null)
+                        {
+                            foreach (var element in zone.Elements)
+                            {
+                                var elementNode = CreateElementNode(element);
+                                zoneNode.Children.Add(elementNode);
+                            }
+                        }
+                        
+                        rootNode.Children.Add(zoneNode);
+                    }
+                }
+                
+                // 添加到树节点集合
+                TreeNodes.Add(rootNode);
             }
-            
-            // 添加到树节点集合
-            TreeNodes.Add(rootNode);
+            // 处理ReportTemplateDefinition类型
+            else if (template is ReportTemplateDefinition reportTemplate)
+            {
+                // 创建根节点
+                var rootNode = new TemplateTreeNodeViewModel
+                {
+                    Name = reportTemplate.Name,
+                    Type = "Template",
+                    Data = reportTemplate,
+                    IsExpanded = true
+                };
+                
+                // 添加元素节点
+                foreach (var element in reportTemplate.Elements)
+                {
+                    var elementNode = CreateElementNode(element);
+                    rootNode.Children.Add(elementNode);
+                }
+                
+                // 添加到树节点集合
+                TreeNodes.Add(rootNode);
+            }
         }
         
         /// <summary>
-        /// 创建元素节点
+        /// 为元素创建树节点
         /// </summary>
         /// <param name="element">元素对象</param>
-        /// <returns>元素节点</returns>
-        private TemplateTreeNodeViewModel CreateElementNode(ElementBase element)
+        /// <returns>创建的树节点</returns>
+        private TemplateTreeNodeViewModel CreateElementNode(object element)
         {
             var node = new TemplateTreeNodeViewModel
             {
-                Name = GetElementDisplayName(element),
-                Type = element.Type,
-                Data = element,
-                IsExpanded = true
+                Type = "Element",
+                Data = element
             };
             
-            // 检查是否有子元素（如果支持的话）
-            // 目前ElementBase没有子元素属性，这里可以根据实际需求扩展
+            // 设置节点名称
+            if (element is TemplateElement templateElement)
+            {
+                node.Name = templateElement.Label ?? templateElement.ElementId;
+            }
+            else if (element is Xinglin.Core.Elements.ElementBase coreElement)
+            {
+                node.Name = coreElement.Label ?? coreElement.Id;
+            }
+            else if (element is Xinglin.ReportTemplateEditor.WPF.Core.Elements.ElementBase localElement)
+            {
+                node.Name = localElement.Label ?? localElement.ElementId;
+            }
             
             return node;
         }
         
-        /// <summary>
-        /// 获取元素显示名称
-        /// </summary>
-        /// <param name="element">元素对象</param>
-        /// <returns>显示名称</returns>
-        private string GetElementDisplayName(ElementBase element)
-        {
-            switch (element.Type)
-            {
-                case "Text":
-                    var textElement = (TextElement)element;
-                    return $"文本 [{textElement.Text}]";
-                case "Image":
-                    return "图片";
-                case "Line":
-                    return "线条";
-                default:
-                    return element.Type;
-            }
-        }
+
         
         /// <summary>
         /// 编辑节点

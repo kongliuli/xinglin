@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Markup;
+using Xinglin.ReportTemplateEditor.WPF.Services;
 
 namespace Xinglin.ReportTemplateEditor.WPF;
 
@@ -10,16 +11,24 @@ namespace Xinglin.ReportTemplateEditor.WPF;
 /// </summary>
 public partial class App : Application
 {
+    public static DependencyContainer Container { get; private set; }
+    private GlobalExceptionHandler _exceptionHandler;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // 添加全局异常处理
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        DispatcherUnhandledException += App_DispatcherUnhandledException;
-
         try
         {
+            // 初始化依赖注入容器
+            Container = new DependencyContainer();
+
+            // 初始化全局异常处理器
+            _exceptionHandler = Container.Resolve<GlobalExceptionHandler>();
+            
+            // 注册全局异常处理
+            _exceptionHandler.RegisterGlobalExceptionHandlers();
+
             // 检查授权状态
             CheckAuthorizationStatus();
             
@@ -29,32 +38,16 @@ public partial class App : Application
         }
         catch (XamlParseException ex)
         {
-            // 显示XAML解析错误信息
-            MessageBox.Show($"XAML解析失败: {ex.Message}\n{ex.StackTrace}\n{ex.BaseUri}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            // 使用全局异常处理器处理异常
+            _exceptionHandler?.HandleException(ex, "XAML Parse Exception");
             Shutdown();
         }
         catch (Exception ex)
         {
-            // 显示错误信息
-            MessageBox.Show($"应用启动失败: {ex.Message}\n{ex.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            // 使用全局异常处理器处理异常
+            _exceptionHandler?.HandleException(ex, "Application Startup Exception");
             Shutdown();
         }
-    }
-
-    private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-    {
-        // 显示UI线程异常信息
-        //MessageBox.Show($"UI线程异常: {e.Exception.Message}\n{e.Exception.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        e.Handled = true;
-        Shutdown();
-    }
-
-    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-        // 显示非UI线程异常信息
-        Exception ex = e.ExceptionObject as Exception;
-        MessageBox.Show($"非UI线程异常: {ex?.Message}\n{ex?.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-        Shutdown();
     }
 
     /// <summary>

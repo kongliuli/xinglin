@@ -1,0 +1,53 @@
+<UserControl x:Class="Xinglin.ReportTemplateEditor.WPF.Views.ZoneManagerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views"
+             xmlns:vm="clr-namespace:Xinglin.ReportTemplateEditor.WPF.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="300">
+    <UserControl.DataContext>
+        <vm:ZoneManagerViewModel />
+    </UserControl.DataContext>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 工具栏 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+            <Button Content="添加区域" Command="{Binding AddZoneCommand}" Margin="0,0,5,0"/>
+            <Button Content="删除区域" Command="{Binding DeleteZoneCommand}" Margin="0,0,5,0"/>
+            <Button Content="编辑区域" Command="{Binding EditZoneCommand}" Margin="0,0,5,0"/>
+        </StackPanel>
+        
+        <!-- 区域列表 -->
+        <ScrollViewer Grid.Row="1" Margin="5">
+            <TreeView ItemsSource="{Binding Zones}">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Elements}">
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox IsChecked="{Binding IsVisible}" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding ZoneName}" FontWeight="Bold"/>
+                            <TextBlock Text=" (" Margin="5,0,0,0" Foreground="Gray"/>
+                            <TextBlock Text="{Binding Elements.Count}" Foreground="Gray"/>
+                            <TextBlock Text=" 个元素)" Foreground="Gray"/>
+                        </StackPanel>
+                        <HierarchicalDataTemplate.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
+                                    <TextBlock Text="{Binding ElementType}" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text=": " Margin="3,0,0,0"/>
+                                    <TextBlock Text="{Binding ElementId}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </HierarchicalDataTemplate.ItemTemplate>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

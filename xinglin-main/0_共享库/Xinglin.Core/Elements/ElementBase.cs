@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -260,9 +261,63 @@ namespace Xinglin.Core.Elements
         /// 文本对齐方式
         /// </summary>
         public string TextAlignment 
-        { 
+        {
             get => _textAlignment; 
             set => SetProperty(ref _textAlignment, value); 
+        }
+        
+        // 前置Label（仅可编辑元素需要）
+        private string _label;
+        private double _labelWidth;
+        
+        /// <summary>
+        /// 前置标签文本
+        /// </summary>
+        public string Label 
+        {
+            get => _label; 
+            set => SetProperty(ref _label, value); 
+        }
+        
+        /// <summary>
+        /// 标签宽度
+        /// </summary>
+        public double LabelWidth 
+        {
+            get => _labelWidth; 
+            set => SetProperty(ref _labelWidth, value); 
+        }
+        
+        // 交互属性（仅可编辑元素需要）
+        private string _defaultValue;
+        private bool _isRequired;
+        private List<string> _options;
+        
+        /// <summary>
+        /// 默认值
+        /// </summary>
+        public string DefaultValue 
+        {
+            get => _defaultValue; 
+            set => SetProperty(ref _defaultValue, value); 
+        }
+        
+        /// <summary>
+        /// 是否必填
+        /// </summary>
+        public bool IsRequired 
+        {
+            get => _isRequired; 
+            set => SetProperty(ref _isRequired, value); 
+        }
+        
+        /// <summary>
+        /// 下拉选项列表
+        /// </summary>
+        public List<string> Options 
+        {
+            get => _options; 
+            set => SetProperty(ref _options, value); 
         }
         
         /// <summary>
@@ -326,6 +381,13 @@ namespace Xinglin.Core.Elements
             FontStyle = "Normal";
             ForegroundColor = "#000000";
             TextAlignment = "Left";
+            
+            // 初始化可编辑元素属性
+            Label = string.Empty;
+            LabelWidth = 80;
+            DefaultValue = string.Empty;
+            IsRequired = false;
+            Options = new List<string>();
         }
 
 

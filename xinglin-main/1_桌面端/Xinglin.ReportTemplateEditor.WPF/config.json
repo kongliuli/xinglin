@@ -1,4 +1,8 @@
 {
+  "TemplateDirectory": "Templates",
+  "DataDirectory": "InputData",
+  "AssetsDirectory": "Assets",
+  "DefaultTemplateId": "basic_report_001",
   "RunningMode": "SingleClient",
   "ClientConfig": {
     "AppName": "杏林病理检验报告系统",

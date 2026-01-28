@@ -41,6 +41,7 @@
                                     <MenuItem Header="文本元素"/>
                                     <MenuItem Header="图片元素"/>
                                     <MenuItem Header="线条元素"/>
+                                    <MenuItem Header="表格元素"/>
                                 </MenuItem>
                             </ContextMenu>
                         </Setter.Value>

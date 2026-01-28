@@ -27,51 +27,56 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" MinHeight="40"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*" MinHeight="400"/>
         </Grid.RowDefinitions>
 
         <!-- 菜单栏 -->
         <Menu Grid.Row="0" Background="#F0F0F0" BorderThickness="0,0,0,1">
             <MenuItem Header="文件">
-                <MenuItem Header="新建模板"/>
-                <MenuItem Header="打开模板"/>
-                <MenuItem Header="保存模板"/>
+                <MenuItem Header="新建模板" InputGestureText="Ctrl+N"/>
+                <MenuItem Header="打开模板" InputGestureText="Ctrl+O"/>
+                <MenuItem Header="保存模板" InputGestureText="Ctrl+S"/>
                 <Separator/>
-                <MenuItem Header="导出PDF" Command="{Binding PreviewViewModel.GeneratePdfCommand}"/>
+                <MenuItem Header="导出PDF" Command="{Binding PreviewViewModel.GeneratePdfCommand}" InputGestureText="Ctrl+E"/>
             </MenuItem>
             <MenuItem Header="编辑">
-                <MenuItem Header="撤销" Command="{Binding UndoCommand}" />
-                <MenuItem Header="重做" Command="{Binding RedoCommand}" />
+                <MenuItem Header="撤销" Command="{Binding UndoCommand}" InputGestureText="Ctrl+Z" />
+                <MenuItem Header="重做" Command="{Binding RedoCommand}" InputGestureText="Ctrl+Y" />
                 <Separator/>
-                <MenuItem Header="编辑模板" Command="{Binding EditTemplateCommand}" />
+                <MenuItem Header="编辑模板" Command="{Binding EditTemplateCommand}" InputGestureText="Ctrl+T" />
             </MenuItem>
             <MenuItem Header="视图">
                 <MenuItem Header="缩放">
-                    <MenuItem Header="50%"/>
-                    <MenuItem Header="100%"/>
-                    <MenuItem Header="200%"/>
+                    <MenuItem Header="50%" InputGestureText="Ctrl+5"/>
+                    <MenuItem Header="100%" InputGestureText="Ctrl+1"/>
+                    <MenuItem Header="200%" InputGestureText="Ctrl+2"/>
                 </MenuItem>
                 <Separator/>
-                <MenuItem Header="设置" Command="{Binding OpenSettingsCommand}"/>
+                <MenuItem Header="设置" Command="{Binding OpenSettingsCommand}" InputGestureText="Ctrl+P"/>
+                <MenuItem Header="快捷键配置" Command="{Binding OpenShortcutConfigCommand}"/>
             </MenuItem>
             <MenuItem Header="帮助">
                 <MenuItem Header="关于"/>
             </MenuItem>
         </Menu>
+        
+        <!-- 行分割器 -->
+        <GridSplitter Grid.Row="1" Height="5" VerticalAlignment="Stretch" Background="LightGray" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Cursor="SizeNS"/>
 
         <!-- 主内容区 -->
-        <Grid Grid.Row="1" Margin="5">
+        <Grid Grid.Row="2" Margin="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="300" MinWidth="200" MaxWidth="600"/>
                 <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" MinWidth="300"/>
                 <ColumnDefinition Width="5"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*" MinWidth="400"/>
             </Grid.ColumnDefinitions>
 
-            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="LightGray"/>
-            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Background="LightGray"/>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="LightGray" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Background="LightGray" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Cursor="SizeWE"/>
 
             <!-- 左侧：模板树 -->
             <Border Grid.Column="0" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">

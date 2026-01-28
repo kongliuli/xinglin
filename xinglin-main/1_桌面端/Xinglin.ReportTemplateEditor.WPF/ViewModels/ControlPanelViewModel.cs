@@ -19,8 +19,8 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         private readonly Dictionary<string, WpfFrameworkElement> _controlMap = new Dictionary<string, WpfFrameworkElement>();
         private INotifyPropertyChanged? _previousBoundDataNotifier;
 
-        private ReportTemplateDefinition? _currentTemplate;
-        public ReportTemplateDefinition? CurrentTemplate
+        private object? _currentTemplate;
+        public object? CurrentTemplate
         {
             get => _currentTemplate;
             set
@@ -84,6 +84,41 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             }
         }
 
+        private string _searchText = "";
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged(nameof(SearchText));
+                GenerateControls();
+            }
+        }
+
+        private List<string> _elementCategories;
+        public List<string> ElementCategories
+        {
+            get => _elementCategories;
+            set
+            {
+                _elementCategories = value;
+                OnPropertyChanged(nameof(ElementCategories));
+            }
+        }
+
+        private string _selectedCategory = "全部";
+        public string SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                _selectedCategory = value;
+                OnPropertyChanged(nameof(SelectedCategory));
+                GenerateControls();
+            }
+        }
+
         public ICommand LoadTemplateCommand { get; }
         public ICommand RefreshControlsCommand { get; }
         public ICommand GenerateSampleDataCommand { get; }
@@ -95,6 +130,9 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             RefreshControlsCommand = new RelayCommand(RefreshControls);
             GenerateSampleDataCommand = new RelayCommand(CreateSampleData);
             UpdateDataCommand = new RelayCommand<object>(UpdateData);
+            
+            // 初始化元素分类列表
+            ElementCategories = new List<string> { "全部", "文本输入", "下拉选择", "表格", "其他" };
         }
 
         private void LoadTemplate(ReportTemplateDefinition? template)
@@ -151,42 +189,78 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             ControlContainer.Children.Clear();
             _controlMap.Clear();
 
-            var textElements = new List<ElementBase>();
-            var tableElements = new List<ElementBase>();
-            var otherElements = new List<ElementBase>();
+            var elements = new List<object>();
 
-            foreach (var element in CurrentTemplate.Elements)
+            // 处理ReportTemplateDefinition类型
+            if (CurrentTemplate is Xinglin.Core.Models.ReportTemplateDefinition reportTemplate)
             {
-                if (!element.IsVisible)
+                foreach (var element in reportTemplate.Elements)
                 {
-                    continue;
+                    if (element is Xinglin.Core.Elements.ElementBase coreElement && coreElement.IsVisible)
+                    {
+                        elements.Add(coreElement);
+                    }
                 }
-
-                if (element is TextElement)
+            }
+            // 处理TemplateDefinition类型
+            else if (CurrentTemplate is Xinglin.ReportTemplateEditor.WPF.Models.TemplateDefinition templateDef)
+            {
+                // 添加全局元素
+                if (templateDef.ElementCollection?.GlobalElements != null)
                 {
-                    textElements.Add(element);
+                    foreach (var element in templateDef.ElementCollection.GlobalElements)
+                    {
+                        elements.Add(element);
+                    }
                 }
-                else
+                // 添加区域内元素
+                if (templateDef.ElementCollection?.Zones != null)
                 {
-                    otherElements.Add(element);
+                    foreach (var zone in templateDef.ElementCollection.Zones)
+                    {
+                        if (zone.Elements != null)
+                        {
+                            foreach (var element in zone.Elements)
+                            {
+                                elements.Add(element);
+                            }
+                        }
+                    }
                 }
             }
 
-            foreach (var element in textElements.Concat(otherElements))
+            // 过滤元素
+            var filteredElements = FilterElements(elements);
+
+            foreach (var element in filteredElements)
             {
                 try
                 {
-                    var control = GenerateControl(element);
-                    if (control != null)
+                    if (element is Xinglin.Core.Elements.ElementBase coreElement)
                     {
-                        ControlContainer.Children.Add(control);
-                        _controlMap[element.Id] = control;
-                        SetupDataBinding(control, element);
+                        var control = GenerateControl(coreElement);
+                        if (control != null)
+                        {
+                            ControlContainer.Children.Add(control);
+                            _controlMap[coreElement.Id] = control;
+                            SetupDataBinding(control, coreElement);
+                        }
+                    }
+                    else if (element is Xinglin.ReportTemplateEditor.WPF.Models.TemplateElement templateElement)
+                    {
+                        // 为TemplateElement创建控件
+                        var control = GenerateTemplateElementControl(templateElement);
+                        if (control != null)
+                        {
+                            ControlContainer.Children.Add(control);
+                            _controlMap[templateElement.ElementId] = control;
+                            SetupTemplateElementDataBinding(control, templateElement);
+                        }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"生成控件失败: {element.Type}, 错误: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"生成控件失败: {ex.Message}");
                 }
             }
 
@@ -194,13 +268,173 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             {
                 var noElementsText = new System.Windows.Controls.TextBlock
                 {
-                    Text = "模板中没有可见控件",
+                    Text = filteredElements.Count == 0 ? "没有找到匹配的控件" : "模板中没有可见控件",
                     Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(153, 153, 153)),
                     Margin = new System.Windows.Thickness(20),
                     TextAlignment = System.Windows.TextAlignment.Center
                 };
                 ControlContainer.Children.Add(noElementsText);
             }
+        }
+
+        /// <summary>
+        /// 过滤元素
+        /// </summary>
+        /// <param name="elements">原始元素列表</param>
+        /// <returns>过滤后的元素列表</returns>
+        private List<object> FilterElements(List<object> elements)
+        {
+            return elements.Where(element => 
+            {
+                // 搜索过滤
+                bool matchesSearch = true;
+                if (!string.IsNullOrEmpty(SearchText))
+                {
+                    string searchText = SearchText.ToLower();
+                    if (element is Xinglin.Core.Elements.ElementBase coreElement)
+                    {
+                        matchesSearch = coreElement.Type?.ToLower().Contains(searchText) ?? false;
+                    }
+                    else if (element is Xinglin.ReportTemplateEditor.WPF.Models.TemplateElement templateElement)
+                    {
+                        matchesSearch = (templateElement.Label?.ToLower().Contains(searchText) ?? false) || 
+                                       (templateElement.ElementType?.ToLower().Contains(searchText) ?? false);
+                    }
+                }
+
+                // 分类过滤
+                bool matchesCategory = true;
+                if (SelectedCategory != "全部")
+                {
+                    if (element is Xinglin.Core.Elements.ElementBase coreElement)
+                    {
+                        matchesCategory = GetElementCategory(coreElement.Type) == SelectedCategory;
+                    }
+                    else if (element is Xinglin.ReportTemplateEditor.WPF.Models.TemplateElement templateElement)
+                    {
+                        matchesCategory = GetElementCategory(templateElement.ElementType) == SelectedCategory;
+                    }
+                }
+
+                return matchesSearch && matchesCategory;
+            }).ToList();
+        }
+
+        /// <summary>
+        /// 获取元素分类
+        /// </summary>
+        /// <param name="elementType">元素类型</param>
+        /// <returns>元素分类</returns>
+        private string GetElementCategory(string elementType)
+        {
+            switch (elementType?.ToLower())
+            {
+                case "text":
+                case "number":
+                case "date":
+                    return "文本输入";
+                case "dropdown":
+                    return "下拉选择";
+                case "table":
+                    return "表格";
+                default:
+                    return "其他";
+            }
+        }
+
+        /// <summary>
+        /// 为TemplateElement生成控件
+        /// </summary>
+        /// <param name="element">TemplateElement对象</param>
+        /// <returns>生成的控件</returns>
+        private WpfFrameworkElement GenerateTemplateElementControl(Xinglin.ReportTemplateEditor.WPF.Models.TemplateElement element)
+        {
+            var border = new System.Windows.Controls.Border
+            {
+                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(224, 224, 224)),
+                BorderThickness = new System.Windows.Thickness(1),
+                CornerRadius = new System.Windows.CornerRadius(4),
+                Margin = new System.Windows.Thickness(0, 0, 0, 10),
+                Padding = new System.Windows.Thickness(10)
+            };
+
+            var panel = new System.Windows.Controls.StackPanel
+            {
+                Orientation = System.Windows.Controls.Orientation.Vertical
+            };
+
+            var label = new System.Windows.Controls.TextBlock
+            {
+                Text = element.Label ?? element.ElementType,
+                FontWeight = System.Windows.FontWeights.Medium,
+                Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(51, 51, 51)),
+                Margin = new System.Windows.Thickness(0, 0, 0, 5)
+            };
+
+            panel.Children.Add(label);
+
+            // 根据元素类型生成不同的控件
+            switch (element.ElementType)
+            {
+                case "Text":
+                case "Number":
+                case "Date":
+                    var textBox = new System.Windows.Controls.TextBox
+                    {
+                        Text = element.DefaultValue,
+                        Margin = new System.Windows.Thickness(0, 0, 0, 5),
+                        Padding = new System.Windows.Thickness(8)
+                    };
+                    panel.Children.Add(textBox);
+                    break;
+                case "Dropdown":
+                    var comboBox = new System.Windows.Controls.ComboBox
+                    {
+                        Margin = new System.Windows.Thickness(0, 0, 0, 5),
+                        Padding = new System.Windows.Thickness(8)
+                    };
+                    if (element.Options != null)
+                    {
+                        foreach (var option in element.Options)
+                        {
+                            comboBox.Items.Add(option);
+                        }
+                    }
+                    panel.Children.Add(comboBox);
+                    break;
+                case "Table":
+                    var tableLabel = new System.Windows.Controls.TextBlock
+                    {
+                        Text = "表格元素",
+                        Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(102, 102, 102)),
+                        Margin = new System.Windows.Thickness(0, 0, 0, 5)
+                    };
+                    panel.Children.Add(tableLabel);
+                    break;
+                default:
+                    var defaultLabel = new System.Windows.Controls.TextBlock
+                    {
+                        Text = $"元素类型: {element.ElementType}",
+                        Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(102, 102, 102)),
+                        Margin = new System.Windows.Thickness(0, 0, 0, 5)
+                    };
+                    panel.Children.Add(defaultLabel);
+                    break;
+            }
+
+            border.Child = panel;
+            return border;
+        }
+
+        /// <summary>
+        /// 为TemplateElement设置数据绑定
+        /// </summary>
+        /// <param name="control">控件</param>
+        /// <param name="element">TemplateElement对象</param>
+        private void SetupTemplateElementDataBinding(WpfFrameworkElement control, Xinglin.ReportTemplateEditor.WPF.Models.TemplateElement element)
+        {
+            // 这里可以根据需要实现数据绑定逻辑
+            // 暂时留空，因为我们还没有实现完整的数据绑定系统
         }
 
         private WpfFrameworkElement GenerateControl(ElementBase element)
@@ -255,13 +489,55 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             var data = new System.Dynamic.ExpandoObject();
             var dataDict = (System.Collections.Generic.IDictionary<string, object?>)data;
 
-            foreach (var element in CurrentTemplate.Elements)
+            // 处理ReportTemplateDefinition类型
+            if (CurrentTemplate is Xinglin.Core.Models.ReportTemplateDefinition reportTemplate)
             {
-                if (element is TextElement textElement && !string.IsNullOrEmpty(textElement.DataBindingPath))
+                foreach (var element in reportTemplate.Elements)
                 {
-                    if (!dataDict.ContainsKey(textElement.DataBindingPath))
+                    if (element is Xinglin.Core.Elements.TextElement textElement && !string.IsNullOrEmpty(textElement.DataBindingPath))
                     {
-                        dataDict[textElement.DataBindingPath] = textElement.Text;
+                        if (!dataDict.ContainsKey(textElement.DataBindingPath))
+                        {
+                            dataDict[textElement.DataBindingPath] = textElement.Text;
+                        }
+                    }
+                }
+            }
+            // 处理TemplateDefinition类型
+            else if (CurrentTemplate is Xinglin.ReportTemplateEditor.WPF.Models.TemplateDefinition templateDef)
+            {
+                // 处理全局元素
+                if (templateDef.ElementCollection?.GlobalElements != null)
+                {
+                    foreach (var element in templateDef.ElementCollection.GlobalElements)
+                    {
+                        if (!string.IsNullOrEmpty(element.ElementId))
+                        {
+                            if (!dataDict.ContainsKey(element.ElementId))
+                            {
+                                dataDict[element.ElementId] = element.DefaultValue;
+                            }
+                        }
+                    }
+                }
+                // 处理区域内元素
+                if (templateDef.ElementCollection?.Zones != null)
+                {
+                    foreach (var zone in templateDef.ElementCollection.Zones)
+                    {
+                        if (zone.Elements != null)
+                        {
+                            foreach (var element in zone.Elements)
+                            {
+                                if (!string.IsNullOrEmpty(element.ElementId))
+                                {
+                                    if (!dataDict.ContainsKey(element.ElementId))
+                                    {
+                                        dataDict[element.ElementId] = element.DefaultValue;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -307,23 +583,71 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 return;
             }
 
-            foreach (var element in CurrentTemplate.Elements)
+            // 处理ReportTemplateDefinition类型
+            if (CurrentTemplate is Xinglin.Core.Models.ReportTemplateDefinition reportTemplate)
             {
-                if (!element.IsVisible)
+                foreach (var element in reportTemplate.Elements)
                 {
-                    continue;
-                }
-
-                try
-                {
-                    if (_controlMap.TryGetValue(element.Id, out var control))
+                    if (element is Xinglin.Core.Elements.ElementBase coreElement && coreElement.IsVisible)
                     {
-                        SetupDataBinding(control, element);
+                        try
+                        {
+                            if (_controlMap.TryGetValue(coreElement.Id, out var control))
+                            {
+                                SetupDataBinding(control, coreElement);
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"更新控件绑定失败: {coreElement.Type}, 错误: {ex.Message}");
+                        }
                     }
                 }
-                catch (System.Exception ex)
+            }
+            // 处理TemplateDefinition类型
+            else if (CurrentTemplate is Xinglin.ReportTemplateEditor.WPF.Models.TemplateDefinition templateDef)
+            {
+                // 处理全局元素
+                if (templateDef.ElementCollection?.GlobalElements != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"更新控件绑定失败: {element.Type}, 错误: {ex.Message}");
+                    foreach (var element in templateDef.ElementCollection.GlobalElements)
+                    {
+                        try
+                        {
+                            if (_controlMap.TryGetValue(element.ElementId, out var control))
+                            {
+                                SetupTemplateElementDataBinding(control, element);
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"更新控件绑定失败: {element.ElementType}, 错误: {ex.Message}");
+                        }
+                    }
+                }
+                // 处理区域内元素
+                if (templateDef.ElementCollection?.Zones != null)
+                {
+                    foreach (var zone in templateDef.ElementCollection.Zones)
+                    {
+                        if (zone.Elements != null)
+                        {
+                            foreach (var element in zone.Elements)
+                            {
+                                try
+                                {
+                                    if (_controlMap.TryGetValue(element.ElementId, out var control))
+                                    {
+                                        SetupTemplateElementDataBinding(control, element);
+                                    }
+                                }
+                                catch (System.Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"更新控件绑定失败: {element.ElementType}, 错误: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

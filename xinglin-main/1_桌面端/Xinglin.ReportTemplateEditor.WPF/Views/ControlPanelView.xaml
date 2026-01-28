@@ -11,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -28,7 +29,25 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="2" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
+        <Border Grid.Row="2" Padding="10" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,1,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Margin="0,0,10,0"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="搜索元素..."
+                         Style="{StaticResource TextBoxDefault}"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding ElementCategories}"
+                          SelectedItem="{Binding SelectedCategory}"
+                          Style="{StaticResource ComboBoxDefault}"
+                          Width="150"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
             <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <StackPanel x:Name="ControlsContainer" Margin="10" Background="White">
                     <TextBlock Text="未加载模板" Foreground="#999999" Margin="20" TextAlignment="Center"/>
@@ -36,7 +55,7 @@
             </ScrollViewer>
         </Border>
 
-        <Border Grid.Row="3" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
+        <Border Grid.Row="4" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
             <TextBlock Text="{Binding StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
         </Border>
     </Grid>
