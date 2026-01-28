@@ -17,6 +17,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         private PropertyPanelViewModel _propertyPanelViewModel;
         private PreviewViewModel _previewViewModel;
         private TemplateTreeViewModel _templateTreeViewModel;
+        private ControlPanelViewModel _controlPanelViewModel;
         private CommandManager _commandManager;
         
         public MainViewModel()
@@ -40,6 +41,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             _propertyPanelViewModel = new PropertyPanelViewModel(this);
             _previewViewModel = new PreviewViewModel(this);
             _templateTreeViewModel = new TemplateTreeViewModel();
+            _controlPanelViewModel = new ControlPanelViewModel();
             
             // 订阅模板树节点选中事件
             _templateTreeViewModel.OnNodeSelected += OnTemplateTreeNodeSelected;
@@ -53,6 +55,8 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         
         private ICommand _undoCommand;
         private ICommand _redoCommand;
+        private ICommand _openSettingsCommand;
+        private ICommand _editTemplateCommand;
         
         private void InitializeCommands()
         {
@@ -66,6 +70,18 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             _redoCommand = new RelayCommand(
                 () => CommandManager.Redo(),
                 () => CommandManager.CanRedo
+            );
+            
+            // 创建打开设置命令
+            _openSettingsCommand = new RelayCommand(
+                () => OpenSettings(),
+                () => true
+            );
+            
+            // 创建编辑模板命令
+            _editTemplateCommand = new RelayCommand(
+                () => EditTemplate(_template),
+                () => true
             );
             
             // 订阅命令管理器的事件，以便更新命令的可执行状态
@@ -82,6 +98,25 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 重做命令
         /// </summary>
         public ICommand RedoCommand => _redoCommand;
+        
+        /// <summary>
+        /// 打开设置命令
+        /// </summary>
+        public ICommand OpenSettingsCommand => _openSettingsCommand;
+        
+        /// <summary>
+        /// 编辑模板命令
+        /// </summary>
+        public ICommand EditTemplateCommand => _editTemplateCommand;
+        
+        /// <summary>
+        /// 打开设置
+        /// </summary>
+        private void OpenSettings()
+        {
+            // 这里简化处理，实际项目中可能需要打开设置窗口
+            Console.WriteLine("打开设置窗口");
+        }
         
         /// <summary>
         /// 可以撤销状态变化时调用
@@ -127,9 +162,10 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 OnPropertyChanged();
                 
                 // 通知各个面板视图模型模板已更改
-                CanvasViewModel.OnTemplateChanged();
-                PropertyPanelViewModel.OnTemplateChanged();
-                PreviewViewModel.OnTemplateChanged();
+                _canvasViewModel.OnTemplateChanged();
+                _propertyPanelViewModel.OnTemplateChanged();
+                _previewViewModel.OnTemplateChanged();
+                _controlPanelViewModel.CurrentTemplate = _template;
                 
                 // 更新模板树
                 TemplateTreeViewModel.BuildTreeFromTemplate(_template);
@@ -189,6 +225,19 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         }
         
         /// <summary>
+        /// 控件面板视图模型
+        /// </summary>
+        public ControlPanelViewModel ControlPanelViewModel
+        {
+            get => _controlPanelViewModel;
+            private set
+            {
+                _controlPanelViewModel = value;
+                OnPropertyChanged();
+            }
+        }
+        
+        /// <summary>
         /// 模板渲染器
         /// </summary>
         public ITemplateRenderer TemplateRenderer => _templateRenderer;
@@ -230,6 +279,7 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             CanvasViewModel.OnTemplateChanged();
             PropertyPanelViewModel.OnTemplateChanged();
             PreviewViewModel.OnTemplateChanged();
+            ControlPanelViewModel.CurrentTemplate = _template;
         }
         
         /// <summary>

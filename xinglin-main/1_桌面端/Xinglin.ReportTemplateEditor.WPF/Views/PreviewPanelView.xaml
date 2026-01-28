@@ -5,34 +5,55 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="500"
+             d:DesignHeight="600" d:DesignWidth="600"
              Background="White">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <!-- 工具栏 -->
-        <Border Grid.Row="0" Margin="5" Background="#F0F0F0" CornerRadius="3">
-            <StackPanel Orientation="Horizontal" Margin="5" Background="#F0F0F0">
-            <TextBlock Text="预览界面" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <Button Content="生成PDF" Command="{Binding GeneratePdfCommand}"/>
-            <Slider Minimum="50" Maximum="200" Value="{Binding Zoom}" Width="150" Margin="10,0"/>
-            <TextBlock Text="{Binding Zoom, StringFormat={}{0}%}" Margin="5,0,0,0" VerticalAlignment="Center"/>
+
+        <Border Grid.Row="0" Background="#4A90E2" Padding="15,10" CornerRadius="4,4,0,0">
+            <TextBlock Text="PDF预览" Foreground="White" FontSize="16" FontWeight="Bold"/>
+        </Border>
+
+        <Border Grid.Row="1" Padding="10" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,1,1,0">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="打印" Command="{Binding PrintCommand}" 
+                        Style="{StaticResource ButtonPrimary}" Margin="0,0,5,0" Width="80"/>
+                <Button Content="保存PDF" Command="{Binding SavePdfCommand}" 
+                        Style="{StaticResource ButtonDefault}" Margin="0,0,5,0" Width="80"/>
+                <Button Content="刷新" Command="{Binding RefreshPreviewCommand}" 
+                        Style="{StaticResource ButtonDefault}" Margin="0,0,5,0" Width="60"/>
+                <Button Content="放大" Command="{Binding ZoomInCommand}" 
+                        Style="{StaticResource ButtonDefault}" Margin="0,0,5,0" Width="60"/>
+                <Button Content="缩小" Command="{Binding ZoomOutCommand}" 
+                        Style="{StaticResource ButtonDefault}" Margin="0,0,5,0" Width="60"/>
+                <Button Content="重置" Command="{Binding ResetZoomCommand}" 
+                        Style="{StaticResource ButtonDefault}" Width="60"/>
             </StackPanel>
         </Border>
-        
-        <!-- 预览区域 -->
-        <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Background="#F8F8F8" Margin="5">
+
+        <Border Grid.Row="2" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Grid>
-                    <Image Source="{Binding PreviewImage}" 
-                           Stretch="Uniform" 
-                           Width="{Binding PreviewWidth}" 
-                           Height="{Binding PreviewHeight}"/>
-                </Grid>
+                <Image Source="{Binding PreviewImage}" 
+                       Stretch="Uniform" 
+                       RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="{Binding ZoomLevel}" 
+                                        ScaleY="{Binding ZoomLevel}"/>
+                    </Image.RenderTransform>
+                </Image>
             </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="3" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
+            <StackPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding ZoomLevel, StringFormat='缩放: {0:P0}'}" Foreground="#666666" Margin="0,5,0,0"/>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

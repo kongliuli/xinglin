@@ -21,23 +21,9 @@
         </Style>
         
         <!-- 元素模板 -->
-        <DataTemplate x:Key="TextElementTemplate">
-            <controls:TextControl Element="{Binding}" ViewType="Edit"/>
+        <DataTemplate x:Key="ElementTemplate">
+            <TextBlock Text="{Binding Type}" Padding="5" Background="LightGray" Margin="2"/>
         </DataTemplate>
-        
-        <DataTemplate x:Key="ImageElementTemplate">
-            <controls:ImageControl Element="{Binding}" ViewType="Edit"/>
-        </DataTemplate>
-        
-        <DataTemplate x:Key="LineElementTemplate">
-            <controls:LineControl Element="{Binding}" ViewType="Edit"/>
-        </DataTemplate>
-        
-        <!-- 元素模板选择器 -->
-        <selectors:ElementTemplateSelector x:Key="ElementTemplateSelector"
-                                           TextElementTemplate="{StaticResource TextElementTemplate}"
-                                           ImageElementTemplate="{StaticResource ImageElementTemplate}"
-                                           LineElementTemplate="{StaticResource LineElementTemplate}"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -57,6 +43,8 @@
             <MenuItem Header="编辑">
                 <MenuItem Header="撤销" Command="{Binding UndoCommand}" />
                 <MenuItem Header="重做" Command="{Binding RedoCommand}" />
+                <Separator/>
+                <MenuItem Header="编辑模板" Command="{Binding EditTemplateCommand}" />
             </MenuItem>
             <MenuItem Header="视图">
                 <MenuItem Header="缩放">
@@ -73,64 +61,32 @@
         </Menu>
 
         <!-- 主内容区 -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="LightGray"/>
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Background="LightGray"/>
+
             <!-- 左侧：模板树 -->
-            <Grid Grid.Column="0" Margin="5" Background="#F5F5F5">
+            <Border Grid.Column="0" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
                 <views:TemplateTreeView DataContext="{Binding TemplateTreeViewModel}"/>
-            </Grid>
+            </Border>
 
-            <!-- 中间：编辑面板 -->
-            <Grid Grid.Column="1" Margin="5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <TextBlock Text="编辑面板" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-                    <Button Content="添加文本" Command="{Binding CanvasViewModel.AddTextElementCommand}"/>
-                    <Button Content="添加图片" Command="{Binding CanvasViewModel.AddImageElementCommand}"/>
-                    <Button Content="添加线条" Command="{Binding CanvasViewModel.AddLineElementCommand}"/>
-                </StackPanel>
-                <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Background="White">
-                    <!-- 编辑画布 -->
-                    <ItemsControl ItemsSource="{Binding Template.Elements}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas Background="#F8F8F8" Width="800" Height="1000"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
-                                <Setter Property="Canvas.Top" Value="{Binding Y}"/>
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource ElementTemplateSelector}"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Border>
-            </Grid>
+            <!-- 中间：控件面板 -->
+            <Border Grid.Column="2" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
+                <views:ControlPanelView DataContext="{Binding ControlPanelViewModel}"/>
+            </Border>
 
-            <!-- 右侧：控件和预览面板 -->
-            <Grid Grid.Column="2" Margin="5" Background="#F5F5F5">
-                <TabControl>
-                    <TabItem Header="属性设置">
-                        <views:PropertyPanelView DataContext="{Binding PropertyPanelViewModel}"/>
-                    </TabItem>
-                    <TabItem Header="预览">
-                        <views:PreviewPanelView DataContext="{Binding PreviewViewModel}"/>
-                    </TabItem>
-                </TabControl>
-            </Grid>
+            <!-- 右侧：预览面板 -->
+            <Border Grid.Column="4" Background="#F5F5F5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
+                <views:PreviewPanelView DataContext="{Binding PreviewViewModel}"/>
+            </Border>
         </Grid>
     </Grid>
 </Window>

@@ -15,7 +15,7 @@ namespace Xinglin.Infrastructure.Services
     /// 使用Newtonsoft.Json进行JSON序列化和反序列化
     /// 支持TypeNameHandling以正确处理多态类型
     /// </remarks>
-    public class TemplateSerializationService : ITemplateService
+    public class TemplateSerializationService : ITemplateService, ITemplateSerializer
     {
         /// <summary>
         /// 将模板序列化为JSON字符串
@@ -213,6 +213,30 @@ namespace Xinglin.Infrastructure.Services
         {
             return SerializeTemplate(template);
         }
+
+        #region ITemplateSerializer Implementation
+
+        public string Serialize(Core.Models.ReportTemplateDefinition template)
+        {
+            return SerializeTemplate(template);
+        }
+
+        public Core.Models.ReportTemplateDefinition Deserialize(string templateString)
+        {
+            return DeserializeTemplate(templateString);
+        }
+
+        public void SaveToFile(Core.Models.ReportTemplateDefinition template, string filePath)
+        {
+            SaveTemplateToFile(template, filePath);
+        }
+
+        public Core.Models.ReportTemplateDefinition LoadFromFile(string filePath)
+        {
+            return LoadTemplateFromFile(filePath);
+        }
+
+        #endregion
 
         #region ITemplateService Implementation
 

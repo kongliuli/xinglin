@@ -102,6 +102,10 @@ public static class DIContainerBuilder
         builder.RegisterType<Services.LicenseService>().As<Security.ILicenseService>().SingleInstance();
         builder.RegisterType<Services.PermissionStatusService>().As<Security.IPermissionStatusService>().SingleInstance();
         
+        // 注册模板相关服务
+        builder.RegisterType<Services.TemplateService>().As<Core.Services.ITemplateService>().SingleInstance();
+        builder.RegisterType<Services.TemplateSerializationService>().As<Core.Services.ITemplateSerializer>().SingleInstance();
+        
         // 根据运行模式注册组件
         RegisterComponentsByRunningMode(builder, config);
         
@@ -110,9 +114,6 @@ public static class DIContainerBuilder
         
         // 注册模块
         RegisterModules(builder, config);
-        
-        // 注册依赖关系
-        RegisterDependencies(builder, config);
         
         return builder.Build();
     }
@@ -181,36 +182,6 @@ public static class DIContainerBuilder
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"加载模块 {moduleConfig.Name} 失败: {ex.Message}", ex);
-            }
-        }
-    }
-
-    private static void RegisterDependencies(ContainerBuilder builder, SystemConfig config)
-    {
-        foreach (var dependency in config.Dependencies)
-        {
-            try
-            {
-                // 获取接口类型
-                var interfaceType = Type.GetType(dependency.Key);
-                if (interfaceType == null)
-                {
-                    throw new TypeLoadException($"找不到接口类型: {dependency.Key}");
-                }
-                
-                // 获取实现类型
-                var implementationType = Type.GetType(dependency.Value);
-                if (implementationType == null)
-                {
-                    throw new TypeLoadException($"找不到实现类型: {dependency.Value}");
-                }
-                
-                // 注册依赖关系
-                builder.RegisterType(implementationType).As(interfaceType);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"注册依赖关系 {dependency.Key} -> {dependency.Value} 失败: {ex.Message}", ex);
             }
         }
     }

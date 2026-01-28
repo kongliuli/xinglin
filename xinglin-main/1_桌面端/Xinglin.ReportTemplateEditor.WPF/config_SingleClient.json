@@ -17,35 +17,11 @@
     "BaseUrl": "https://master.xinglin.com",
     "ApiKey": ""
   },
-  "Modules": [
-    {
-      "Name": "Common",
-      "Enabled": true,
-      "Dependencies": []
-    },
-    {
-      "Name": "Core",
-      "Enabled": true,
-      "Dependencies": ["Common"]
-    },
-    {
-      "Name": "DataAdapters",
-      "Enabled": true,
-      "Dependencies": ["Core"]
-    },
-    {
-      "Name": "Infrastructure",
-      "Enabled": true,
-      "Dependencies": ["Core", "DataAdapters"]
-    },
-    {
-      "Name": "Security",
-      "Enabled": true,
-      "Dependencies": ["Core"]
-    }
-  ],
+  "Modules": [],
+
   "Dependencies": {
     "Xinglin.Core.Services.ITemplateService": "Xinglin.Infrastructure.Services.TemplateService",
-    "Xinglin.Core.Services.ITemplateSerializationService": "Xinglin.Infrastructure.Services.TemplateSerializationService"
+    "Xinglin.Core.Services.ITemplateSerializationService": "Xinglin.Infrastructure.Services.TemplateSerializationService",
+    "Xinglin.Security.IPermissionStatusService": "Xinglin.Infrastructure.Services.PermissionStatusService"
   }
 }

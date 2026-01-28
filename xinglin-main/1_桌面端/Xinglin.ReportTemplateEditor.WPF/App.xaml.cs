@@ -1,12 +1,7 @@
 using System;
-using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Windows;
-using Autofac;
-using Xinglin.Infrastructure.DependencyInjection;
-using Xinglin.Infrastructure.Services;
-using Xinglin.Security;
+using System.Windows.Markup;
 
 namespace Xinglin.ReportTemplateEditor.WPF;
 
@@ -15,93 +10,51 @@ namespace Xinglin.ReportTemplateEditor.WPF;
 /// </summary>
 public partial class App : Application
 {
-    private IPermissionStatusService _permissionStatusService;
-
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
+        // 添加全局异常处理
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        DispatcherUnhandledException += App_DispatcherUnhandledException;
+
         try
         {
-            // 检查命令行参数，获取运行模式
-            string runMode = GetRunModeFromArguments(e.Args);
-            
-            // 加载配置
-            var configPath = GetConfigPath(runMode);
-            
-            // 构建依赖注入容器
-            var container = DIContainerBuilder.Build(configPath);
-            
-            // 初始化授权状态管理
-            _permissionStatusService = container.Resolve<IPermissionStatusService>();
-            
             // 检查授权状态
             CheckAuthorizationStatus();
             
-            // 继续正常启动
-            // MainWindow.xaml会在StartupUri中指定，自动创建
+            // 直接创建和显示MainWindow
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
+        }
+        catch (XamlParseException ex)
+        {
+            // 显示XAML解析错误信息
+            MessageBox.Show($"XAML解析失败: {ex.Message}\n{ex.StackTrace}\n{ex.BaseUri}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"应用启动失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            // 显示错误信息
+            MessageBox.Show($"应用启动失败: {ex.Message}\n{ex.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown();
         }
     }
 
-    /// <summary>
-    /// 从命令行参数获取运行模式
-    /// </summary>
-    /// <param name="args">命令行参数</param>
-    /// <returns>运行模式</returns>
-    private string GetRunModeFromArguments(string[] args)
+    private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
-        // 默认运行模式
-        const string defaultMode = "SingleClient";
-        
-        if (args == null || args.Length == 0)
-        {
-            return defaultMode;
-        }
-        
-        // 查找运行模式参数
-        for (int i = 0; i < args.Length; i++)
-        {
-            if (args[i].Equals("--mode", StringComparison.OrdinalIgnoreCase) || args[i].Equals("-m", StringComparison.OrdinalIgnoreCase))
-            {
-                if (i + 1 < args.Length)
-                {
-                    return args[i + 1];
-                }
-                break;
-            }
-        }
-        
-        return defaultMode;
+        // 显示UI线程异常信息
+        //MessageBox.Show($"UI线程异常: {e.Exception.Message}\n{e.Exception.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+        e.Handled = true;
+        Shutdown();
     }
 
-    /// <summary>
-    /// 获取配置文件路径
-    /// </summary>
-    /// <param name="runMode">运行模式</param>
-    /// <returns>配置文件路径</returns>
-    private string GetConfigPath(string runMode)
+    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-        // 配置文件命名规则：config_{mode}.json
-        string configFileName = $"config_{runMode}.json";
-        string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFileName);
-        
-        // 如果配置文件不存在，使用默认配置文件
-        if (!File.Exists(configPath))
-        {
-            configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
-        }
-        
-        if (!File.Exists(configPath))
-        {
-            throw new FileNotFoundException($"配置文件不存在: {configPath}");
-        }
-        
-        return configPath;
+        // 显示非UI线程异常信息
+        Exception ex = e.ExceptionObject as Exception;
+        MessageBox.Show($"非UI线程异常: {ex?.Message}\n{ex?.StackTrace}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+        Shutdown();
     }
 
     /// <summary>
@@ -109,26 +62,64 @@ public partial class App : Application
     /// </summary>
     private void CheckAuthorizationStatus()
     {
-        var status = _permissionStatusService.GetCurrentStatus();
-        
-        switch (status)
+        try
         {
-            case AuthorizationStatus.Normal:
-                // 正常状态，继续运行
-                break;
-            case AuthorizationStatus.LicensePending:
-                // 许可证待激活，显示提示
-                MessageBox.Show("许可证待激活，请联系管理员获取完整权限", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                break;
-            case AuthorizationStatus.Trial:
-                // 试用模式，显示剩余天数
-                MessageBox.Show("当前处于试用模式，试用期为3天", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                break;
-            case AuthorizationStatus.Locked:
-                // 已锁定，禁止运行
-                MessageBox.Show("系统已锁定，请联系管理员获取授权", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                Shutdown();
-                break;
+            // 简单的授权状态检查，显示试用天数
+            int remainingDays = GetRemainingTrialDays();
+            MessageBox.Show($"当前处于试用模式，剩余试用期为{remainingDays}天", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"授权状态检查失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            // 即使授权检查失败，也继续启动应用程序
+        }
+    }
+
+    /// <summary>
+    /// 获取剩余试用天数
+    /// </summary>
+    /// <returns>剩余试用天数</returns>
+    private int GetRemainingTrialDays()
+    {
+        const int TrialDays = 3;
+        string trialInfoPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "trialinfo.dat");
+        
+        if (System.IO.File.Exists(trialInfoPath))
+        {
+            try
+            {
+                var trialContent = System.IO.File.ReadAllText(trialInfoPath);
+                var trialInfo = System.Text.Json.JsonSerializer.Deserialize<TrialInfo>(trialContent);
+                
+                if (trialInfo != null)
+                {
+                    double daysPassed = (DateTime.Now - trialInfo.FirstLaunchTime).TotalDays;
+                    int remainingDays = Math.Max(0, TrialDays - (int)Math.Ceiling(daysPassed));
+                    return remainingDays;
+                }
+            }
+            catch (Exception)
+            {
+                // 读取试用信息失败，返回默认值
+            }
+        }
+        else
+        {
+            // 首次启动，创建试用信息
+            var trialInfo = new TrialInfo { FirstLaunchTime = DateTime.Now };
+            var trialContent = System.Text.Json.JsonSerializer.Serialize(trialInfo);
+            System.IO.File.WriteAllText(trialInfoPath, trialContent);
+        }
+        
+        return TrialDays;
+    }
+
+    /// <summary>
+    /// 试用信息类
+    /// </summary>
+    private class TrialInfo
+    {
+        public DateTime FirstLaunchTime { get; set; }
+        public int LaunchCount { get; set; } = 1;
     }
 }

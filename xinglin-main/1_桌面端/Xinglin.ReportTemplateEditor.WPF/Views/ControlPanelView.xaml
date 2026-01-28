@@ -1,0 +1,43 @@
+<UserControl x:Class="Xinglin.ReportTemplateEditor.WPF.Views.ControlPanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Xinglin.ReportTemplateEditor.WPF.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="400"
+             Background="White">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#4A90E2" Padding="15,10" CornerRadius="4,4,0,0">
+            <TextBlock Text="控件面板" Foreground="White" FontSize="16" FontWeight="Bold"/>
+        </Border>
+
+        <Border Grid.Row="1" Padding="10" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,1,1,0">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="刷新控件" Command="{Binding RefreshControlsCommand}" 
+                        Style="{StaticResource ButtonDefault}" Margin="0,0,5,0"/>
+                <Button Content="生成样例数据" Command="{Binding GenerateSampleDataCommand}" 
+                        Style="{StaticResource ButtonDefault}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Background="White" Margin="5" CornerRadius="4" BorderBrush="#E0E0E0" BorderThickness="1">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="ControlsContainer" Margin="10" Background="White">
+                    <TextBlock Text="未加载模板" Foreground="#999999" Margin="20" TextAlignment="Center"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="3" Padding="10" Background="#FAFAFA" CornerRadius="0,0,4,4">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#666666" TextWrapping="Wrap"/>
+        </Border>
+    </Grid>
+</UserControl>
