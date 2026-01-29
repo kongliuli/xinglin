@@ -297,12 +297,30 @@ namespace Xinglin.ReportTemplateEditor.WPF.Models
         public TableConfig TableConfig { get; set; }
 
         /// <summary>
+        /// 数据路径，用于绑定到数据源的特定字段
+        /// </summary>
+        public string DataPath { get; set; }
+
+        /// <summary>
+        /// 格式化字符串，用于格式化显示的数据
+        /// </summary>
+        public string FormatString { get; set; }
+
+        /// <summary>
+        /// 是否启用数据绑定
+        /// </summary>
+        public bool IsDataBound { get; set; }
+
+        /// <summary>
         /// 构造函数
         /// </summary>
         public TemplateElement()
         {
             Options = new List<string>();
             Style = new ElementStyle();
+            DataPath = string.Empty;
+            FormatString = string.Empty;
+            IsDataBound = false;
         }
     }
 

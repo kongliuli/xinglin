@@ -74,6 +74,17 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         private ICommand? _openSettingsCommand;
         private ICommand? _editTemplateCommand;
         private ICommand? _openShortcutConfigCommand;
+        private ICommand? _newTemplateCommand;
+        private ICommand? _openTemplateCommand;
+        private ICommand? _saveTemplateCommand;
+        private ICommand? _saveAsTemplateCommand;
+        private ICommand? _exitCommand;
+        private ICommand? _templatePropertiesCommand;
+        private ICommand? _previewTemplateCommand;
+        private ICommand? _exportToJsonCommand;
+        private ICommand? _exportJsonCommand;
+        private ICommand? _toggleShowGridCommand;
+        private ICommand? _toggleSnapToGridCommand;
         
         private void InitializeCommands()
         {
@@ -106,13 +117,90 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 () => OpenShortcutConfig(),
                 () => true
             );
-            
+
+            // 创建新建模板命令
+            _newTemplateCommand = new RelayCommand(
+                () => { /* 新建模板操作 */ },
+                () => true
+            );
+
+            // 创建打开模板命令
+            _openTemplateCommand = new RelayCommand(
+                () => { /* 打开模板操作 */ },
+                () => true
+            );
+
+            // 创建保存模板命令
+            _saveTemplateCommand = new RelayCommand(
+                () => { /* 保存模板操作 */ },
+                () => true
+            );
+
+            // 创建另存为模板命令
+            _saveAsTemplateCommand = new RelayCommand(
+                () => { /* 另存为模板操作 */ },
+                () => true
+            );
+
+            // 创建退出命令
+            _exitCommand = new RelayCommand(
+                () => { /* 退出操作 */ },
+                () => true
+            );
+
+            // 创建模板属性命令
+            _templatePropertiesCommand = new RelayCommand(
+                () => { /* 模板属性操作 */ },
+                () => true
+            );
+
+            // 创建预览模板命令
+            _previewTemplateCommand = new RelayCommand(
+                () => { /* 预览模板操作 */ },
+                () => true
+            );
+
+            // 创建导出为JSON命令
+            _exportToJsonCommand = new RelayCommand(
+                () => { /* 导出为JSON操作 */ },
+                () => true
+            );
+
+            // 创建导出JSON命令
+            _exportJsonCommand = new RelayCommand(
+                () => { /* 导出JSON操作 */ },
+                () => true
+            );
+
+            // 创建切换显示网格命令
+            _toggleShowGridCommand = new RelayCommand(
+                () => { /* 切换显示网格操作 */ },
+                () => true
+            );
+
+            // 创建切换对齐到网格命令
+            _toggleSnapToGridCommand = new RelayCommand(
+                () => { /* 切换对齐到网格操作 */ },
+                () => true
+            );
+
             // 注册命令到命令管理器服务
             _commandManagerService.RegisterCommand("Undo", _undoCommand);
             _commandManagerService.RegisterCommand("Redo", _redoCommand);
             _commandManagerService.RegisterCommand("OpenSettings", _openSettingsCommand);
             _commandManagerService.RegisterCommand("EditTemplate", _editTemplateCommand);
             _commandManagerService.RegisterCommand("OpenShortcutConfig", _openShortcutConfigCommand);
+            _commandManagerService.RegisterCommand("NewTemplate", _newTemplateCommand);
+            _commandManagerService.RegisterCommand("OpenTemplate", _openTemplateCommand);
+            _commandManagerService.RegisterCommand("SaveTemplate", _saveTemplateCommand);
+            _commandManagerService.RegisterCommand("SaveAsTemplate", _saveAsTemplateCommand);
+            _commandManagerService.RegisterCommand("Exit", _exitCommand);
+            _commandManagerService.RegisterCommand("TemplateProperties", _templatePropertiesCommand);
+            _commandManagerService.RegisterCommand("PreviewTemplate", _previewTemplateCommand);
+            _commandManagerService.RegisterCommand("ExportToJson", _exportToJsonCommand);
+            _commandManagerService.RegisterCommand("ExportJson", _exportJsonCommand);
+            _commandManagerService.RegisterCommand("ToggleShowGrid", _toggleShowGridCommand);
+            _commandManagerService.RegisterCommand("ToggleSnapToGrid", _toggleSnapToGridCommand);
         }
         
         /// <summary>
@@ -139,6 +227,61 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 快捷键配置命令
         /// </summary>
         public ICommand OpenShortcutConfigCommand => _openShortcutConfigCommand;
+
+        /// <summary>
+        /// 新建模板命令
+        /// </summary>
+        public ICommand NewTemplateCommand => _newTemplateCommand;
+
+        /// <summary>
+        /// 打开模板命令
+        /// </summary>
+        public ICommand OpenTemplateCommand => _openTemplateCommand;
+
+        /// <summary>
+        /// 保存模板命令
+        /// </summary>
+        public ICommand SaveTemplateCommand => _saveTemplateCommand;
+
+        /// <summary>
+        /// 保存模板为命令
+        /// </summary>
+        public ICommand SaveAsTemplateCommand => _saveAsTemplateCommand;
+
+        /// <summary>
+        /// 退出命令
+        /// </summary>
+        public ICommand ExitCommand => _exitCommand;
+
+        /// <summary>
+        /// 模板属性命令
+        /// </summary>
+        public ICommand TemplatePropertiesCommand => _templatePropertiesCommand;
+
+        /// <summary>
+        /// 预览模板命令
+        /// </summary>
+        public ICommand PreviewTemplateCommand => _previewTemplateCommand;
+
+        /// <summary>
+        /// 导出为JSON命令
+        /// </summary>
+        public ICommand ExportToJsonCommand => _exportToJsonCommand;
+
+        /// <summary>
+        /// 导出JSON命令
+        /// </summary>
+        public ICommand ExportJsonCommand => _exportJsonCommand;
+
+        /// <summary>
+        /// 切换显示网格命令
+        /// </summary>
+        public ICommand ToggleShowGridCommand => _toggleShowGridCommand;
+
+        /// <summary>
+        /// 切换对齐到网格命令
+        /// </summary>
+        public ICommand ToggleSnapToGridCommand => _toggleSnapToGridCommand;
         
         /// <summary>
         /// 打开设置

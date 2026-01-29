@@ -320,6 +320,38 @@ namespace Xinglin.Core.Elements
             set => SetProperty(ref _options, value); 
         }
         
+        // 数据绑定属性
+        private string _dataPath;
+        private string _formatString;
+        private bool _isDataBound;
+        
+        /// <summary>
+        /// 数据路径，用于绑定到数据源的特定字段
+        /// </summary>
+        public string DataPath 
+        {
+            get => _dataPath; 
+            set => SetProperty(ref _dataPath, value); 
+        }
+        
+        /// <summary>
+        /// 格式化字符串，用于格式化显示的数据
+        /// </summary>
+        public string FormatString 
+        {
+            get => _formatString; 
+            set => SetProperty(ref _formatString, value); 
+        }
+        
+        /// <summary>
+        /// 是否启用数据绑定
+        /// </summary>
+        public bool IsDataBound 
+        {
+            get => _isDataBound; 
+            set => SetProperty(ref _isDataBound, value); 
+        }
+        
         /// <summary>
         /// 属性更改事件
         /// </summary>
@@ -388,6 +420,11 @@ namespace Xinglin.Core.Elements
             DefaultValue = string.Empty;
             IsRequired = false;
             Options = new List<string>();
+            
+            // 初始化数据绑定属性
+            DataPath = string.Empty;
+            FormatString = string.Empty;
+            IsDataBound = false;
         }
 
 

@@ -103,7 +103,17 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 new { Type = "Label", DisplayName = "标签", Description = "用于显示标签文本" },
                 new { Type = "Number", DisplayName = "数字", Description = "用于输入数字" },
                 new { Type = "Date", DisplayName = "日期", Description = "用于选择日期" },
-                new { Type = "Dropdown", DisplayName = "下拉选择", Description = "用于从选项中选择" }
+                new { Type = "Dropdown", DisplayName = "下拉选择", Description = "用于从选项中选择" },
+                new { Type = "Rectangle", DisplayName = "矩形", Description = "用于绘制矩形" },
+                new { Type = "Ellipse", DisplayName = "椭圆", Description = "用于绘制椭圆" },
+                new { Type = "Button", DisplayName = "按钮", Description = "用于触发操作" },
+                new { Type = "CheckBox", DisplayName = "复选框", Description = "用于多选" },
+                new { Type = "RadioButton", DisplayName = "单选按钮", Description = "用于单选" },
+                new { Type = "TextBox", DisplayName = "文本框", Description = "用于输入文本" },
+                new { Type = "PasswordBox", DisplayName = "密码框", Description = "用于输入密码" },
+                new { Type = "RichText", DisplayName = "富文本", Description = "用于显示富文本内容" },
+                new { Type = "Barcode", DisplayName = "条形码", Description = "用于显示条形码" },
+                new { Type = "QRCode", DisplayName = "二维码", Description = "用于显示二维码" }
             };
 
             foreach (var widget in widgetTypes)

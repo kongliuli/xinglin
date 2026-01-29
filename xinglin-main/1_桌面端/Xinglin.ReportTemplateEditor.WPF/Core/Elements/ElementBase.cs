@@ -63,6 +63,11 @@ namespace Xinglin.ReportTemplateEditor.WPF.Core.Elements
         public bool IsRequired { get; set; }
 
         /// <summary>
+        /// 是否可见
+        /// </summary>
+        public bool IsVisible { get; set; } = true;
+
+        /// <summary>
         /// 选项列表
         /// </summary>
         public List<string> Options { get; set; }
@@ -99,6 +104,88 @@ namespace Xinglin.ReportTemplateEditor.WPF.Core.Elements
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// 克隆元素
+        /// </summary>
+        /// <returns>克隆后的元素</returns>
+        public virtual ElementBase Clone()
+        {
+            var cloned = new ElementBase
+            {
+                ElementId = Guid.NewGuid().ToString(),
+                ElementType = ElementType,
+                X = X,
+                Y = Y,
+                Width = Width,
+                Height = Height,
+                ZIndex = ZIndex,
+                Label = Label,
+                LabelWidth = LabelWidth,
+                DefaultValue = DefaultValue,
+                IsRequired = IsRequired,
+                IsVisible = IsVisible,
+                Options = new List<string>(Options),
+                Style = new ElementStyle
+                {
+                    FontFamily = Style.FontFamily,
+                    FontSize = Style.FontSize,
+                    FontColor = Style.FontColor,
+                    BackgroundColor = Style.BackgroundColor,
+                    BorderColor = Style.BorderColor,
+                    BorderWidth = Style.BorderWidth,
+                    CornerRadius = Style.CornerRadius,
+                    TextAlignment = Style.TextAlignment
+                }
+            };
+
+            if (TableConfig != null)
+            {
+                cloned.TableConfig = new TableConfig
+                {
+                    RowCount = TableConfig.RowCount,
+                    ShowHeader = TableConfig.ShowHeader,
+                    HeaderStyle = new HeaderStyle
+                    {
+                        BackgroundColor = TableConfig.HeaderStyle.BackgroundColor,
+                        FontFamily = TableConfig.HeaderStyle.FontFamily,
+                        FontSize = TableConfig.HeaderStyle.FontSize,
+                        FontWeight = TableConfig.HeaderStyle.FontWeight,
+                        ForegroundColor = TableConfig.HeaderStyle.ForegroundColor,
+                        Height = TableConfig.HeaderStyle.Height,
+                        TextAlignment = TableConfig.HeaderStyle.TextAlignment
+                    },
+                    RowStyle = new RowStyle
+                    {
+                        AlternateRowColor = TableConfig.RowStyle.AlternateRowColor,
+                        FontFamily = TableConfig.RowStyle.FontFamily,
+                        FontSize = TableConfig.RowStyle.FontSize,
+                        ForegroundColor = TableConfig.RowStyle.ForegroundColor,
+                        Height = TableConfig.RowStyle.Height,
+                        TextAlignment = TableConfig.RowStyle.TextAlignment,
+                        BorderColor = TableConfig.RowStyle.BorderColor,
+                        BorderWidth = TableConfig.RowStyle.BorderWidth
+                    },
+                    ColumnDefinitions = TableConfig.ColumnDefinitions.Select(col => new ColumnDefinition
+                    {
+                        ColumnId = Guid.NewGuid().ToString(),
+                        ColumnName = col.ColumnName,
+                        Width = col.Width,
+                        IsEditable = col.IsEditable,
+                        ControlType = col.ControlType,
+                        DefaultValue = col.DefaultValue,
+                        Options = new List<string>(col.Options),
+                        Style = new ColumnStyle
+                        {
+                            TextAlignment = col.Style.TextAlignment,
+                            PaddingLeft = col.Style.PaddingLeft
+                        }
+                    }).ToList()
+                };
+            }
+
+            return cloned;
         }
     }
 

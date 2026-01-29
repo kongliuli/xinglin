@@ -1,4 +1,14 @@
-using System.Collections.Generic;using System.ComponentModel;using System.Runtime.CompilerServices;using System.Windows;using System.Windows.Input;using Xinglin.ReportTemplateEditor.WPF.Commands;using Xinglin.ReportTemplateEditor.WPF.Models;using Xinglin.ReportTemplateEditor.WPF.Services;using CoreElements = Xinglin.ReportTemplateEditor.WPF.Core.Elements;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Input;
+using Xinglin.ReportTemplateEditor.WPF.Commands;
+using Xinglin.ReportTemplateEditor.WPF.Models;
+using Xinglin.ReportTemplateEditor.WPF.Services;
+using CoreElements = Xinglin.ReportTemplateEditor.WPF.Core.Elements;
 
 namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
 {
@@ -42,6 +52,10 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
             MoveElementToBottomCommand = new RelayCommand<object>(MoveElementToBottom, CanMoveElement);
             EditTableElementCommand = new RelayCommand<object>(EditTableElement, CanEditTableElement);
             ZoomCommand = new RelayCommand<object>(Zoom, CanZoom);
+            AddWidgetCommand = new RelayCommand<object>(AddWidget, CanAddWidget);
+            FitWidthCommand = new RelayCommand<object>(FitWidth, CanFit);
+            FitPageCommand = new RelayCommand<object>(FitPage, CanFit);
+            ResetZoomCommand = new RelayCommand<object>(ResetZoom, CanResetZoom);
             
             // 初始化工具箱ViewModel
             ToolboxViewModel = new ToolboxViewModel(AddWidget);
@@ -50,37 +64,53 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <summary>
         /// 添加控件到画布
         /// </summary>
+        /// <param name="parameter">命令参数，包含控件类型和放置位置</param>
+        private void AddWidget(object parameter)
+        {
+            if (parameter is Tuple<string, double, double> widgetData)
+            {
+                string widgetType = widgetData.Item1;
+                double x = widgetData.Item2;
+                double y = widgetData.Item3;
+                
+                switch (widgetType)
+                {
+                    case "Text":
+                        AddTextElementAt(x, y);
+                        break;
+                    case "Image":
+                        AddImageElementAt(x, y);
+                        break;
+                    case "Line":
+                        AddLineElementAt(x, y);
+                        break;
+                    case "Table":
+                        AddTableElementAt(x, y);
+                        break;
+                    case "Label":
+                        AddLabelElementAt(x, y);
+                        break;
+                    case "Number":
+                        AddNumberElementAt(x, y);
+                        break;
+                    case "Date":
+                        AddDateElementAt(x, y);
+                        break;
+                    case "Dropdown":
+                        AddDropdownElementAt(x, y);
+                        break;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 添加控件到画布（兼容ToolboxViewModel的调用）
+        /// </summary>
         /// <param name="widgetType">控件类型</param>
         /// <param name="dropPoint">放置位置</param>
-        private void AddWidget(string widgetType, System.Windows.Point dropPoint)
+        public void AddWidget(string widgetType, System.Windows.Point dropPoint)
         {
-            switch (widgetType)
-            {
-                case "Text":
-                    AddTextElement(null);
-                    break;
-                case "Image":
-                    AddImageElement(null);
-                    break;
-                case "Line":
-                    AddLineElement(null);
-                    break;
-                case "Table":
-                    AddTableElement(null);
-                    break;
-                case "Label":
-                    AddLabelElement();
-                    break;
-                case "Number":
-                    AddNumberElement();
-                    break;
-                case "Date":
-                    AddDateElement();
-                    break;
-                case "Dropdown":
-                    AddDropdownElement();
-                    break;
-            }
+            AddWidget(new Tuple<string, double, double>(widgetType, dropPoint.X, dropPoint.Y));
         }
         
         /// <summary>
@@ -88,12 +118,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         private void AddLabelElement()
         {
+            AddLabelElementAt(100, 100);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加标签元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddLabelElementAt(double x, double y)
+        {
             var labelElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Label",
-                X = 100,
-                Y = 100,
+                X = x,
+                Y = y,
                 Width = 200,
                 Height = 30,
                 DefaultValue = "新标签",
@@ -114,12 +154,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         private void AddNumberElement()
         {
+            AddNumberElementAt(100, 150);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加数字元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddNumberElementAt(double x, double y)
+        {
             var numberElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Number",
-                X = 100,
-                Y = 150,
+                X = x,
+                Y = y,
                 Width = 100,
                 Height = 30,
                 Label = "数字",
@@ -143,12 +193,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         private void AddDateElement()
         {
+            AddDateElementAt(100, 200);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加日期元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddDateElementAt(double x, double y)
+        {
             var dateElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Date",
-                X = 100,
-                Y = 200,
+                X = x,
+                Y = y,
                 Width = 150,
                 Height = 30,
                 Label = "日期",
@@ -172,12 +232,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// </summary>
         private void AddDropdownElement()
         {
+            AddDropdownElementAt(100, 250);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加下拉选择元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddDropdownElementAt(double x, double y)
+        {
             var dropdownElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Dropdown",
-                X = 100,
-                Y = 250,
+                X = x,
+                Y = y,
                 Width = 150,
                 Height = 30,
                 Label = "选择",
@@ -222,6 +292,59 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                 
                 // 通知预览视图模型元素已选中
                 _mainViewModel?.PreviewViewModel?.OnElementSelected(value);
+                
+                // 通知数据绑定属性已更改
+                OnPropertyChanged(nameof(SelectedElementDataPath));
+                OnPropertyChanged(nameof(SelectedElementFormatString));
+                OnPropertyChanged(nameof(SelectedElementIsDataBound));
+            }
+        }
+        
+        /// <summary>
+        /// 选中元素的数据路径
+        /// </summary>
+        public string SelectedElementDataPath
+        {
+            get => SelectedElement?.DataPath ?? string.Empty;
+            set
+            {
+                if (SelectedElement != null)
+                {
+                    SelectedElement.DataPath = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 选中元素的格式化字符串
+        /// </summary>
+        public string SelectedElementFormatString
+        {
+            get => SelectedElement?.FormatString ?? string.Empty;
+            set
+            {
+                if (SelectedElement != null)
+                {
+                    SelectedElement.FormatString = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 选中元素是否启用数据绑定
+        /// </summary>
+        public bool SelectedElementIsDataBound
+        {
+            get => SelectedElement?.IsDataBound ?? false;
+            set
+            {
+                if (SelectedElement != null)
+                {
+                    SelectedElement.IsDataBound = value;
+                    OnPropertyChanged();
+                }
             }
         }
         
@@ -289,6 +412,26 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// 缩放命令
         /// </summary>
         public ICommand ZoomCommand { get; private set; }
+        
+        /// <summary>
+        /// 添加控件命令
+        /// </summary>
+        public ICommand AddWidgetCommand { get; private set; }
+        
+        /// <summary>
+        /// 适应宽度命令
+        /// </summary>
+        public ICommand FitWidthCommand { get; private set; }
+        
+        /// <summary>
+        /// 适应页面命令
+        /// </summary>
+        public ICommand FitPageCommand { get; private set; }
+        
+        /// <summary>
+        /// 重置缩放命令
+        /// </summary>
+        public ICommand ResetZoomCommand { get; private set; }
         
         /// <summary>
         /// 当前缩放比例
@@ -512,12 +655,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="parameter">命令参数</param>
         private void AddTextElement(object parameter)
         {
+            AddTextElementAt(100, 100);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加文本元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddTextElementAt(double x, double y)
+        {
             var textElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Text",
-                X = 100,
-                Y = 100,
+                X = x,
+                Y = y,
                 Width = 200,
                 Height = 30,
                 Label = "文本标签",
@@ -542,12 +695,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="parameter">命令参数</param>
         private void AddImageElement(object parameter)
         {
+            AddImageElementAt(100, 150);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加图片元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddImageElementAt(double x, double y)
+        {
             var imageElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Image",
-                X = 100,
-                Y = 150,
+                X = x,
+                Y = y,
                 Width = 100,
                 Height = 100,
                 Style = new ElementStyle
@@ -566,12 +729,22 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="parameter">命令参数</param>
         private void AddLineElement(object parameter)
         {
+            AddLineElementAt(100, 270);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加线条元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddLineElementAt(double x, double y)
+        {
             var lineElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Line",
-                X = 100,
-                Y = 270,
+                X = x,
+                Y = y,
                 Width = 200,
                 Height = 2,
                 Style = new ElementStyle
@@ -676,18 +849,92 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
         /// <param name="parameter">命令参数</param>
         private void AddTableElement(object parameter)
         {
+            AddTableElementAt(100, 100);
+        }
+        
+        /// <summary>
+        /// 在指定位置添加表格元素
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        private void AddTableElementAt(double x, double y)
+        {
             var tableElement = new TemplateElement
             {
                 ElementId = System.Guid.NewGuid().ToString(),
                 ElementType = "Table",
-                X = 100,
-                Y = 100,
+                X = x,
+                Y = y,
                 Width = 600,
                 Height = 300,
                 LabelWidth = 80
             };
             
             AddElement(tableElement);
+        }
+        
+        /// <summary>
+        /// 适应宽度
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        private void FitWidth(object parameter)
+        {
+            // 适应宽度的逻辑
+            // 这里可以通过事件或其他方式通知视图执行实际的适应宽度操作
+            Console.WriteLine("执行适应宽度操作");
+        }
+        
+        /// <summary>
+        /// 适应页面
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        private void FitPage(object parameter)
+        {
+            // 适应页面的逻辑
+            // 这里可以通过事件或其他方式通知视图执行实际的适应页面操作
+            Console.WriteLine("执行适应页面操作");
+        }
+        
+        /// <summary>
+        /// 重置缩放
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        private void ResetZoom(object parameter)
+        {
+            // 重置缩放的逻辑
+            CurrentZoom = 1.0;
+            // 这里可以通过事件或其他方式通知视图执行实际的重置缩放操作
+            Console.WriteLine("执行重置缩放操作");
+        }
+        
+        /// <summary>
+        /// 是否可以添加控件
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        /// <returns>是否可以添加控件</returns>
+        private bool CanAddWidget(object parameter)
+        {
+            return true;
+        }
+        
+        /// <summary>
+        /// 是否可以执行适应操作
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        /// <returns>是否可以执行适应操作</returns>
+        private bool CanFit(object parameter)
+        {
+            return true;
+        }
+        
+        /// <summary>
+        /// 是否可以重置缩放
+        /// </summary>
+        /// <param name="parameter">命令参数</param>
+        /// <returns>是否可以重置缩放</returns>
+        private bool CanResetZoom(object parameter)
+        {
+            return true;
         }
         
         /// <summary>

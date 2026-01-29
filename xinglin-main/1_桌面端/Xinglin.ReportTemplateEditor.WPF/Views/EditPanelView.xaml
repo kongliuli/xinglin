@@ -16,6 +16,25 @@
                 <ResourceDictionary Source="/Styles/CommonStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             
+            <!-- 纸张阴影效果 -->
+            <DropShadowEffect x:Key="PaperShadow" Color="#888888" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.3"/>
+            
+            <!-- 设计画布背景画笔 - 结合网格和纸张纹理 -->
+            <DrawingBrush x:Key="DesignCanvasBackground" TileMode="Tile" Viewport="0,0,10,10" ViewportUnits="Absolute" Viewbox="0,0,10,10" ViewboxUnits="Absolute">
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <!-- 纸张纹理背景 -->
+                        <GeometryDrawing Brush="#FFFFFF">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry Rect="0,0,10,10"/>
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <!-- 网格线 -->
+                        <GeometryDrawing Brush="#EEEEEE" Geometry="M0,10 L10,10 M10,0 L10,10"/>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
+            
             <!-- 元素模板 -->
             <DataTemplate x:Key="TextElementTemplate">
                 <controls:TextControl Element="{Binding}" ViewType="Edit"/>
@@ -29,11 +48,16 @@
                 <controls:LineControl Element="{Binding}" ViewType="Edit"/>
             </DataTemplate>
             
+            <DataTemplate x:Key="TableElementTemplate">
+                <controls:TableControl Element="{Binding}" ViewType="Edit"/>
+            </DataTemplate>
+            
             <!-- 元素模板选择器 -->
             <selectors:ElementTemplateSelector x:Key="ElementTemplateSelector"
                                                TextElementTemplate="{StaticResource TextElementTemplate}"
                                                ImageElementTemplate="{StaticResource ImageElementTemplate}"
-                                               LineElementTemplate="{StaticResource LineElementTemplate}"/>
+                                               LineElementTemplate="{StaticResource LineElementTemplate}"
+                                               TableElementTemplate="{StaticResource TableElementTemplate}"/>
         </ResourceDictionary>
     </UserControl.Resources>
     
@@ -41,14 +65,90 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         
+        <!-- 菜单栏 -->
+        <Menu Grid.Row="0" Grid.ColumnSpan="2" Background="#F0F0F0">
+            <MenuItem Header="文件">
+                <MenuItem Header="新建模板" Command="{Binding NewTemplateCommand}"/>
+                <MenuItem Header="打开模板" Command="{Binding OpenTemplateCommand}"/>
+                <MenuItem Header="保存模板" Command="{Binding SaveTemplateCommand}"/>
+                <MenuItem Header="保存模板为" Command="{Binding SaveAsTemplateCommand}"/>
+                <Separator/>
+                <MenuItem Header="退出" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+            <MenuItem Header="编辑">
+                <MenuItem Header="撤销" Command="{Binding UndoCommand}"/>
+                <MenuItem Header="重做" Command="{Binding RedoCommand}"/>
+                <Separator/>
+                <MenuItem Header="删除" Command="{Binding DeleteElementCommand}"/>
+            </MenuItem>
+            <MenuItem Header="视图">
+                <MenuItem Header="显示网格" IsCheckable="True" IsChecked="{Binding ShowGrid}" Command="{Binding ToggleShowGridCommand}"/>
+                <MenuItem Header="对齐到网格" IsCheckable="True" IsChecked="{Binding SnapToGrid}" Command="{Binding ToggleSnapToGridCommand}"/>
+                <Separator/>
+                <MenuItem Header="缩放">
+                    <MenuItem Header="50%" Command="{Binding ZoomCommand}" CommandParameter="0.5"/>
+                    <MenuItem Header="75%" Command="{Binding ZoomCommand}" CommandParameter="0.75"/>
+                    <MenuItem Header="100%" Command="{Binding ZoomCommand}" CommandParameter="1.0"/>
+                    <MenuItem Header="150%" Command="{Binding ZoomCommand}" CommandParameter="1.5"/>
+                    <MenuItem Header="200%" Command="{Binding ZoomCommand}" CommandParameter="2.0"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="工具">
+                <MenuItem Header="模板属性" Command="{Binding TemplatePropertiesCommand}"/>
+                <MenuItem Header="预览模板" Command="{Binding PreviewTemplateCommand}"/>
+                <MenuItem Header="导出为JSON" Command="{Binding ExportToJsonCommand}"/>
+            </MenuItem>
+        </Menu>
+        
         <!-- 工具栏 -->
-        <Border Grid.Row="0" Grid.ColumnSpan="2" Margin="5" Background="#F0F0F0" CornerRadius="4">
+        <Border Grid.Row="1" Grid.ColumnSpan="2" BorderThickness="0,1,0,1" BorderBrush="#E0E0E0">
+            <ToolBar Background="#F0F0F0">
+                <Button Content="新建" Command="{Binding NewTemplateCommand}" ToolTip="新建模板"/>
+                <Button Content="打开" Command="{Binding OpenTemplateCommand}" ToolTip="打开模板"/>
+                <Button Content="保存" Command="{Binding SaveTemplateCommand}" ToolTip="保存模板"/>
+                <Separator/>
+                <Button Content="撤销" Command="{Binding UndoCommand}" ToolTip="撤销"/>
+                <Button Content="重做" Command="{Binding RedoCommand}" ToolTip="重做"/>
+                <Separator/>
+                <!-- 纸张设置 -->
+                <TextBlock Text="纸张: " Margin="0,0,5,0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="paperSizeComboBox" Width="60" VerticalAlignment="Center" SelectedValue="{Binding PaperSize}">
+                    <ComboBoxItem Content="A3" Tag="A3"/>
+                    <ComboBoxItem Content="A4" Tag="A4" IsSelected="True"/>
+                    <ComboBoxItem Content="A5" Tag="A5"/>
+                    <ComboBoxItem Content="Letter" Tag="Letter"/>
+                    <ComboBoxItem Content="Legal" Tag="Legal"/>
+                    <ComboBoxItem Content="自定义" Tag="Custom"/>
+                </ComboBox>
+                <TextBox x:Name="txtCustomWidth" Width="50" Margin="5,0,0,0" ToolTip="自定义宽度（毫米）" Visibility="Collapsed"/>
+                <TextBlock Text="×" Margin="0,0,5,0" VerticalAlignment="Center" Visibility="Collapsed" x:Name="customSizeSeparator"/>
+                <TextBox x:Name="txtCustomHeight" Width="50" Margin="0,0,5,0" ToolTip="自定义高度（毫米）" Visibility="Collapsed"/>
+                <TextBlock Text="边距:" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtMargin" Width="60" Text="{Binding Margin}" ToolTip="页边距（毫米）"/>
+                <ToggleButton x:Name="orientationToggle" Content="纵向" ToolTip="切换页面方向" Margin="5,0,0,0" IsChecked="{Binding IsLandscape}"/>
+                <Separator/>
+                <!-- 全局字体设置 -->
+                <TextBlock Text="全局字体:" Margin="10,0,5,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtGlobalFontSize" Width="50" Text="{Binding GlobalFontSize}" ToolTip="全局字体大小（毫米）"/>
+                <CheckBox x:Name="chkEnableGlobalFontSize" Content="启用" ToolTip="启用全局字体设置" Margin="5,0,0,0" IsChecked="{Binding EnableGlobalFontSize}"/>
+                <Separator/>
+                <Button Content="预览" Command="{Binding PreviewTemplateCommand}" ToolTip="预览模板"/>
+                <Button Content="导出" Command="{Binding ExportJsonCommand}" ToolTip="导出为JSON"/>
+            </ToolBar>
+        </Border>
+        
+        <!-- 编辑面板标题栏 -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Margin="5" Background="#F0F0F0" CornerRadius="4">
             <StackPanel Orientation="Horizontal" Margin="10" Background="#F0F0F0">
                 <TextBlock Text="编辑面板" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="#333333"/>
                 <StackPanel Orientation="Horizontal" Margin="20,0,0,0">
@@ -65,7 +165,7 @@
         </Border>
         
         <!-- 控件箱 -->
-        <Border Grid.Row="1" Grid.Column="0" Margin="5" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+        <Border Grid.Row="3" Grid.Column="0" Margin="5" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -113,38 +213,314 @@
             </Grid>
         </Border>
         
-        <!-- 编辑画布 -->
-        <Border Grid.Row="1" Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Background="White" Margin="5" CornerRadius="4">
-            <ItemsControl ItemsSource="{Binding Elements}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Canvas Width="800" Height="1000">
-                            <!-- 网格背景 -->
-                            <Canvas.Background>
-                                <VisualBrush TileMode="Tile" Viewport="0,0,20,20" ViewportUnits="Absolute" Viewbox="0,0,20,20" ViewboxUnits="Absolute">
-                                    <VisualBrush.Visual>
-                                        <Grid Width="20" Height="20" Background="#F8F8F8">
-                                            <Path Data="M 20,0 L 0,0 0,20" Stroke="#E0E0E0" StrokeThickness="0.5"/>
+        <!-- 分隔线 -->
+        <Border Grid.Row="0" Grid.Column="2" Grid.RowSpan="4" Background="#E0E0E0"/>
+        
+        <!-- 右侧面板：图层管理 + 属性面板 -->
+        <Grid Grid.Row="3" Grid.Column="3" Background="#FAFAFA">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- 图层管理面板 -->
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- 图层管理标题 -->
+                <Border Grid.Row="0" Background="#0066CC" Padding="8" CornerRadius="4,4,0,0">
+                    <TextBlock Text="图层管理" FontWeight="Bold" Foreground="White" FontSize="14"/>
+                </Border>
+                
+                <!-- 图层列表 -->
+                <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="0,0,4,4">
+                    <DockPanel Margin="2">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,5">
+                            <Button Content="上移" Command="{Binding MoveElementUpCommand}" ToolTip="将选中元素上移一层" Margin="0,0,5,0" 
+                                    Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                    Padding="8,4" FontWeight="Medium"/>
+                            <Button Content="下移" Command="{Binding MoveElementDownCommand}" ToolTip="将选中元素下移一层" Margin="0,0,5,0" 
+                                    Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                    Padding="8,4" FontWeight="Medium"/>
+                            <Button Content="置顶" Command="{Binding MoveElementToTopCommand}" ToolTip="将选中元素置于顶层" Margin="0,0,5,0" 
+                                    Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                    Padding="8,4" FontWeight="Medium"/>
+                            <Button Content="置底" Command="{Binding MoveElementToBottomCommand}" ToolTip="将选中元素置于底层" 
+                                    Background="#F0F4F8" BorderBrush="#C7D2E0" Foreground="#2C5AA0" 
+                                    Padding="8,4" FontWeight="Medium"/>
+                        </StackPanel>
+                        <ListBox x:Name="layerList" ItemsSource="{Binding Elements}" SelectionMode="Extended" 
+                                 Background="#FFFFFF" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" Padding="8" CornerRadius="2"
+                                            Background="#F0F0F0"
+                                            BorderBrush="#E0E0E0"
+                                            BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding ElementType}" Margin="0,0,10,0" FontWeight="Medium"/>
+                                            <TextBlock Text="({Binding X:F1}, {Binding Y:F1})" FontSize="12" Foreground="#666666"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </Border>
+            </Grid>
+            
+            <!-- 分隔线 -->
+            <GridSplitter Grid.Row="1" Height="5" Background="#E0E0E0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+            
+            <!-- 属性面板 -->
+            <Grid Grid.Row="2" Margin="0,5,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- 属性面板标题 -->
+                <Border Grid.Row="0" Background="#0066CC" Padding="8" CornerRadius="4,4,0,0">
+                    <TextBlock Text="属性" FontWeight="Bold" Foreground="White" FontSize="14"/>
+                </Border>
+                
+                <TabControl Grid.Row="1" x:Name="propertyPanel" Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" TabStripPlacement="Top">
+                    <TabItem Header="属性">
+                        <TabItem.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Padding="8" FontWeight="Medium"/>
+                            </DataTemplate>
+                        </TabItem.HeaderTemplate>
+                        <ScrollViewer Margin="5">
+                            <StackPanel>
+                                <!-- 选择信息 -->
+                                <TextBlock x:Name="selectionInfoText" Text="{Binding SelectionInfo}" Foreground="#666666" Margin="0,0,0,10"/>
+                                
+                                <!-- 位置和大小属性 -->
+                                <Expander Header="位置和大小">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="0" Grid.Column="1" Margin="2" Text="{Binding SelectedElementX}" x:Name="posXTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                 Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                 Padding="8" FontWeight="Medium"/>
+                                        
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="2" Text="{Binding SelectedElementY}" x:Name="posYTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                 Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                 Padding="8" FontWeight="Medium"/>
+                                        
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="宽度:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Margin="2" Text="{Binding SelectedElementWidth}" x:Name="widthTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                 Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                 Padding="8" FontWeight="Medium"/>
+                                        
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="高度:" Margin="2" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="3" Grid.Column="1" Margin="2" Text="{Binding SelectedElementHeight}" x:Name="heightTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                 Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                 Padding="8" FontWeight="Medium"/>
+                                    </Grid>
+                                </Expander>
+                                
+                                <!-- 外观属性 -->
+                                <Expander Header="外观">
+                                    <StackPanel>
+                                        <!-- 基本外观 -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="可见:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="{Binding SelectedElementVisible}" x:Name="visibleCheckBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                      Foreground="#333333" FontWeight="Medium"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="旋转:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementRotation}" x:Name="rotationTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Z轴顺序:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementZIndex}" x:Name="zIndexTextBox" IsEnabled="{Binding HasSelectedElement}" 
+                                                     Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Padding="8" FontWeight="Medium"/>
+                                            
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="不透明度:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <Slider Grid.Row="3" Grid.Column="1" Margin="5" Minimum="0" Maximum="1" Value="{Binding SelectedElementOpacity}" x:Name="opacitySlider" IsEnabled="{Binding HasSelectedElement}" 
+                                                    Background="#F8F9FA" BorderBrush="#E0E0E0" BorderThickness="1"/>
                                         </Grid>
-                                    </VisualBrush.Visual>
-                                </VisualBrush>
-                            </Canvas.Background>
-                        </Canvas>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemContainerStyle>
-                    <Style TargetType="ContentPresenter">
-                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
-                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
-                        <Setter Property="Canvas.ZIndex" Value="{Binding ZIndex}"/>
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource ElementTemplateSelector}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                    </StackPanel>
+                                </Expander>
+                                
+                                <!-- 文本属性 -->
+                                <Expander Header="文本">
+                                    <StackPanel>
+                                        <!-- 基本文本属性 -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="内容:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5" x:Name="textContentTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementText}"/>
+                                            
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="字体:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" x:Name="fontFamilyComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontFamily}">
+                                                <ComboBoxItem Content="微软雅黑" Tag="微软雅黑"/>
+                                                <ComboBoxItem Content="宋体" Tag="宋体"/>
+                                                <ComboBoxItem Content="Arial" Tag="Arial"/>
+                                                <ComboBoxItem Content="Times New Roman" Tag="Times New Roman"/>
+                                            </ComboBox>
+                                            
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="大小:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <TextBox Grid.Row="2" Grid.Column="1" Margin="5" x:Name="fontSizeTextBox" IsEnabled="{Binding HasSelectedElement}" Text="{Binding SelectedElementFontSize}"/>
+                                            
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="粗细:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" x:Name="fontWeightComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontWeight}">
+                                                <ComboBoxItem Content="Normal" Tag="Normal"/>
+                                                <ComboBoxItem Content="Bold" Tag="Bold"/>
+                                            </ComboBox>
+                                            
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="样式:" Margin="5,5,0,5" FontWeight="Medium" Foreground="#333333"/>
+                                            <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" x:Name="fontStyleComboBox" IsEnabled="{Binding HasSelectedElement}" SelectedValue="{Binding SelectedElementFontStyle}">
+                                                <ComboBoxItem Content="Normal" Tag="Normal"/>
+                                                <ComboBoxItem Content="Italic" Tag="Italic"/>
+                                            </ComboBox>
+                                        </Grid>
+                                    </StackPanel>
+                                </Expander>
+                                
+                                <!-- 数据绑定属性 -->
+                                <Expander Header="数据绑定">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="启用:" Margin="5,5,0,5" VerticalAlignment="Center" FontWeight="Medium" Foreground="#333333"/>
+                                        <CheckBox Grid.Row="0" Grid.Column="1" Margin="5" IsChecked="{Binding SelectedElementIsDataBound}" IsEnabled="{Binding HasSelectedElement}"/>
+                                        
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="路径:" Margin="5,5,0,5" VerticalAlignment="Center" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding SelectedElementDataPath}" IsEnabled="{Binding HasSelectedElement}"/>
+                                        <Button Grid.Row="1" Grid.Column="2" Content="选择" Margin="5" IsEnabled="{Binding HasSelectedElement}"/>
+                                        
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="格式:" Margin="5,5,0,5" VerticalAlignment="Center" FontWeight="Medium" Foreground="#333333"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding SelectedElementFormatString}" IsEnabled="{Binding HasSelectedElement}"/>
+                                    </Grid>
+                                </Expander>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+        
+        <!-- 编辑画布 -->
+        <Border Grid.Row="3" Grid.Column="1" BorderBrush="#E0E0E0" BorderThickness="1" Background="White" Margin="5" CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- 画布标题栏 -->
+                <Border Grid.Row="0" Padding="10" Background="#F5F5F5">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock x:Name="canvasTitleText" Text="{Binding CanvasTitle}" FontWeight="Bold"/>
+                        <TextBlock Text=" | " Margin="5,0,0,0" Foreground="#666666"/>
+                        <TextBlock x:Name="pageMarginsText" Text="{Binding PageMarginsText}" Foreground="#666666" Margin="0,0,10,0"/>
+                        <Button Content="实际尺寸" Command="{Binding ResetZoomCommand}" Margin="0,0,5,0" Padding="5,2" Background="#E8F4FF" BorderBrush="#4A90E2" Foreground="#2C5AA0" FontWeight="Medium"/>
+                        <TextBlock x:Name="zoomText" Text="{Binding ZoomLevelText}" Margin="0,0,5,0" Foreground="#666666" Width="40"/>
+                        <Slider x:Name="zoomSlider" Minimum="10" Maximum="500" Value="{Binding ZoomLevel}" Width="150" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="statusTextBlock" Text="{Binding Status}" Foreground="#666666" Margin="10,0,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- 画布区域 -->
+                <ScrollViewer x:Name="CanvasScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#E8E8E8">
+                    <Grid>
+                        <!-- 打印纸背景 -->
+                        <Border Background="#FFFFFF" BorderBrush="#E0E0E0" BorderThickness="1" Effect="{StaticResource PaperShadow}">
+                            <Canvas x:Name="DesignCanvas" Width="800" Height="1000" Background="Transparent" 
+                                    AllowDrop="True" Drop="DesignCanvas_Drop" 
+                                    DragOver="DesignCanvas_DragOver" 
+                                    PreviewMouseLeftButtonDown="DesignCanvas_PreviewMouseLeftButtonDown" 
+                                    PreviewMouseRightButtonDown="DesignCanvas_PreviewMouseRightButtonDown"
+                                    PreviewMouseRightButtonUp="DesignCanvas_PreviewMouseRightButtonUp"
+                                    PreviewMouseMove="DesignCanvas_PreviewMouseMove" 
+                                    PreviewMouseLeftButtonUp="DesignCanvas_PreviewMouseLeftButtonUp"
+                                    PreviewMouseWheel="DesignCanvas_PreviewMouseWheel">
+                                <!-- 网格背景 -->
+                                <Canvas x:Name="gridCanvas" Width="800" Height="1000" IsHitTestVisible="False" Background="{StaticResource DesignCanvasBackground}">
+                                </Canvas>
+                                
+                                <!-- 页边距显示 - 上下左右四个边距区域 -->
+                                <Border x:Name="leftMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="topMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="rightMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                <Border x:Name="bottomMargin" Background="#F5F5F5" Canvas.ZIndex="0" Visibility="Visible" />
+                                
+                                <!-- 元素容器 -->
+                                <ItemsControl ItemsSource="{Binding Elements}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                            <Setter Property="Canvas.ZIndex" Value="{Binding ZIndex}"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource ElementTemplateSelector}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Canvas>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
