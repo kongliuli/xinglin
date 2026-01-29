@@ -378,8 +378,8 @@ namespace Xinglin.ReportTemplateEditor.WPF.ViewModels
                     }
                     else if (template is TemplateDefinition templateDef)
                     {
-                        // 对于TemplateDefinition类型，可以添加相应的编辑逻辑
-                        // 或者创建一个新的编辑窗口
+                        var editWindow = new EditWindow();
+                        editWindow.ShowDialog();
                     }
                 });
             });

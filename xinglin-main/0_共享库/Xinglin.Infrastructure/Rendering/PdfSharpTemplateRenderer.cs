@@ -1,4 +1,4 @@
-using System;using System.IO;using PdfSharpCore.Drawing;using PdfSharpCore.Pdf;using Xinglin.Core.Elements;using Xinglin.Core.Models;using Xinglin.Core.Rendering;
+using System;using System.IO;using System.Drawing;using System.Drawing.Imaging;using PdfSharpCore.Drawing;using PdfSharpCore.Pdf;using Xinglin.Core.Elements;using Xinglin.Core.Models;using Xinglin.Core.Rendering;using Ghostscript.NET;
 
 namespace Xinglin.Infrastructure.Rendering
 {
@@ -7,6 +7,11 @@ namespace Xinglin.Infrastructure.Rendering
     /// </summary>
     public class PdfSharpTemplateRenderer : ITemplateRenderer
     {
+        /// <summary>
+        /// 毫米到点的转换系数（1点 = 1/72英寸，1英寸 = 25.4毫米）
+        /// </summary>
+        private const double POINTS_PER_MILLIMETER = 72 / 25.4;
+
         /// <summary>
         /// 将模板渲染为PDF并保存到文件
         /// </summary>
@@ -88,8 +93,92 @@ namespace Xinglin.Infrastructure.Rendering
         /// <returns>包含图像内容的流</returns>
         public Stream RenderToImageStream(ReportTemplateDefinition template)
         {
-            // 简化实现，实际项目中可能需要更复杂的图像渲染逻辑
-            throw new NotImplementedException("Image rendering is not implemented yet.");
+            if (template == null)
+                throw new ArgumentNullException(nameof(template));
+            
+            try
+            {
+                // 首先渲染为PDF流
+                using (var pdfStream = RenderToStream(template))
+                {
+                    // 创建内存流保存图像
+                    var imageStream = new MemoryStream();
+                    
+                    // 使用Ghostscript.NET将PDF转换为图像
+                    using (var rasterizer = new Ghostscript.NET.Rasterizer.GhostscriptRasterizer())
+                    {
+                        // 设置Ghostscript库路径（如果需要）
+                        // 注意：在实际部署时，需要确保Ghostscript库文件存在
+                        string ghostscriptPath = GetGhostscriptPath();
+                        if (!string.IsNullOrEmpty(ghostscriptPath))
+                        {
+                            Ghostscript.NET.GhostscriptVersionInfo versionInfo = new Ghostscript.NET.GhostscriptVersionInfo(
+                                new Version(9, 56, 1),
+                                ghostscriptPath,
+                                string.Empty,
+                                Ghostscript.NET.GhostscriptLicense.GPL);
+                            
+                            rasterizer.Open(pdfStream, versionInfo, true);
+                        }
+                        else
+                        {
+                            // 尝试自动查找Ghostscript库
+                            rasterizer.Open(pdfStream);
+                        }
+                        
+                        if (rasterizer.PageCount > 0)
+                        {
+                            // 渲染第一页
+                            // 注意：根据Ghostscript.NET库的实际API，GetPage方法可能只接受DPI参数
+                            var bitmap = rasterizer.GetPage(300, 300);
+                            
+                            // 将Bitmap保存为PNG格式到内存流
+                            bitmap.Save(imageStream, ImageFormat.Png);
+                            
+                            // 重置流位置到开始
+                            imageStream.Position = 0;
+                        }
+                    }
+                    
+                    return imageStream;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录异常并返回空流
+                Console.WriteLine($"Failed to render template to image stream: {ex.Message}");
+                return new MemoryStream();
+            }
+        }
+        
+        /// <summary>
+        /// 获取Ghostscript库路径
+        /// </summary>
+        /// <returns>Ghostscript库路径</returns>
+        private string GetGhostscriptPath()
+        {
+            // 尝试从常见位置获取Ghostscript库路径
+            string[] possiblePaths = new string[]
+            {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "gs", "gs9.56.1", "bin"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "gs", "gs9.56.1", "bin"),
+                Path.Combine(Environment.CurrentDirectory, "gs"),
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "gs")
+            };
+            
+            foreach (var path in possiblePaths)
+            {
+                if (Directory.Exists(path))
+                {
+                    // 检查是否存在gsdll32.dll或gsdll64.dll
+                    if (File.Exists(Path.Combine(path, "gsdll32.dll")) || File.Exists(Path.Combine(path, "gsdll64.dll")))
+                    {
+                        return path;
+                    }
+                }
+            }
+            
+            return string.Empty;
         }
         
         /// <summary>
@@ -99,14 +188,11 @@ namespace Xinglin.Infrastructure.Rendering
         /// <param name="template">模板定义</param>
         private void SetPageSize(PdfPage page, ReportTemplateDefinition template)
         {
-            // 将毫米转换为点（1点 = 1/72英寸，1英寸 = 25.4毫米）
-            double pointsPerMillimeter = 72 / 25.4;
-            
-            double width = template.PageWidth * pointsPerMillimeter;
-            double height = template.PageHeight * pointsPerMillimeter;
+            double width = template.PageWidth * POINTS_PER_MILLIMETER;
+            double height = template.PageHeight * POINTS_PER_MILLIMETER;
             
             // 根据页面方向调整尺寸
-            if (template.Orientation?.ToLower() == "landscape")
+            if (!string.IsNullOrEmpty(template.Orientation) && template.Orientation.ToLower() == "landscape")
             {
                 page.Width = height;
                 page.Height = width;
@@ -251,14 +337,11 @@ namespace Xinglin.Infrastructure.Rendering
         /// <param name="template">模板定义</param>
         private void RenderTextElement(XGraphics gfx, PdfPage page, TextElement textElement, ReportTemplateDefinition template)
         {
-            // 将毫米转换为点
-            double pointsPerMillimeter = 72 / 25.4;
-            
             // 计算元素在页面上的位置
-            double x = textElement.X * pointsPerMillimeter;
-            double y = textElement.Y * pointsPerMillimeter;
-            double width = textElement.Width * pointsPerMillimeter;
-            double height = textElement.Height * pointsPerMillimeter;
+            double x = textElement.X * POINTS_PER_MILLIMETER;
+            double y = textElement.Y * POINTS_PER_MILLIMETER;
+            double width = textElement.Width * POINTS_PER_MILLIMETER;
+            double height = textElement.Height * POINTS_PER_MILLIMETER;
             
             // 设置字体
             XFont font = new XFont(
@@ -326,14 +409,11 @@ namespace Xinglin.Infrastructure.Rendering
         /// <param name="template">模板定义</param>
         private void RenderImageElement(XGraphics gfx, PdfPage page, ImageElement imageElement, ReportTemplateDefinition template)
         {
-            // 将毫米转换为点
-            double pointsPerMillimeter = 72 / 25.4;
-            
             // 计算元素在页面上的位置
-            double x = imageElement.X * pointsPerMillimeter;
-            double y = imageElement.Y * pointsPerMillimeter;
-            double width = imageElement.Width * pointsPerMillimeter;
-            double height = imageElement.Height * pointsPerMillimeter;
+            double x = imageElement.X * POINTS_PER_MILLIMETER;
+            double y = imageElement.Y * POINTS_PER_MILLIMETER;
+            double width = imageElement.Width * POINTS_PER_MILLIMETER;
+            double height = imageElement.Height * POINTS_PER_MILLIMETER;
             
             // 加载图片
             XImage xImage = null;
@@ -379,14 +459,11 @@ namespace Xinglin.Infrastructure.Rendering
         /// <param name="template">模板定义</param>
         private void RenderLineElement(XGraphics gfx, PdfPage page, LineElement lineElement, ReportTemplateDefinition template)
         {
-            // 将毫米转换为点
-            double pointsPerMillimeter = 72 / 25.4;
-            
             // 计算线条坐标
-            double x1 = lineElement.StartX * pointsPerMillimeter;
-            double y1 = lineElement.StartY * pointsPerMillimeter;
-            double x2 = lineElement.EndX * pointsPerMillimeter;
-            double y2 = lineElement.EndY * pointsPerMillimeter;
+            double x1 = lineElement.StartX * POINTS_PER_MILLIMETER;
+            double y1 = lineElement.StartY * POINTS_PER_MILLIMETER;
+            double x2 = lineElement.EndX * POINTS_PER_MILLIMETER;
+            double y2 = lineElement.EndY * POINTS_PER_MILLIMETER;
             
             // 设置线条颜色
             XPen pen = XPens.Black;

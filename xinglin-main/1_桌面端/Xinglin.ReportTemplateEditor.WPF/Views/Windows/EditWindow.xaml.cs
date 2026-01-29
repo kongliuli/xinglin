@@ -28,7 +28,20 @@ namespace Xinglin.ReportTemplateEditor.WPF.Views.Windows
             _canvasViewModel.SaveCommand = new RelayCommand<object>(Save, CanSave);
             _canvasViewModel.CancelCommand = new RelayCommand<object>(Cancel, CanCancel);
         }
-        
+
+        public EditWindow()
+        {
+            InitializeComponent();
+
+            // 初始化CanvasViewModel
+            _canvasViewModel = new CanvasViewModel(new MainViewModel {});
+            DataContext = _canvasViewModel;
+
+            // 订阅保存和取消命令
+            _canvasViewModel.SaveCommand = new RelayCommand<object>(Save,CanSave);
+            _canvasViewModel.CancelCommand = new RelayCommand<object>(Cancel,CanCancel);
+        }
+
         /// <summary>
         /// 保存编辑结果
         /// </summary>

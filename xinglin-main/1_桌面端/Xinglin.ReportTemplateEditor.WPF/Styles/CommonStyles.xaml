@@ -112,16 +112,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="2">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto">
-                            <TextBox x:Name="PART_EditableTextBox"
-                                     Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}"
-                                     CaretBrush="{TemplateBinding Foreground}"
-                                     SelectionBrush="{TemplateBinding Foreground}"
-                                     BorderThickness="0"
-                                     Background="Transparent"
-                                     Padding="{TemplateBinding Padding}"
-                                     VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </ScrollViewer>
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto" Padding="{TemplateBinding Padding}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">
@@ -448,16 +439,7 @@
                     BorderThickness="{TemplateBinding BorderThickness}"
                     CornerRadius="2"
                     Padding="{TemplateBinding Padding}">
-            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto">
-                <TextBox x:Name="PART_EditableTextBox"
-                         Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}"
-                         CaretBrush="{TemplateBinding Foreground}"
-                         SelectionBrush="{TemplateBinding Foreground}"
-                         BorderThickness="0"
-                         Background="Transparent"
-                         Padding="{TemplateBinding Padding}"
-                         VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
-            </ScrollViewer>
+            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalScrollBarVisibility="Auto" Padding="{TemplateBinding Padding}"/>
         </Border>
         <ControlTemplate.Triggers>
             <Trigger Property="IsEnabled" Value="False">
