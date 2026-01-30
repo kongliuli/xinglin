@@ -1,0 +1,74 @@
+[
+  {
+    "TemplateId": "23a066ad-774f-469b-b7ef-1857c7dc4119",
+    "Name": "\u65B0\u6A21\u677F",
+    "Description": "\u65B0\u5EFA\u7684\u6A21\u677F",
+    "Layout": {
+      "FixedElements": [],
+      "EditableElements": [
+        {
+          "CanMove": true,
+          "CanResize": true,
+          "Properties": [],
+          "ElementId": "d1ceb294-42f9-410b-8663-a67fac8806e1",
+          "Type": 0,
+          "DisplayName": "\u6587\u672C\u6846",
+          "X": 50,
+          "Y": 50,
+          "Width": 200,
+          "Height": 30,
+          "Value": "\u9ED8\u8BA4\u6587\u672C",
+          "EditState": 1
+        }
+      ],
+      "PaperWidth": 210,
+      "PaperHeight": 297,
+      "PaperType": "A4"
+    },
+    "Config": {
+      "Version": "1.0",
+      "IsLocked": false,
+      "Author": "System",
+      "Category": "\u9ED8\u8BA4",
+      "Metadata": {}
+    },
+    "CreatedDate": "2026-01-30T15:16:19.5017752+08:00",
+    "ModifiedDate": "2026-01-30T15:16:19.5032279+08:00"
+  },
+  {
+    "TemplateId": "590a5e83-b51e-4d61-bbe4-06f411fb9b98",
+    "Name": "\u65B0\u6A21\u677F",
+    "Description": "\u65B0\u5EFA\u7684\u6A21\u677F",
+    "Layout": {
+      "FixedElements": [],
+      "EditableElements": [
+        {
+          "CanMove": true,
+          "CanResize": true,
+          "Properties": [],
+          "ElementId": "27209a20-f968-45ff-b707-a01eb9f5c02a",
+          "Type": 0,
+          "DisplayName": "\u6587\u672C\u6846",
+          "X": 50,
+          "Y": 50,
+          "Width": 200,
+          "Height": 30,
+          "Value": "\u9ED8\u8BA4\u6587\u672C",
+          "EditState": 1
+        }
+      ],
+      "PaperWidth": 210,
+      "PaperHeight": 297,
+      "PaperType": "A4"
+    },
+    "Config": {
+      "Version": "1.0",
+      "IsLocked": false,
+      "Author": "System",
+      "Category": "\u9ED8\u8BA4",
+      "Metadata": {}
+    },
+    "CreatedDate": "2026-01-30T15:16:20.4765657+08:00",
+    "ModifiedDate": "2026-01-30T15:16:20.4767045+08:00"
+  }
+]
