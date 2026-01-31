@@ -173,6 +173,25 @@ namespace Demo_ReportPrinter.Services.Shared
             // 广播全局同步消息，优先级为高
             BroadcastDataChange("GlobalSync", _globalState, MessagePriority.High);
         }
+
+        /// <summary>
+        /// 注册消息处理器
+        /// </summary>
+        public void RegisterMessageHandler<TMessage>(System.Action<TMessage> handler) where TMessage : class
+        {
+            CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Register<TMessage>(this, (recipient, message) =>
+            {
+                handler(message);
+            });
+        }
+
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        public void SendMessage<TMessage>(TMessage message) where TMessage : class
+        {
+            CommunityToolkit.Mvvm.Messaging.WeakReferenceMessenger.Default.Send(message);
+        }
     }
 
     /// <summary>
@@ -184,4 +203,19 @@ namespace Demo_ReportPrinter.Services.Shared
     /// PDF生成完成消息
     /// </summary>
     public record PdfGeneratedMessage(string PdfFilePath) : AppMessage(MessageType.TemplateChanged, new { PdfFilePath });
+
+    /// <summary>
+    /// 字段值变更消息
+    /// </summary>
+    public record FieldValuesChangedMessage(Dictionary<string, object> FieldValues) : AppMessage(MessageType.DataChanged, new { FieldValues });
+
+    /// <summary>
+    /// 元素值变更消息
+    /// </summary>
+    public record ElementValueChangedMessage(string ElementId, object NewValue, object OldValue) : AppMessage(MessageType.DataChanged, new { ElementId, NewValue, OldValue });
+
+    /// <summary>
+    /// 模板加载消息
+    /// </summary>
+    public record TemplateLoadedMessage(string TemplateId) : AppMessage(MessageType.TemplateChanged, new { TemplateId });
 }

@@ -100,5 +100,15 @@ namespace Demo_ReportPrinter.Services.Shared
         /// 同步数据到所有组件
         /// </summary>
         void SyncData();
+
+        /// <summary>
+        /// 注册消息处理器
+        /// </summary>
+        void RegisterMessageHandler<TMessage>(System.Action<TMessage> handler) where TMessage : class;
+
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        void SendMessage<TMessage>(TMessage message) where TMessage : class;
     }
 }

@@ -9,6 +9,8 @@ using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Pdf;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
+using System.Threading;
+using System;
 
 namespace Demo_ReportPrinter.ViewModels
 {
@@ -20,6 +22,8 @@ namespace Demo_ReportPrinter.ViewModels
         private WebView2 _webView;
         private readonly ISharedDataService _sharedDataService;
         private readonly IPdfService _pdfService;
+        private Timer _autoRefreshTimer;
+        private bool _isRefreshing = false;
 
         [ObservableProperty]
         private string _pdfFilePath;
@@ -55,6 +59,9 @@ namespace Demo_ReportPrinter.ViewModels
             InitializeWebView();
             InitializeCollections();
             RegisterDataChangeHandlers();
+            
+            // 初始化自动刷新定时器
+            _autoRefreshTimer = new Timer(OnAutoRefresh, null, Timeout.Infinite, Timeout.Infinite);
         }
 
         private async void InitializeWebView()
@@ -82,11 +89,23 @@ namespace Demo_ReportPrinter.ViewModels
                         LoadPdfAsync(pdfFilePath).ConfigureAwait(false);
                     }
                 }
-                else if (message.Key == "DataSaved" || message.Key == "TemplateChanged")
+                else if (message.Key == "DataSaved" || message.Key == "TemplateChanged" || message.Key == "FieldsLoaded")
                 {
-                    // 当数据保存或模板变更时，重新生成PDF
-                    RefreshPdfPreview().ConfigureAwait(false);
+                    // 当数据保存、模板变更或字段加载时，重新生成PDF
+                    SchedulePdfRefresh(500);
                 }
+            });
+
+            // 监听模板加载消息
+            RegisterMessageHandler<TemplateLoadedMessage>((message) =>
+            {
+                SchedulePdfRefresh(1000);
+            });
+
+            // 监听元素值变更消息
+            RegisterMessageHandler<ElementValueChangedMessage>((message) =>
+            {
+                SchedulePdfRefresh(300);
             });
         }
 
@@ -164,6 +183,41 @@ namespace Demo_ReportPrinter.ViewModels
         [RelayCommand]
         private async Task RefreshPdfAsync()
         {
+            await RefreshPdfPreview();
+        }
+
+        // 防抖刷新机制
+        private void SchedulePdfRefresh(int delayMs)
+        {
+            if (_isRefreshing) return;
+            _autoRefreshTimer.Change(delayMs, Timeout.Infinite);
+        }
+
+        private void OnAutoRefresh(object state)
+        {
+            _isRefreshing = true;
+            
+            Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                try
+                {
+                    await RefreshPdfPreview();
+                }
+                finally
+                {
+                    _isRefreshing = false;
+                }
+            });
+        }
+
+        [RelayCommand]
+        private async Task ForceRefreshPdfAsync()
+        {
+            // 取消待刷新任务
+            _autoRefreshTimer.Change(Timeout.Infinite, Timeout.Infinite);
+            
+            // 立即刷新
+            _isRefreshing = false;
             await RefreshPdfPreview();
         }
 

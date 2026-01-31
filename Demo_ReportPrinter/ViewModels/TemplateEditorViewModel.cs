@@ -37,6 +37,7 @@ namespace Demo_ReportPrinter.ViewModels
         /// 命令历史记录
         /// </summary>
         private readonly CommandHistory _commandHistory;
+        private readonly BidirectionalSyncCoordinator _syncCoordinator;
 
         /// <summary>
         /// 是否可以撤销
@@ -69,6 +70,7 @@ namespace Demo_ReportPrinter.ViewModels
         {
             _sharedDataService = SharedDataService.Instance;
             _commandHistory = new CommandHistory();
+            _syncCoordinator = new BidirectionalSyncCoordinator(_sharedDataService);
 
             // 监听模板变更
             RegisterMessageHandler<Services.Shared.TemplateSelectedMessage>((message) =>
@@ -103,6 +105,12 @@ namespace Demo_ReportPrinter.ViewModels
             PaperHeight = CurrentTemplate.Layout.PaperHeight;
             CurrentPaperType = CurrentTemplate.Layout.PaperType;
             IsLandscape = CurrentTemplate.Layout.IsLandscape;
+
+            // 通知DataEntry加载新模板字段
+            _sharedDataService.SendMessage(new TemplateLoadedMessage(templateId));
+
+            // 通知PDF预览刷新
+            _sharedDataService.BroadcastDataChange("TemplateChanged", templateId);
         }
 
         [RelayCommand]
@@ -247,11 +255,15 @@ namespace Demo_ReportPrinter.ViewModels
             if (window.ShowDialog() == true)
             {
                 var oldValue = element.Value;
-                element.Value = textBox.Text;
+                var newValue = textBox.Text;
+                element.Value = newValue;
                 
                 // 创建属性更改命令
-                var command = new ChangeControlPropertyCommand(element, "Value", oldValue, element.Value);
+                var command = new ChangeControlPropertyCommand(element, "Value", oldValue, newValue);
                 _commandHistory.ExecuteCommand(command);
+                
+                // 通知DataEntry更新
+                _sharedDataService.SendMessage(new ElementValueChangedMessage(element.ElementId, newValue, oldValue));
             }
         }
 
@@ -338,6 +350,9 @@ namespace Demo_ReportPrinter.ViewModels
         {
             var templateService = new TemplateService();
             await templateService.SaveTemplateAsync(CurrentTemplate);
+            
+            // 通知PDF预览刷新
+            _sharedDataService.BroadcastDataChange("TemplateChanged", CurrentTemplate.TemplateId);
         }
 
         [RelayCommand]
