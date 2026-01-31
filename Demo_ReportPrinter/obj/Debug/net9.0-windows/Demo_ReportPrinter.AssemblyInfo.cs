@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Demo_ReportPrinter")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7a28f00771c292baab8af2ab3935e54bae84b2b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d78defa53d131deee742b5b66a895428a8113a1e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Demo_ReportPrinter")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Demo_ReportPrinter")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
