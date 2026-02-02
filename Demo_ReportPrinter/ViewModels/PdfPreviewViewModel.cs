@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Web.WebView2.Wpf;
-using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Pdf;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
@@ -52,10 +51,12 @@ namespace Demo_ReportPrinter.ViewModels
         public ObservableCollection<string> PaperSizes { get; set; }
         public ObservableCollection<string> Orientations { get; set; }
 
-        public PdfPreviewViewModel()
+        public PdfPreviewViewModel(
+            ISharedDataService sharedDataService,
+            IPdfService pdfService)
         {
-            _sharedDataService = ServiceLocator.Instance.GetService<ISharedDataService>();
-            _pdfService = ServiceLocator.Instance.GetService<IPdfService>();
+            _sharedDataService = sharedDataService;
+            _pdfService = pdfService;
             InitializeWebView();
             InitializeCollections();
             RegisterDataChangeHandlers();

@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using Demo_ReportPrinter.Models.CoreEntities;
 using Demo_ReportPrinter.Services.Data;
-using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
 
@@ -50,10 +49,12 @@ namespace Demo_ReportPrinter.ViewModels
         [ObservableProperty]
         private string _selectedCategory;
 
-        public TemplateTreeViewModel()
+        public TemplateTreeViewModel(
+            ISharedDataService sharedDataService,
+            ITemplateService templateService)
         {
-            _sharedDataService = ServiceLocator.Instance.GetService<ISharedDataService>();
-            _templateService = ServiceLocator.Instance.GetService<ITemplateService>();
+            _sharedDataService = sharedDataService;
+            _templateService = templateService;
 
             Categories = new ObservableCollection<string> { "全部", "默认", "用户模板" };
             SelectedCategory = "全部";

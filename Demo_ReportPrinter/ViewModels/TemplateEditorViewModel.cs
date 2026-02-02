@@ -19,6 +19,7 @@ namespace Demo_ReportPrinter.ViewModels
     public partial class TemplateEditorViewModel : ViewModelBase
     {
         private readonly ISharedDataService _sharedDataService;
+        private readonly ITemplateService _templateService;
 
         [ObservableProperty]
         private TemplateData _currentTemplate;
@@ -68,9 +69,12 @@ namespace Demo_ReportPrinter.ViewModels
         [ObservableProperty]
         private bool _isLandscape;
 
-        public TemplateEditorViewModel()
+        public TemplateEditorViewModel(
+            ISharedDataService sharedDataService,
+            ITemplateService templateService)
         {
-            _sharedDataService = SharedDataService.Instance;
+            _sharedDataService = sharedDataService;
+            _templateService = templateService;
             _commandHistory = new CommandHistory();
             _syncCoordinator = new BidirectionalSyncCoordinator(_sharedDataService);
 
@@ -100,8 +104,7 @@ namespace Demo_ReportPrinter.ViewModels
         [RelayCommand]
         private async Task LoadTemplateAsync(string templateId)
         {
-            var templateService = new TemplateService();
-            CurrentTemplate = await templateService.GetTemplateByIdAsync(templateId);
+            CurrentTemplate = await _templateService.GetTemplateByIdAsync(templateId);
 
             PaperWidth = CurrentTemplate.Layout.PaperWidth;
             PaperHeight = CurrentTemplate.Layout.PaperHeight;
@@ -350,8 +353,7 @@ namespace Demo_ReportPrinter.ViewModels
         [RelayCommand]
         private async Task SaveTemplateAsync()
         {
-            var templateService = new TemplateService();
-            await templateService.SaveTemplateAsync(CurrentTemplate);
+            await _templateService.SaveTemplateAsync(CurrentTemplate);
             
             // 通知PDF预览刷新
             _sharedDataService.BroadcastDataChange("TemplateChanged", CurrentTemplate.TemplateId);

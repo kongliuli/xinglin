@@ -9,9 +9,7 @@
         Width="1024"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized">
-    <Window.DataContext>
-        <viewModels:MainViewModel/>
-    </Window.DataContext>
+
 
     <Grid>
         <Grid.ColumnDefinitions>

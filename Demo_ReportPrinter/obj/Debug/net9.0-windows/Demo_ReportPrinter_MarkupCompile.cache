@@ -1,20 +1,20 @@
 ﻿Demo_ReportPrinter
-1.0.0.0
+
 
 winexe
 C#
 .cs
-d:\Code\xinglin\Demo_ReportPrinter\obj\Debug\net9.0-windows\
+D:\Code\xinglin\demo_reportprinter\obj\Debug\net9.0-windows\
 Demo_ReportPrinter
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-d:\Code\xinglin\Demo_ReportPrinter\App.xaml
+D:\Code\xinglin\demo_reportprinter\App.xaml
 5219902885
 3-1541373455
-83984634127
-205-1551474520
+81-527070344
+2071391101407
 MainWindow.xaml;Views\Panels\DataEntryPanel.xaml;Views\Panels\PdfPreviewPanel.xaml;Views\Panels\TemplateEditorPanel.xaml;Views\Panels\TemplateTreePanel.xaml;
 
-True
+False
 

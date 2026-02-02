@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Demo_ReportPrinter.Services.Data;
-using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Pdf;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
@@ -20,11 +19,14 @@ namespace Demo_ReportPrinter.ViewModels
         [ObservableProperty]
         private string _windowTitle = "WPF模板编辑器";
 
-        public MainViewModel()
+        public MainViewModel(
+            ISharedDataService sharedDataService,
+            ITemplateService templateService,
+            IPdfService pdfService)
         {
-            _sharedDataService = ServiceLocator.Instance.GetService<ISharedDataService>();
-            _templateService = ServiceLocator.Instance.GetService<ITemplateService>();
-            _pdfService = ServiceLocator.Instance.GetService<IPdfService>();
+            _sharedDataService = sharedDataService;
+            _templateService = templateService;
+            _pdfService = pdfService;
         }
 
         [RelayCommand]

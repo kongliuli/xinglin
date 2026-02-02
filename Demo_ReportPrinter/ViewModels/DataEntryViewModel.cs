@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
-using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.Services.Validation;
 using Demo_ReportPrinter.ViewModels.Base;
@@ -34,10 +33,12 @@ namespace Demo_ReportPrinter.ViewModels
 
         public ObservableCollection<string> Departments { get; set; }
 
-        public DataEntryViewModel()
+        public DataEntryViewModel(
+            ISharedDataService sharedDataService,
+            IValidationService validationService)
         {
-            _sharedDataService = ServiceLocator.Instance.GetService<ISharedDataService>();
-            _validationService = ServiceLocator.Instance.GetService<IValidationService>();
+            _sharedDataService = sharedDataService;
+            _validationService = validationService;
             Departments = new ObservableCollection<string>
             {
                 "技术部",

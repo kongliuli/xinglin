@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using Demo_ReportPrinter.Models.CoreEntities;
 using Demo_ReportPrinter.Services.Data;
-using Demo_ReportPrinter.Services.DI;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
 
@@ -72,9 +71,9 @@ namespace Demo_ReportPrinter.ViewModels
             _sharedDataService.BroadcastDataChange("PdfRefresh", true);
         }
 
-        public DynamicDataEntryViewModel()
+        public DynamicDataEntryViewModel(ISharedDataService sharedDataService)
         {
-            _sharedDataService = ServiceLocator.Instance.GetService<ISharedDataService>();
+            _sharedDataService = sharedDataService;
             _fieldParser = new FieldParserService();
             _fieldDefinitions = new ObservableCollection<FieldDefinition>();
             _fieldValues = new Dictionary<string, object>();

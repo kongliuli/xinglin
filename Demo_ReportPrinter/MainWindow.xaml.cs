@@ -8,9 +8,10 @@ namespace Demo_ReportPrinter
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
+            DataContext = viewModel;
 
             // 初始化应用
             Loaded += MainWindow_Loaded;
