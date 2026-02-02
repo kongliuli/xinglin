@@ -1,0 +1,5 @@
+{
+    "trae.codeAnalysis.exclude": [  // 排除代码分析/错误检测
+    "**/参考目录/**"
+  ]
+}

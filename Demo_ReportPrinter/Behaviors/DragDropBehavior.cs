@@ -15,7 +15,7 @@ namespace Demo_ReportPrinter.Behaviors
     {
         private bool _isDragging;
         private Point _dragStartPoint;
-        private Rectangle _dragBorder; // 拖拽时的虚线框
+        private Rectangle? _dragBorder; // 拖拽时的虚线框
 
         public static readonly DependencyProperty IsDragEnabledProperty = 
             DependencyProperty.RegisterAttached("IsDragEnabled", typeof(bool), typeof(DragDropBehavior), 
@@ -90,15 +90,18 @@ namespace Demo_ReportPrinter.Behaviors
                         // 设置虚线边框样式
                         var pen = new Pen(Brushes.Black, 1);
                         pen.DashStyle = DashStyles.Dash;
-                        _dragBorder.StrokeDashArray = pen.DashStyle.Dashes;
+                        if (_dragBorder != null)
+                        {
+                            _dragBorder.StrokeDashArray = pen.DashStyle.Dashes;
 
-                        // 设置初始位置
-                        Canvas.SetLeft(_dragBorder, controlElement.X);
-                        Canvas.SetTop(_dragBorder, controlElement.Y);
-                        Canvas.SetZIndex(_dragBorder, 9999); // 置于顶层
+                            // 设置初始位置
+                            Canvas.SetLeft(_dragBorder, controlElement.X);
+                            Canvas.SetTop(_dragBorder, controlElement.Y);
+                            Canvas.SetZIndex(_dragBorder, 9999); // 置于顶层
 
-                        // 添加到画布
-                        canvas.Children.Add(_dragBorder);
+                            // 添加到画布
+                            canvas.Children.Add(_dragBorder);
+                        }
                     }
                 }
             }
@@ -132,8 +135,11 @@ namespace Demo_ReportPrinter.Behaviors
                         {
                             if (parent is FrameworkElement frameworkElement && frameworkElement.DataContext is TemplateEditorViewModel viewModel)
                             {
-                                paperWidth = viewModel.CurrentTemplate.Layout.ActualWidth;
-                                paperHeight = viewModel.CurrentTemplate.Layout.ActualHeight;
+                                if (viewModel.CurrentTemplate?.Layout != null)
+                                {
+                                    paperWidth = viewModel.CurrentTemplate.Layout.ActualWidth;
+                                    paperHeight = viewModel.CurrentTemplate.Layout.ActualHeight;
+                                }
                                 break;
                             }
                             parent = VisualTreeHelper.GetParent(parent);

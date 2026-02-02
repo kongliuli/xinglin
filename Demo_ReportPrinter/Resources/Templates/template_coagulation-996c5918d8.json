@@ -1,0 +1,362 @@
+{
+  "TemplateId": "coagulation-v1",
+  "Name": "凝血功能检验报告单",
+  "Description": "适用于凝血功能检验的报告单，包含PT、APTT、TT、FIB等指标",
+  "Category": "临床检验",
+  "CreateDate": "2026-01-31T12:00:00",
+  "ModifiedDate": "2026-01-31T12:00:00",
+  "Layout": {
+    "PaperType": "A5",
+    "PaperWidth": 842,
+    "PaperHeight": 595,
+    "IsLandscape": true,
+    "Margin": {
+      "Left": 40,
+      "Top": 40,
+      "Right": 40,
+      "Bottom": 40
+    },
+    "FixedElements": [
+      {
+        "ElementId": "reportTitle",
+        "Type": "Text",
+        "X": 40,
+        "Y": 40,
+        "Width": 762,
+        "Height": 40,
+        "ZIndex": 0,
+        "FontFamily": "SimHei",
+        "FontSize": 24,
+        "FontWeight": "Bold",
+        "Foreground": "#000000",
+        "TextAlign": "Center",
+        "Text": "凝血功能检验报告单",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "reportNo",
+        "Type": "Text",
+        "X": 700,
+        "Y": 40,
+        "Width": 102,
+        "Height": 30,
+        "ZIndex": 0,
+        "FontFamily": "SimSun",
+        "FontSize": 12,
+        "Foreground": "#666666",
+        "TextAlign": "Right",
+        "Text": "编号：{ReportNo}",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "separator1",
+        "Type": "Line",
+        "X": 40,
+        "Y": 90,
+        "Width": 762,
+        "Height": 1,
+        "ZIndex": 0,
+        "Stroke": "#000000",
+        "StrokeThickness": 2,
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "noteText",
+        "Type": "Text",
+        "X": 40,
+        "Y": 520,
+        "Width": 762,
+        "Height": 20,
+        "ZIndex": 0,
+        "FontFamily": "SimSun",
+        "FontSize": 10,
+        "Foreground": "#999999",
+        "TextAlign": "Left",
+        "Text": "注：本报告仅对该标本负责，仅供临床医师参考。",
+        "EditState": "ReadOnly"
+      }
+    ],
+    "EditableElements": [
+      {
+        "ElementId": "patientName",
+        "Type": "TextBox",
+        "DisplayName": "患者姓名",
+        "X": 120,
+        "Y": 110,
+        "Width": 150,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "请输入姓名",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "patientAge",
+        "Type": "TextBox",
+        "DisplayName": "年龄",
+        "X": 120,
+        "Y": 155,
+        "Width": 100,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "MaxLength": 3,
+        "Placeholder": "如：35",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 3,
+          "ValidationRegex": "^\\d{1,3}$"
+        }
+      },
+      {
+        "ElementId": "patientGender",
+        "Type": "ComboBox",
+        "DisplayName": "性别",
+        "X": 120,
+        "Y": 200,
+        "Width": 100,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "Placeholder": "请选择",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "Options": "男\n女",
+          "DefaultSelectedIndex": 0
+        }
+      },
+      {
+        "ElementId": "patientId",
+        "Type": "TextBox",
+        "DisplayName": "病历号",
+        "X": 120,
+        "Y": 245,
+        "Width": 200,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "请输入病历号",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "sampleDate",
+        "Type": "DatePicker",
+        "DisplayName": "采样日期",
+        "X": 450,
+        "Y": 110,
+        "Width": 150,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "Placeholder": "选择日期",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MinDate": "2020-01-01",
+          "MaxDate": "2026-12-31"
+        }
+      },
+      {
+        "ElementId": "reportDate",
+        "Type": "DatePicker",
+        "DisplayName": "报告日期",
+        "X": 450,
+        "Y": 155,
+        "Width": 150,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "Placeholder": "选择日期",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MinDate": "2020-01-01",
+          "MaxDate": "2026-12-31"
+        }
+      },
+      {
+        "ElementId": "sampleType",
+        "Type": "ComboBox",
+        "DisplayName": "标本类型",
+        "X": 450,
+        "Y": 200,
+        "Width": 160,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "Placeholder": "请选择",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "Options": "枸橼酸钠抗凝血浆\n肝素抗凝血浆\nEDTA抗凝血浆"
+        }
+      },
+      {
+        "ElementId": "doctor",
+        "Type": "TextBox",
+        "DisplayName": "送检医师",
+        "X": 450,
+        "Y": 245,
+        "Width": 150,
+        "Height": 35,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "医师姓名",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "coagulationTable",
+        "Type": "Table",
+        "DisplayName": "凝血功能指标表",
+        "X": 40,
+        "Y": 300,
+        "Width": 762,
+        "Height": 200,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 12,
+        "EditState": "Editable",
+        "Properties": {
+          "TableConfig": {
+            "Columns": [
+              {
+                "ColumnId": "projectName",
+                "HeaderText": "项目名称",
+                "ControlType": "TextBox",
+                "Width": 200,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "result",
+                "HeaderText": "结果",
+                "ControlType": "TextBox",
+                "Width": 150,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "referenceValue",
+                "HeaderText": "参考值",
+                "ControlType": "TextBox",
+                "Width": 180,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "unit",
+                "HeaderText": "单位",
+                "ControlType": "ComboBox",
+                "Width": 110,
+                "IsRequired": false,
+                "Options": "s\nmin\nmmol/L\nIU/mL"
+              },
+              {
+                "ColumnId": "abnormal",
+                "HeaderText": "异常",
+                "ControlType": "CheckBox",
+                "Width": 80,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "remark",
+                "HeaderText": "备注",
+                "ControlType": "TextBox",
+                "Width": 142,
+                "IsRequired": false
+              }
+            ],
+            "DefaultRowCount": 6,
+            "AllowAddRow": true,
+            "AllowDeleteRow": true,
+            "AllowReorderColumns": false
+          }
+        }
+      },
+      {
+        "ElementId": "diagnosisConclusion",
+        "Type": "TextBox",
+        "DisplayName": "检验结论",
+        "X": 40,
+        "Y": 505,
+        "Width": 762,
+        "Height": 70,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 14,
+        "IsRequired": true,
+        "MaxLength": 500,
+        "Placeholder": "请输入检验结论",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 500,
+          "TextWrapping": "Wrap",
+          "AcceptsReturn": "True"
+        }
+      }
+    ]
+  },
+  "Config": {
+    "Version": "1.0",
+    "IsLocked": false,
+    "Author": "System",
+    "Metadata": {
+      "CreatedBy": "System",
+      "LastModified": "2026-01-31T12:00:00",
+      "TemplateType": "Coagulation",
+      "OutputFormat": "PDF",
+      "Language": "zh-CN",
+      "SupportTableEditing": true,
+      "DefaultItems": {
+        "凝血功能": [
+          "凝血酶原时间 (PT)",
+          "凝血酶原时间活动度 (PT%)",
+          "活化部分凝血活酶时间 (APTT)",
+          "凝血酶时间 (TT)",
+          "纤维蛋白原 (FIB)",
+          "D-二聚体 (D-Dimer)"
+        ]
+      }
+    }
+  }
+}

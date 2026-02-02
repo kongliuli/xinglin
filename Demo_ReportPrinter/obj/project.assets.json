@@ -233,11 +233,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Code\\xinglin\\Demo_ReportPrinter\\Demo_ReportPrinter.csproj",
+      "projectUniqueName": "D:\\Code\\xinglin\\demo_reportprinter\\Demo_ReportPrinter.csproj",
       "projectName": "Demo_ReportPrinter",
-      "projectPath": "D:\\Code\\xinglin\\Demo_ReportPrinter\\Demo_ReportPrinter.csproj",
+      "projectPath": "D:\\Code\\xinglin\\demo_reportprinter\\Demo_ReportPrinter.csproj",
       "packagesPath": "C:\\Users\\admin.DESKTOP-4R9CSJI\\.nuget\\packages\\",
-      "outputPath": "D:\\Code\\xinglin\\Demo_ReportPrinter\\obj\\",
+      "outputPath": "D:\\Code\\xinglin\\demo_reportprinter\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "E:\\apps\\Download\\cache\\NuGetPackages"
@@ -309,7 +309,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.310/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

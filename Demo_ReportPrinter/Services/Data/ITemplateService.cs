@@ -36,5 +36,15 @@ namespace Demo_ReportPrinter.Services.Data
         /// 复制模板
         /// </summary>
         Task<TemplateData> DuplicateTemplateAsync(TemplateData template);
+
+        /// <summary>
+        /// 重建模板索引
+        /// </summary>
+        Task RebuildTemplatesIndexAsync();
+
+        /// <summary>
+        /// 导入模板
+        /// </summary>
+        Task<TemplateData> ImportTemplateAsync(string sourceFilePath);
     }
 }

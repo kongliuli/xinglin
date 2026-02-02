@@ -1,0 +1,536 @@
+{
+  "TemplateId": "hematology-v1",
+  "Name": "血液检验报告单",
+  "Description": "适用于血常规检验的报告单，包含白细胞、红细胞、血小板等指标",
+  "Category": "临床检验",
+  "CreateDate": "2026-01-31T12:00:00",
+  "ModifiedDate": "2026-01-31T12:00:00",
+  "Layout": {
+    "PaperType": "A5",
+    "PaperWidth": 842,
+    "PaperHeight": 595,
+    "IsLandscape": true,
+    "Margin": {
+      "Left": 38,
+      "Top": 38,
+      "Right": 38,
+      "Bottom": 38
+    },
+    "FixedElements": [
+      {
+        "ElementId": "reportTitle",
+        "Type": "Text",
+        "X": 38,
+        "Y": 38,
+        "Width": 766,
+        "Height": 36,
+        "ZIndex": 0,
+        "FontFamily": "SimHei",
+        "FontSize": 22,
+        "FontWeight": "Bold",
+        "Foreground": "#000000",
+        "TextAlign": "Center",
+        "Text": "血液检验报告单（血常规）",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "reportNo",
+        "Type": "Text",
+        "X": 708,
+        "Y": 38,
+        "Width": 96,
+        "Height": 26,
+        "ZIndex": 0,
+        "FontFamily": "SimSun",
+        "FontSize": 11,
+        "Foreground": "#666666",
+        "TextAlign": "Right",
+        "Text": "编号：{ReportNo}",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "separator1",
+        "Type": "Line",
+        "X": 38,
+        "Y": 84,
+        "Width": 766,
+        "Height": 1,
+        "ZIndex": 0,
+        "Stroke": "#000000",
+        "StrokeThickness": 2,
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "sectionTitle1",
+        "Type": "Text",
+        "X": 38,
+        "Y": 278,
+        "Width": 160,
+        "Height": 26,
+        "ZIndex": 0,
+        "FontFamily": "SimHei",
+        "FontSize": 13,
+        "FontWeight": "Bold",
+        "Foreground": "#333333",
+        "Text": "白细胞计数",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "sectionTitle2",
+        "Type": "Text",
+        "X": 38,
+        "Y": 338,
+        "Width": 160,
+        "Height": 26,
+        "ZIndex": 0,
+        "FontFamily": "SimHei",
+        "FontSize": 13,
+        "FontWeight": "Bold",
+        "Foreground": "#333333",
+        "Text": "红细胞计数",
+        "EditState": "ReadOnly"
+      },
+      {
+        "ElementId": "sectionTitle3",
+        "Type": "Text",
+        "X": 38,
+        "Y": 398,
+        "Width": 160,
+        "Height": 26,
+        "ZIndex": 0,
+        "FontFamily": "SimHei",
+        "FontSize": 13,
+        "FontWeight": "Bold",
+        "Foreground": "#333333",
+        "Text": "血小板计数",
+        "EditState": "ReadOnly"
+      }
+    ],
+    "EditableElements": [
+      {
+        "ElementId": "patientName",
+        "Type": "TextBox",
+        "DisplayName": "患者姓名",
+        "X": 118,
+        "Y": 100,
+        "Width": 140,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "请输入姓名",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "patientAge",
+        "Type": "TextBox",
+        "DisplayName": "年龄",
+        "X": 118,
+        "Y": 142,
+        "Width": 90,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "MaxLength": 3,
+        "Placeholder": "如：35",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 3,
+          "ValidationRegex": "^\\d{1,3}$"
+        }
+      },
+      {
+        "ElementId": "patientGender",
+        "Type": "ComboBox",
+        "DisplayName": "性别",
+        "X": 118,
+        "Y": 184,
+        "Width": 90,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "Placeholder": "请选择",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "Options": "男\n女",
+          "DefaultSelectedIndex": 0
+        }
+      },
+      {
+        "ElementId": "patientId",
+        "Type": "TextBox",
+        "DisplayName": "病历号",
+        "X": 118,
+        "Y": 226,
+        "Width": 190,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "请输入病历号",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "sampleDate",
+        "Type": "DatePicker",
+        "DisplayName": "采样日期",
+        "X": 448,
+        "Y": 100,
+        "Width": 135,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "Placeholder": "选择日期",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MinDate": "2020-01-01",
+          "MaxDate": "2026-12-31"
+        }
+      },
+      {
+        "ElementId": "reportDate",
+        "Type": "DatePicker",
+        "DisplayName": "报告日期",
+        "X": 448,
+        "Y": 142,
+        "Width": 135,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "Placeholder": "选择日期",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MinDate": "2020-01-01",
+          "MaxDate": "2026-12-31"
+        }
+      },
+      {
+        "ElementId": "sampleType",
+        "Type": "ComboBox",
+        "DisplayName": "标本类型",
+        "X": 448,
+        "Y": 184,
+        "Width": 160,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "Placeholder": "请选择",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "Options": "静脉血\n末梢血\n动脉血\n其他"
+        }
+      },
+      {
+        "ElementId": "doctor",
+        "Type": "TextBox",
+        "DisplayName": "送检医师",
+        "X": 448,
+        "Y": 226,
+        "Width": 135,
+        "Height": 32,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "MaxLength": 20,
+        "Placeholder": "医师姓名",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 20
+        }
+      },
+      {
+        "ElementId": "whiteBloodCellTable",
+        "Type": "Table",
+        "DisplayName": "白细胞计数表",
+        "X": 38,
+        "Y": 308,
+        "Width": 766,
+        "Height": 55,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 11,
+        "EditState": "Editable",
+        "Properties": {
+          "TableConfig": {
+            "Columns": [
+              {
+                "ColumnId": "projectName",
+                "HeaderText": "项目名称",
+                "ControlType": "TextBox",
+                "Width": 140,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "result",
+                "HeaderText": "结果",
+                "ControlType": "TextBox",
+                "Width": 110,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "referenceLow",
+                "HeaderText": "参考下限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "referenceHigh",
+                "HeaderText": "参考上限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "unit",
+                "HeaderText": "单位",
+                "ControlType": "ComboBox",
+                "Width": 75,
+                "IsRequired": false,
+                "Options": "10^9/L\n×10^9/L\nG/L"
+              },
+              {
+                "ColumnId": "abnormal",
+                "HeaderText": "异常",
+                "ControlType": "CheckBox",
+                "Width": 65,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "remark",
+                "HeaderText": "备注",
+                "ControlType": "TextBox",
+                "Width": 176,
+                "IsRequired": false
+              }
+            ],
+            "DefaultRowCount": 2,
+            "AllowAddRow": true,
+            "AllowDeleteRow": true,
+            "AllowReorderColumns": false
+          }
+        }
+      },
+      {
+        "ElementId": "redBloodCellTable",
+        "Type": "Table",
+        "DisplayName": "红细胞计数表",
+        "X": 38,
+        "Y": 368,
+        "Width": 766,
+        "Height": 55,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 11,
+        "EditState": "Editable",
+        "Properties": {
+          "TableConfig": {
+            "Columns": [
+              {
+                "ColumnId": "projectName",
+                "HeaderText": "项目名称",
+                "ControlType": "TextBox",
+                "Width": 140,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "result",
+                "HeaderText": "结果",
+                "ControlType": "TextBox",
+                "Width": 110,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "referenceLow",
+                "HeaderText": "参考下限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "referenceHigh",
+                "HeaderText": "参考上限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "unit",
+                "HeaderText": "单位",
+                "ControlType": "ComboBox",
+                "Width": 75,
+                "IsRequired": false,
+                "Options": "10^12/L\n×10^12/L\nT/L"
+              },
+              {
+                "ColumnId": "abnormal",
+                "HeaderText": "异常",
+                "ControlType": "CheckBox",
+                "Width": 65,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "remark",
+                "HeaderText": "备注",
+                "ControlType": "TextBox",
+                "Width": 176,
+                "IsRequired": false
+              }
+            ],
+            "DefaultRowCount": 2,
+            "AllowAddRow": true,
+            "AllowDeleteRow": true,
+            "AllowReorderColumns": false
+          }
+        }
+      },
+      {
+        "ElementId": "plateletTable",
+        "Type": "Table",
+        "DisplayName": "血小板计数表",
+        "X": 38,
+        "Y": 428,
+        "Width": 766,
+        "Height": 55,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 11,
+        "EditState": "Editable",
+        "Properties": {
+          "TableConfig": {
+            "Columns": [
+              {
+                "ColumnId": "projectName",
+                "HeaderText": "项目名称",
+                "ControlType": "TextBox",
+                "Width": 140,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "result",
+                "HeaderText": "结果",
+                "ControlType": "TextBox",
+                "Width": 110,
+                "IsRequired": true
+              },
+              {
+                "ColumnId": "referenceLow",
+                "HeaderText": "参考下限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "referenceHigh",
+                "HeaderText": "参考上限",
+                "ControlType": "TextBox",
+                "Width": 100,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "unit",
+                "HeaderText": "单位",
+                "ControlType": "ComboBox",
+                "Width": 75,
+                "IsRequired": false,
+                "Options": "10^9/L\n×10^9/L\nG/L"
+              },
+              {
+                "ColumnId": "abnormal",
+                "HeaderText": "异常",
+                "ControlType": "CheckBox",
+                "Width": 65,
+                "IsRequired": false
+              },
+              {
+                "ColumnId": "remark",
+                "HeaderText": "备注",
+                "ControlType": "TextBox",
+                "Width": 176,
+                "IsRequired": false
+              }
+            ],
+            "DefaultRowCount": 2,
+            "AllowAddRow": true,
+            "AllowDeleteRow": true,
+            "AllowReorderColumns": false
+          }
+        }
+      },
+      {
+        "ElementId": "diagnosisConclusion",
+        "Type": "TextBox",
+        "DisplayName": "检验结论",
+        "X": 38,
+        "Y": 498,
+        "Width": 766,
+        "Height": 75,
+        "ZIndex": 1,
+        "FontFamily": "SimSun",
+        "FontSize": 13,
+        "IsRequired": true,
+        "MaxLength": 400,
+        "Placeholder": "请输入检验结论",
+        "Value": "",
+        "EditState": "Editable",
+        "Properties": {
+          "IsRequired": true,
+          "MaxLength": 400,
+          "TextWrapping": "Wrap",
+          "AcceptsReturn": "True"
+        }
+      }
+    ]
+  },
+  "Config": {
+    "Version": "1.0",
+    "IsLocked": false,
+    "Author": "System",
+    "Metadata": {
+      "CreatedBy": "System",
+      "LastModified": "2026-01-31T12:00:00",
+      "TemplateType": "Hematology",
+      "OutputFormat": "PDF",
+      "Language": "zh-CN",
+      "SupportMultipleTables": true,
+      "TableCategories": ["白细胞", "红细胞", "血小板"]
+    }
+  }
+}

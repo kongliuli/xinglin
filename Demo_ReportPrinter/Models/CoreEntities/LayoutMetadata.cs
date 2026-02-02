@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using Demo_ReportPrinter.Constants;
 
 namespace Demo_ReportPrinter.Models.CoreEntities
 {

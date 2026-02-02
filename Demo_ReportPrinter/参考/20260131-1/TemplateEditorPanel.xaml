@@ -1,0 +1,272 @@
+<UserControl x:Class="Demo_ReportPrinter.Views.TemplateEditorPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:Demo_ReportPrinter.ViewModels"
+             xmlns:services="clr-namespace:Demo_ReportPrinter.Services.Shared"
+             xmlns:models="clr-namespace:Demo_ReportPrinter.Models.CoreEntities"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:Demo_ReportPrinter.Behaviors"
+             xmlns:converters="clr-namespace:Demo_ReportPrinter.Converters">
+    <UserControl.DataContext>
+        <viewModels:TemplateEditorViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        <converters:PaperTypeToVisibilityConverter x:Key="PaperTypeToVisibilityConverter"/>
+        
+        <!-- 控件模板 -->
+        <DataTemplate x:Key="TextBoxTemplate">
+            <TextBox Text="{Binding Value, Mode=TwoWay}" Margin="2"/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="ComboBoxTemplate">
+            <ComboBox Text="{Binding Value, Mode=TwoWay}" Margin="2">
+                <ComboBoxItem>选项1</ComboBoxItem>
+                <ComboBoxItem>选项2</ComboBoxItem>
+                <ComboBoxItem>选项3</ComboBoxItem>
+            </ComboBox>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="DatePickerTemplate">
+            <DatePicker SelectedDate="{Binding Value, Mode=TwoWay}" Margin="2"/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="CheckBoxTemplate">
+            <CheckBox IsChecked="{Binding Value, Mode=TwoWay}" Content="{Binding DisplayName}" Margin="2"/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="TableTemplate">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#F8F8F8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="表格" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2" FontWeight="Bold"/>
+                    <TextBlock Text="(双击编辑)" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2" FontSize="10" Foreground="Gray" Grid.Row="1"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="ImageTemplate">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#F0F0F0">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="图片" HorizontalAlignment="Center" Margin="2" FontWeight="Bold"/>
+                    <TextBlock Text="(点击添加)" HorizontalAlignment="Center" Margin="2" FontSize="10" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="ChartTemplate">
+            <Border BorderBrush="Black" BorderThickness="1" Background="#F0F0F0">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="图表" HorizontalAlignment="Center" Margin="2" FontWeight="Bold"/>
+                    <TextBlock Text="(点击配置)" HorizontalAlignment="Center" Margin="2" FontSize="10" Foreground="Gray"/>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="FixedTextTemplate">
+            <TextBlock Text="{Binding Value}" Margin="2"/>
+        </DataTemplate>
+        
+        <!-- 控件类型模板选择器 -->
+        <converters:ControlTypeTemplateSelector x:Key="ControlTypeTemplateSelector"
+                                                 TextBoxTemplate="{StaticResource TextBoxTemplate}"
+                                                 ComboBoxTemplate="{StaticResource ComboBoxTemplate}"
+                                                 DatePickerTemplate="{StaticResource DatePickerTemplate}"
+                                                 CheckBoxTemplate="{StaticResource CheckBoxTemplate}"
+                                                 TableTemplate="{StaticResource TableTemplate}"
+                                                 ImageTemplate="{StaticResource ImageTemplate}"
+                                                 ChartTemplate="{StaticResource ChartTemplate}"
+                                                 FixedTextTemplate="{StaticResource FixedTextTemplate}"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 控件工具箱 -->
+        <StackPanel Grid.Column="0" Width="120" Margin="5">
+            <TextBlock Text="控件工具箱" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <Button Content="文本框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.TextBox}" Margin="0,2"/>
+            <Button Content="下拉框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.ComboBox}" Margin="0,2"/>
+            <Button Content="日期选择" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.DatePicker}" Margin="0,2"/>
+            <Button Content="复选框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.CheckBox}" Margin="0,2"/>
+            <Button Content="表格" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Table}" Margin="0,2"/>
+            <Button Content="图片" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Image}" Margin="0,2"/>
+            <Button Content="图表" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Chart}" Margin="0,2"/>
+
+            <Separator Margin="0,10"/>
+            <TextBlock Text="操作" FontWeight="Bold" Margin="0,0,0,10"/>
+            <Button Content="删除选中" Command="{Binding DeleteElementCommand}" Margin="0,2"/>
+                <Button Content="复制控件" Command="{Binding CloneElementCommand}" Margin="0,2"/>
+                <Button Content="置于顶层" Command="{Binding BringToFrontCommand}" Margin="0,2"/>
+                <Button Content="置于底层" Command="{Binding SendToBackCommand}" Margin="0,2"/>
+                <Separator Margin="0,10"/>
+                <TextBlock Text="编辑" FontWeight="Bold" Margin="0,0,0,10"/>
+                <Button Content="撤销" Command="{Binding UndoCommand}" Margin="0,2" IsEnabled="{Binding CanUndo}"/>
+                <Button Content="重做" Command="{Binding RedoCommand}" Margin="0,2" IsEnabled="{Binding CanRedo}"/>
+                <Separator Margin="0,10"/>
+                <Button Content="保存模板" Command="{Binding SaveTemplateCommand}" Margin="0,2"/>
+        </StackPanel>
+
+        <!-- 画布区域 -->
+        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                    <!-- 纸张设置 -->
+                <StackPanel Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,5">
+                        <TextBlock Text="纸张大小: " FontWeight="Bold" Margin="0,0,5,0"/>
+                        <ComboBox ItemsSource="{Binding PaperSizes}" DisplayMemberPath="Name" SelectedValuePath="Type" SelectedValue="{Binding CurrentPaperType, Mode=TwoWay}" Width="100" Margin="0,0,10,0"/>
+                        <Button Content="横向" Command="{Binding ToggleLandscapeCommand}" Margin="0,0,10,0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="#F0F0F0"/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLandscape}" Value="True">
+                                            <Setter Property="Background" Value="#007ACC"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <TextBlock Text=" ("/>
+                        <TextBlock Text="{Binding PaperWidth}"/>
+                        <TextBlock Text=" × "/>
+                        <TextBlock Text="{Binding PaperHeight}"/>
+                        <TextBlock Text=" mm)"/>
+                    </StackPanel>
+                    
+                    <!-- 自定义纸张大小设置 -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Visibility="{Binding CurrentPaperType, Converter={StaticResource PaperTypeToVisibilityConverter}}">
+                        <TextBlock Text="自定义大小: " FontWeight="Bold" Margin="0,0,5,0"/>
+                        <TextBox Text="{Binding PaperWidth, Mode=TwoWay}" Width="60" Margin="0,0,5,0"/>
+                        <TextBlock Text="×" Margin="0,0,5,0"/>
+                        <TextBox Text="{Binding PaperHeight, Mode=TwoWay}" Width="60" Margin="0,0,5,0"/>
+                        <TextBlock Text="mm" Margin="0,0,10,0"/>
+                        <Button Content="应用" Command="{Binding SetCustomPaperSizeCommand}" CommandParameter="{Binding}" Margin="0,0,5,0"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <!-- 画布 -->
+                <Border BorderBrush="Gray" BorderThickness="1" Background="White" 
+                        Width="{Binding CurrentTemplate.Layout.ActualWidth}" 
+                        Height="{Binding CurrentTemplate.Layout.ActualHeight}">
+                    <Canvas>
+                    <!-- 固定内容区域 -->
+                    <ItemsControl ItemsSource="{Binding CurrentTemplate.Layout.FixedElements}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                <Setter Property="Canvas.ZIndex" Value="1"/>
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="{Binding Width}" Height="{Binding Height}" Background="LightGray" IsEnabled="False">
+                                    <TextBlock Text="{Binding Value}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 可编辑内容区域 -->
+                    <ItemsControl ItemsSource="{Binding CurrentTemplate.Layout.EditableElements}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style>
+                                <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                <Setter Property="Canvas.ZIndex" Value="{Binding ZIndex}"/>
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="{Binding Width}" Height="{Binding Height}" 
+                                        BorderBrush="{Binding IsSelected, Converter={StaticResource BoolToColorConverter}}" 
+                                        BorderThickness="2" Background="White">
+                                    <i:Interaction.Behaviors>
+                                        <behaviors:DragDropBehavior IsDragEnabled="{Binding CanMove}"/>
+                                        <behaviors:ResizeBehavior CanResize="{Binding CanResize}"/>
+                                        <behaviors:SelectionBehavior/>
+                                    </i:Interaction.Behaviors>
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="属性" Command="{Binding DataContext.EditPropertiesCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="设置默认值" Command="{Binding DataContext.SetDefaultValueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="编辑选项" Command="{Binding DataContext.EditOptionsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Separator/>
+                                            <MenuItem Header="复制" Command="{Binding DataContext.CloneElementCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <MenuItem Header="删除" Command="{Binding DataContext.DeleteElementCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.ContentTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="10" Foreground="Gray" Margin="2,0,0,0"/>
+                                                    <ContentControl Content="{Binding}" ContentTemplateSelector="{StaticResource ControlTypeTemplateSelector}" Margin="0,15,0,0"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Canvas>
+            </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 属性面板 -->
+        <StackPanel Grid.Column="2" Margin="5" DataContext="{Binding SelectedElement}">
+            <TextBlock Text="属性面板" FontWeight="Bold" Margin="0,0,0,10"/>
+
+            <TextBlock Text="X坐标"/>
+            <TextBox Text="{Binding X, Mode=TwoWay}"/>
+
+            <TextBlock Text="Y坐标"/>
+            <TextBox Text="{Binding Y, Mode=TwoWay}"/>
+
+            <TextBlock Text="宽度"/>
+            <TextBox Text="{Binding Width, Mode=TwoWay}"/>
+
+            <TextBlock Text="高度"/>
+            <TextBox Text="{Binding Height, Mode=TwoWay}"/>
+
+            <TextBlock Text="显示名称"/>
+            <TextBox Text="{Binding DisplayName, Mode=TwoWay}"/>
+
+            <TextBlock Text="层级"/>
+            <TextBox Text="{Binding ZIndex, Mode=TwoWay}" IsEnabled="False"/>
+
+            <TextBlock Text="可编辑状态"/>
+            <ComboBox SelectedItem="{Binding EditState}">
+                <ComboBox.Items>
+                    <models:EditableState>ReadOnly</models:EditableState>
+                    <models:EditableState>Editable</models:EditableState>
+                    <models:EditableState>Locked</models:EditableState>
+                </ComboBox.Items>
+            </ComboBox>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -352,5 +352,75 @@ namespace Demo_ReportPrinter.Services.Data
             var json = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(_templatesIndexFile, json);
         }
+
+        public async Task RebuildTemplatesIndexAsync()
+        {
+            // 扫描Templates目录中的所有.json文件
+            var templateFiles = Directory.GetFiles(_templatesDirectory, "*.json")
+                .Where(file => Path.GetFileName(file) != "templates.json") // 排除索引文件本身
+                .ToList();
+
+            var templates = new List<TemplateData>();
+
+            // 解析每个模板文件
+            foreach (var file in templateFiles)
+            {
+                try
+                {
+                    var json = await File.ReadAllTextAsync(file);
+                    var template = JsonSerializer.Deserialize<TemplateData>(json);
+                    if (template != null)
+                    {
+                        templates.Add(template);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"解析模板文件失败 {file}: {ex.Message}");
+                }
+            }
+
+            // 保存更新后的索引
+            var indexJson = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(_templatesIndexFile, indexJson);
+        }
+
+        public async Task<TemplateData> ImportTemplateAsync(string sourceFilePath)
+        {
+            if (!File.Exists(sourceFilePath))
+            {
+                throw new FileNotFoundException("源模板文件不存在", sourceFilePath);
+            }
+
+            try
+            {
+                // 读取源模板文件
+                var json = await File.ReadAllTextAsync(sourceFilePath);
+                var template = JsonSerializer.Deserialize<TemplateData>(json);
+                if (template == null)
+                {
+                    throw new InvalidDataException("无效的模板文件格式");
+                }
+
+                // 生成新的模板ID，确保唯一性
+                template.TemplateId = Guid.NewGuid().ToString();
+                template.CreatedDate = DateTime.Now;
+                template.ModifiedDate = DateTime.Now;
+
+                // 保存到目标位置
+                var templateFile = Path.Combine(_templatesDirectory, $"{template.TemplateId}.json");
+                var templateJson = JsonSerializer.Serialize(template, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(templateFile, templateJson);
+
+                // 更新索引
+                await UpdateTemplatesIndexAsync(template);
+
+                return template;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("导入模板失败", ex);
+            }
+        }
     }
 }

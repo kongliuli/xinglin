@@ -1,0 +1,380 @@
+<UserControl x:Class="Demo_ReportPrinter.Views.TemplateEditorPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behaviors="clr-namespace:Demo_ReportPrinter.Behaviors"
+             xmlns:models="clr-namespace:Demo_ReportPrinter.Models.CoreEntities"
+             xmlns:local="clr-namespace:Demo_ReportPrinter.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="800">
+
+    <!-- 用户控件资源 -->
+    <UserControl.Resources>
+        <!-- 拖拽行为样式 -->
+        <Style x:Key="DraggableElementStyle" TargetType="ContentControl">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 文本框控件样式 -->
+        <DataTemplate x:Key="TextBoxTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <TextBlock Text="{Binding Value, FallbackValue='文本框'}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           FontSize="{Binding Element=FontSize, FallbackValue=14}"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 下拉框控件样式 -->
+        <DataTemplate x:Key="ComboBoxTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <ComboBox MinWidth="100" IsEditable="False">
+                    <ComboBoxItem Content="选项1"/>
+                    <ComboBoxItem Content="选项2"/>
+                    <ComboBoxItem Content="选项3"/>
+                </ComboBox>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 日期选择控件样式 -->
+        <DataTemplate x:Key="DatePickerTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <DatePicker Width="120"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 复选框控件样式 -->
+        <DataTemplate x:Key="CheckBoxTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <CheckBox Content="{Binding DisplayName, FallbackValue='复选框'}" VerticalAlignment="Center"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 表格控件样式 -->
+        <DataTemplate x:Key="TableTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1">
+                    <DataGrid HeadersVisibility="Column" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="列1" Width="*"/>
+                            <DataGridTextColumn Header="列2" Width="*"/>
+                            <DataGridTextColumn Header="列3" Width="*"/>
+                        </DataGrid.Columns>
+                        <DataGridRow>
+                            <DataGridCell>
+                                <TextBlock Text="数据1"/>
+                            </DataGridCell>
+                            <DataGridCell>
+                                <TextBlock Text="数据2"/>
+                            </DataGridCell>
+                            <DataGridCell>
+                                <TextBlock Text="数据3"/>
+                            </DataGridCell>
+                        </DataGridRow>
+                        <DataGridRow>
+                            <DataGridCell>
+                                <TextBlock Text="数据4"/>
+                            </DataGridCell>
+                            <DataGridCell>
+                                <TextBlock Text="数据5"/>
+                            </DataGridCell>
+                            <DataGridCell>
+                                <TextBlock Text="数据6"/>
+                            </DataGridCell>
+                        </DataGridRow>
+                    </DataGrid>
+                </Border>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 图片控件样式 -->
+        <DataTemplate x:Key="ImageTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="#F5F5F5" BorderBrush="#CCCCCC" BorderThickness="1">
+                    <Grid>
+                        <TextBlock Text="图片" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#999999"/>
+                    </Grid>
+                </Border>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 图表控件样式 -->
+        <DataTemplate x:Key="ChartTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1">
+                    <Grid>
+                        <TextBlock Text="图表" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#999999"/>
+                    </Grid>
+                </Border>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 固定文本控件样式 -->
+        <DataTemplate x:Key="FixedTextTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="False" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="False" EnableMinSizeConstraint="False"/>
+                </i:Interaction.Behaviors>
+                <TextBlock Text="{Binding Value, FallbackValue='固定文本'}"
+                           FontSize="{Binding Element=FontSize, FallbackValue=12}"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 线条控件样式 -->
+        <DataTemplate x:Key="LineTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="Transparent" BorderBrush="Black" BorderThickness="2"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 矩形控件样式 -->
+        <DataTemplate x:Key="RectangleTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="Transparent" BorderBrush="Black" BorderThickness="1"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 圆形控件样式 -->
+        <DataTemplate x:Key="CircleTemplate" DataType="{x:Type models:ControlElement}">
+            <ContentControl Style="{StaticResource DraggableElementStyle}">
+                <i:Interaction.Behaviors>
+                    <behaviors:DragBehavior Element="{Binding}" IsDragEnabled="True" EnableBoundaryConstraint="True"/>
+                    <behaviors:ResizeBehavior Element="{Binding}" IsResizeEnabled="True" EnableMinSizeConstraint="True"/>
+                </i:Interaction.Behaviors>
+                <Border Background="Transparent" BorderBrush="Black" BorderThickness="1" CornerRadius="50"/>
+            </ContentControl>
+        </DataTemplate>
+
+        <!-- 控件类型模板选择器 -->
+        <local:ControlTemplateSelector x:Key="ControlTemplateSelector"
+            TextBoxTemplate="{StaticResource TextBoxTemplate}"
+            ComboBoxTemplate="{StaticResource ComboBoxTemplate}"
+            DatePickerTemplate="{StaticResource DatePickerTemplate}"
+            CheckBoxTemplate="{StaticResource CheckBoxTemplate}"
+            TableTemplate="{StaticResource TableTemplate}"
+            ImageTemplate="{StaticResource ImageTemplate}"
+            ChartTemplate="{StaticResource ChartTemplate}"
+            FixedTextTemplate="{StaticResource FixedTextTemplate}"
+            LineTemplate="{StaticResource LineTemplate}"
+            RectangleTemplate="{StaticResource RectangleTemplate}"
+            CircleTemplate="{StaticResource CircleTemplate}"/>
+    </UserControl.Resources>
+
+    <!-- 主布局 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 工具栏 -->
+        <Border Grid.Row="0" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <!-- 添加控件按钮组 -->
+                <TextBlock Text="添加控件:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Button Content="文本框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.TextBox}" Padding="8,4"/>
+                <Button Content="下拉框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.ComboBox}" Padding="8,4"/>
+                <Button Content="日期" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.DatePicker}" Padding="8,4"/>
+                <Button Content="复选框" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.CheckBox}" Padding="8,4"/>
+                <Button Content="表格" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Table}" Padding="8,4"/>
+                <Button Content="图片" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Image}" Padding="8,4"/>
+                <Button Content="图表" Command="{Binding AddElementCommand}" CommandParameter="{x:Static models:ControlType.Chart}" Padding="8,4"/>
+
+                <Separator Width="20" Margin="10,0"/>
+
+                <!-- 纸张设置 -->
+                <TextBlock Text="纸张:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox ItemsSource="{Binding PaperSizes}"
+                          SelectedItem="{Binding CurrentPaperType}"
+                          DisplayMemberPath="Name"
+                          Width="100"
+                          SelectionChanged="OnPaperTypeChanged"/>
+                <CheckBox Content="横向" IsChecked="{Binding IsLandscape}" Margin="5,0,0,0"/>
+
+                <Separator Width="20" Margin="10,0"/>
+
+                <!-- 编辑操作 -->
+                <Button Content="撤销" Command="{Binding UndoCommand}" Padding="8,4" IsEnabled="{Binding CanUndo}"/>
+                <Button Content="重做" Command="{Binding RedoCommand}" Padding="8,4" IsEnabled="{Binding CanRedo}"/>
+                <Button Content="删除" Command="{Binding DeleteElementCommand}" Padding="8,4"/>
+                <Button Content="复制" Command="{Binding CloneElementCommand}" Padding="8,4"/>
+
+                <Separator Width="20" Margin="10,0"/>
+
+                <!-- 缩放控制 -->
+                <TextBlock Text="缩放:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <Button Content="+" Command="{Binding ZoomInCommand}" Width="30" Padding="5"/>
+                <TextBlock Text="{Binding CanvasScale, StringFormat='{}{0:P0}'}" VerticalAlignment="Center" Width="50" TextAlignment="Center"/>
+                <Button Content="-" Command="{Binding ZoomOutCommand}" Width="30" Padding="5"/>
+
+                <Separator Width="20" Margin="10,0"/>
+
+                <!-- 保存操作 -->
+                <Button Content="保存模板" Command="{Binding SaveTemplateCommand}" Padding="8,4" Background="#2196F3" Foreground="White" BorderThickness="0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 画布区域 -->
+        <ScrollViewer Name="ScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Grid Background="#E0E0E0">
+                <!-- 模板画布 -->
+                <Canvas Name="TemplateCanvas"
+                        Width="{Binding CanvasWidth}"
+                        Height="{Binding CanvasHeight}"
+                        Background="White"
+                        ClipToBounds="True"
+                        MouseWheel="OnCanvasMouseWheel">
+
+                    <!-- 画布缩放变换 -->
+                    <Canvas.RenderTransform>
+                        <ScaleTransform ScaleX="{Binding CanvasScale}" ScaleY="{Binding CanvasScale}"/>
+                    </Canvas.RenderTransform>
+
+                    <!-- 固定内容元素 -->
+                    <ItemsControl ItemsSource="{Binding CurrentTemplate.Layout.FixedElements}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter Content="{Binding}"
+                                                ContentTemplateSelector="{StaticResource ControlTemplateSelector}">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform X="{Binding X}" Y="{Binding Y}"/>
+                                    </ContentPresenter.RenderTransform>
+                                    <ContentPresenter.Width>
+                                        <Binding Path="Width"/>
+                                    </ContentPresenter.Width>
+                                    <ContentPresenter.Height>
+                                        <Binding Path="Height"/>
+                                    </ContentPresenter.Height>
+                                </ContentPresenter>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 可编辑内容元素 -->
+                    <ItemsControl ItemsSource="{Binding CurrentTemplate.Layout.EditableElements}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter Content="{Binding}"
+                                                ContentTemplateSelector="{StaticResource ControlTemplateSelector}">
+                                    <ContentPresenter.RenderTransform>
+                                        <TranslateTransform X="{Binding X}" Y="{Binding Y}"/>
+                                    </ContentPresenter.RenderTransform>
+                                    <ContentPresenter.Width>
+                                        <Binding Path="Width"/>
+                                    </ContentPresenter.Width>
+                                    <ContentPresenter.Height>
+                                        <Binding Path="Height"/>
+                                    </ContentPresenter.Height>
+                                </ContentPresenter>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 选择框（动态添加） -->
+                </Canvas>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="2" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 选中元素信息 -->
+                <TextBlock Grid.Column="0" Text="{Binding SelectedElement.DisplayName, StringFormat='选中: {0}'}" VerticalAlignment="Center"/>
+
+                <!-- 纸张尺寸信息 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="10,0">
+                    <TextBlock Text="画布尺寸:"/>
+                    <TextBlock Text="{Binding CanvasWidth, StringFormat='{}{0:F0} px'}"/>
+                    <TextBlock Text="×"/>
+                    <TextBlock Text="{Binding CanvasHeight, StringFormat='{}{0:F0} px'}"/>
+                    <TextBlock Text="|"/>
+                    <TextBlock Text="{Binding PaperWidth, StringFormat='{}{0:F1} mm'}"/>
+                    <TextBlock Text="×"/>
+                    <TextBlock Text="{Binding PaperHeight, StringFormat='{}{0:F1} mm'}"/>
+                </StackPanel>
+
+                <!-- 缩放信息 -->
+                <TextBlock Grid.Column="3" Text="{Binding CanvasScale, StringFormat='缩放: {0:P0}'}" VerticalAlignment="Center" Margin="10,0"/>
+
+                <!-- 元素数量 -->
+                <TextBlock Grid.Column="4" Text="{Binding ElementCount, StringFormat='元素: {0}'}" VerticalAlignment="Center" Margin="10,0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

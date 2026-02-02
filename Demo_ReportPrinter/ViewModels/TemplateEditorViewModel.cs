@@ -5,6 +5,8 @@ using Demo_ReportPrinter.Services.Data;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.Services.UndoRedo;
 using Demo_ReportPrinter.ViewModels.Base;
+using Demo_ReportPrinter.Constants;
+using Demo_ReportPrinter.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Windows;
