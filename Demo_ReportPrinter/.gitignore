@@ -1,0 +1,59 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]uild/
+[Oo]utput/
+
+# VS Generated files
+Generated/
+
+# NuGet packages
+*.nupkg
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Rider
+.idea/
+*.iml
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# Visual Studio Code
+.vscode/
+
+# Test results
+TestResults/
+
+# Coverage results
+coverage/
+
+# Local configuration files
+appsettings.Development.json
+appsettings.Local.json
+
+# Package restore
+packages/
+
+# TypeScript cache
+*.tsbuildinfo
