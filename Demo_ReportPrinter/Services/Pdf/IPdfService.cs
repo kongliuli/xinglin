@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Demo_ReportPrinter.Models.CoreEntities;
 
 namespace Demo_ReportPrinter.Services.Pdf
 {
@@ -24,32 +25,32 @@ namespace Demo_ReportPrinter.Services.Pdf
         /// <summary>
         /// 生成PDF文件
         /// </summary>
-        Task<string> GeneratePdfAsync(object data, string templateId);
+        Task<Result<string>> GeneratePdfAsync(object data, string templateId);
 
         /// <summary>
         /// 生成PDF文件（带选项）
         /// </summary>
-        Task<string> GeneratePdfAsync(object data, string templateId, PdfExportOptions options);
+        Task<Result<string>> GeneratePdfAsync(object data, string templateId, PdfExportOptions options);
 
         /// <summary>
         /// 预览PDF文件
         /// </summary>
-        Task PreviewPdfAsync(string pdfFilePath);
+        Task<Result> PreviewPdfAsync(string pdfFilePath);
 
         /// <summary>
         /// 导出PDF文件
         /// </summary>
-        Task ExportPdfAsync(string pdfFilePath, string exportPath);
+        Task<Result> ExportPdfAsync(string pdfFilePath, string exportPath);
 
         /// <summary>
         /// 导出PDF文件（带选项）
         /// </summary>
-        Task ExportPdfAsync(string pdfFilePath, PdfExportOptions options);
+        Task<Result> ExportPdfAsync(string pdfFilePath, PdfExportOptions options);
 
         /// <summary>
         /// 打印PDF文件
         /// </summary>
-        Task PrintPdfAsync(string pdfFilePath);
+        Task<Result> PrintPdfAsync(string pdfFilePath);
 
         /// <summary>
         /// 获取可用的纸张大小

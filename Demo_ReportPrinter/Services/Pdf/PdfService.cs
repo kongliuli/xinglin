@@ -3,6 +3,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Text;
 using System.Collections.Generic;
+using Demo_ReportPrinter.Models.CoreEntities;
 
 namespace Demo_ReportPrinter.Services.Pdf
 {
@@ -27,12 +28,12 @@ namespace Demo_ReportPrinter.Services.Pdf
             }
         }
 
-        public async Task<string> GeneratePdfAsync(object data, string templateId)
+        public async Task<Result<string>> GeneratePdfAsync(object data, string templateId)
         {
             return await GeneratePdfAsync(data, templateId, new PdfExportOptions());
         }
 
-        public async Task<string> GeneratePdfAsync(object data, string templateId, PdfExportOptions options)
+        public async Task<Result<string>> GeneratePdfAsync(object data, string templateId, PdfExportOptions options)
         {
             try
             {
@@ -48,21 +49,25 @@ namespace Demo_ReportPrinter.Services.Pdf
                 // 例如：iTextSharp, PdfSharp, Syncfusion PDF等
                 await File.WriteAllTextAsync(pdfFilePath, pdfContent, Encoding.UTF8);
 
-                return pdfFilePath;
+                return Result<string>.Success(pdfFilePath);
+            }
+            catch (IOException ex)
+            {
+                return Result<string>.Failure($"创建PDF文件失败：{ex.Message}");
             }
             catch (Exception ex)
             {
-                throw new Exception($"生成PDF失败: {ex.Message}", ex);
+                return Result<string>.Failure($"生成PDF失败：{ex.Message}");
             }
         }
 
-        public async Task PreviewPdfAsync(string pdfFilePath)
+        public async Task<Result> PreviewPdfAsync(string pdfFilePath)
         {
             try
             {
                 if (!File.Exists(pdfFilePath))
                 {
-                    throw new FileNotFoundException("PDF文件不存在", pdfFilePath);
+                    return Result.Failure("PDF文件不存在");
                 }
 
                 // 使用默认的PDF查看器打开
@@ -73,25 +78,26 @@ namespace Demo_ReportPrinter.Services.Pdf
                 });
 
                 await Task.CompletedTask;
+                return Result.Success();
             }
             catch (Exception ex)
             {
-                throw new Exception($"预览PDF失败: {ex.Message}", ex);
+                return Result.Failure($"预览PDF失败：{ex.Message}");
             }
         }
 
-        public async Task ExportPdfAsync(string pdfFilePath, string exportPath)
+        public async Task<Result> ExportPdfAsync(string pdfFilePath, string exportPath)
         {
-            await ExportPdfAsync(pdfFilePath, new PdfExportOptions { OutputPath = exportPath });
+            return await ExportPdfAsync(pdfFilePath, new PdfExportOptions { OutputPath = exportPath });
         }
 
-        public async Task ExportPdfAsync(string pdfFilePath, PdfExportOptions options)
+        public async Task<Result> ExportPdfAsync(string pdfFilePath, PdfExportOptions options)
         {
             try
             {
                 if (!File.Exists(pdfFilePath))
                 {
-                    throw new FileNotFoundException("PDF文件不存在", pdfFilePath);
+                    return Result.Failure("PDF文件不存在");
                 }
 
                 // 确保导出目录存在
@@ -104,20 +110,25 @@ namespace Demo_ReportPrinter.Services.Pdf
                 // 复制PDF文件到导出路径
                 File.Copy(pdfFilePath, options.OutputPath, true);
                 await Task.CompletedTask;
+                return Result.Success();
+            }
+            catch (IOException ex)
+            {
+                return Result.Failure($"导出PDF文件失败：{ex.Message}");
             }
             catch (Exception ex)
             {
-                throw new Exception($"导出PDF失败: {ex.Message}", ex);
+                return Result.Failure($"导出PDF失败：{ex.Message}");
             }
         }
 
-        public async Task PrintPdfAsync(string pdfFilePath)
+        public async Task<Result> PrintPdfAsync(string pdfFilePath)
         {
             try
             {
                 if (!File.Exists(pdfFilePath))
                 {
-                    throw new FileNotFoundException("PDF文件不存在", pdfFilePath);
+                    return Result.Failure("PDF文件不存在");
                 }
 
                 // 使用默认的PDF查看器打印
@@ -129,10 +140,11 @@ namespace Demo_ReportPrinter.Services.Pdf
                 });
 
                 await Task.CompletedTask;
+                return Result.Success();
             }
             catch (Exception ex)
             {
-                throw new Exception($"打印PDF失败: {ex.Message}", ex);
+                return Result.Failure($"打印PDF失败：{ex.Message}");
             }
         }
 

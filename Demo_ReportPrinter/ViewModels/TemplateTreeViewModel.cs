@@ -91,7 +91,7 @@ namespace Demo_ReportPrinter.ViewModels
 
         private async Task LoadTemplatesAsync()
         {
-            var templates = await _templateService.GetAllTemplatesAsync();
+            var result = await _templateService.GetAllTemplatesAsync();
 
             // 清空现有节点
             RootNode.Children.Clear();
@@ -107,17 +107,21 @@ namespace Demo_ReportPrinter.ViewModels
             RootNode.Children.Add(defaultTemplateNode);
 
             // 添加用户模板
-            foreach (var template in templates)
+            if (result.IsSuccess)
             {
-                var templateNode = new TemplateTreeNode
+                var templates = result.Value;
+                foreach (var template in templates)
                 {
-                    Id = template.TemplateId,
-                    Name = template.Name,
-                    IsFolder = false,
-                    Category = "用户模板",
-                    TemplateData = template
-                };
-                RootNode.Children.Add(templateNode);
+                    var templateNode = new TemplateTreeNode
+                    {
+                        Id = template.TemplateId,
+                        Name = template.Name,
+                        IsFolder = false,
+                        Category = "用户模板",
+                        TemplateData = template
+                    };
+                    RootNode.Children.Add(templateNode);
+                }
             }
 
             // 应用过滤
@@ -151,15 +155,26 @@ namespace Demo_ReportPrinter.ViewModels
             {
                 if (templateId == "default")
                 {
-                    var defaultTemplate = await _templateService.LoadDefaultTemplateAsync();
-                    _sharedDataService.CurrentTemplate = defaultTemplate;
+                    var result = await _templateService.LoadDefaultTemplateAsync();
+                    if (result.IsSuccess)
+                    {
+                        _sharedDataService.CurrentTemplate = result.Value;
+                    }
+                    else
+                    {
+                        _sharedDataService.BroadcastDataChange("Error", result.ErrorMessage);
+                    }
                 }
                 else
                 {
-                    var template = await _templateService.GetTemplateByIdAsync(templateId);
-                    if (template != null)
+                    var result = await _templateService.GetTemplateByIdAsync(templateId);
+                    if (result.IsSuccess)
                     {
-                        _sharedDataService.CurrentTemplate = template;
+                        _sharedDataService.CurrentTemplate = result.Value;
+                    }
+                    else
+                    {
+                        _sharedDataService.BroadcastDataChange("Error", result.ErrorMessage);
                     }
                 }
             }
@@ -181,21 +196,35 @@ namespace Demo_ReportPrinter.ViewModels
             try
             {
                 // 创建新模板
-                var newTemplate = await _templateService.LoadDefaultTemplateAsync();
-                newTemplate.Name = "新模板";
-                newTemplate.Description = "新建的模板";
-
-                // 保存模板
-                await _templateService.SaveTemplateAsync(newTemplate);
-
-                // 刷新模板树
-                await LoadTemplatesAsync();
-
-                // 选中新创建的模板
-                var newTemplateNode = RootNode.Children.FirstOrDefault(n => n.Id == newTemplate.TemplateId);
-                if (newTemplateNode != null)
+                var result = await _templateService.LoadDefaultTemplateAsync();
+                if (result.IsSuccess)
                 {
-                    SelectTemplate(newTemplateNode);
+                    var newTemplate = result.Value;
+                    newTemplate.Name = "新模板";
+                    newTemplate.Description = "新建的模板";
+
+                    // 保存模板
+                    var saveResult = await _templateService.SaveTemplateAsync(newTemplate);
+                    if (saveResult.IsSuccess)
+                    {
+                        // 刷新模板树
+                        await LoadTemplatesAsync();
+
+                        // 选中新创建的模板
+                        var newTemplateNode = RootNode.Children.FirstOrDefault(n => n.Id == newTemplate.TemplateId);
+                        if (newTemplateNode != null)
+                        {
+                            SelectTemplate(newTemplateNode);
+                        }
+                    }
+                    else
+                    {
+                        _sharedDataService.BroadcastDataChange("Error", saveResult.ErrorMessage);
+                    }
+                }
+                else
+                {
+                    _sharedDataService.BroadcastDataChange("Error", result.ErrorMessage);
                 }
             }
             catch (Exception ex)
@@ -235,14 +264,28 @@ namespace Demo_ReportPrinter.ViewModels
                 try
                 {
                     // 复制模板
-                    var duplicatedTemplate = await _templateService.DuplicateTemplateAsync(node.TemplateData);
-                    duplicatedTemplate.Name = $"{node.Name} (副本)";
+                    var result = await _templateService.DuplicateTemplateAsync(node.TemplateData);
+                    if (result.IsSuccess)
+                    {
+                        var duplicatedTemplate = result.Value;
+                        duplicatedTemplate.Name = $"{node.Name} (副本)";
 
-                    // 保存模板
-                    await _templateService.SaveTemplateAsync(duplicatedTemplate);
-
-                    // 刷新模板树
-                    await LoadTemplatesAsync();
+                        // 保存模板
+                        var saveResult = await _templateService.SaveTemplateAsync(duplicatedTemplate);
+                        if (saveResult.IsSuccess)
+                        {
+                            // 刷新模板树
+                            await LoadTemplatesAsync();
+                        }
+                        else
+                        {
+                            _sharedDataService.BroadcastDataChange("Error", saveResult.ErrorMessage);
+                        }
+                    }
+                    else
+                    {
+                        _sharedDataService.BroadcastDataChange("Error", result.ErrorMessage);
+                    }
                 }
                 catch (Exception ex)
                 {

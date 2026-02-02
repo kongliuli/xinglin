@@ -44,3 +44,4 @@ D:\Code\xinglin\demo_reportprinter\obj\Debug\net9.0-windows\Demo_ReportPrinter.g
 D:\Code\xinglin\demo_reportprinter\obj\Debug\net9.0-windows\ref\Demo_ReportPrinter.dll
 D:\Code\xinglin\demo_reportprinter\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.dll
 D:\Code\xinglin\demo_reportprinter\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\Code\xinglin\demo_reportprinter\obj\Debug\net9.0-windows\App.baml

@@ -104,18 +104,27 @@ namespace Demo_ReportPrinter.ViewModels
         [RelayCommand]
         private async Task LoadTemplateAsync(string templateId)
         {
-            CurrentTemplate = await _templateService.GetTemplateByIdAsync(templateId);
+            var result = await _templateService.GetTemplateByIdAsync(templateId);
+            if (result.IsSuccess)
+            {
+                CurrentTemplate = result.Value;
 
-            PaperWidth = CurrentTemplate.Layout.PaperWidth;
-            PaperHeight = CurrentTemplate.Layout.PaperHeight;
-            CurrentPaperType = CurrentTemplate.Layout.PaperType;
-            IsLandscape = CurrentTemplate.Layout.IsLandscape;
+                PaperWidth = CurrentTemplate.Layout.PaperWidth;
+                PaperHeight = CurrentTemplate.Layout.PaperHeight;
+                CurrentPaperType = CurrentTemplate.Layout.PaperType;
+                IsLandscape = CurrentTemplate.Layout.IsLandscape;
 
-            // 通知DataEntry加载新模板字段
-            _sharedDataService.SendMessage(new TemplateLoadedMessage(templateId));
+                // 通知DataEntry加载新模板字段
+                _sharedDataService.SendMessage(new TemplateLoadedMessage(templateId));
 
-            // 通知PDF预览刷新
-            _sharedDataService.BroadcastDataChange("TemplateChanged", templateId);
+                // 通知PDF预览刷新
+                _sharedDataService.BroadcastDataChange("TemplateChanged", templateId);
+            }
+            else
+            {
+                // 显示错误消息
+                _sharedDataService.BroadcastDataChange("Error", result.ErrorMessage);
+            }
         }
 
         [RelayCommand]

@@ -10,41 +10,41 @@ namespace Demo_ReportPrinter.Services.Data
         /// <summary>
         /// 获取所有模板
         /// </summary>
-        Task<List<TemplateData>> GetAllTemplatesAsync();
+        Task<Result<List<TemplateData>>> GetAllTemplatesAsync();
 
         /// <summary>
         /// 根据ID获取模板
         /// </summary>
-        Task<TemplateData> GetTemplateByIdAsync(string templateId);
+        Task<Result<TemplateData>> GetTemplateByIdAsync(string templateId);
 
         /// <summary>
         /// 保存模板
         /// </summary>
-        Task SaveTemplateAsync(TemplateData template);
+        Task<Result> SaveTemplateAsync(TemplateData template);
 
         /// <summary>
         /// 删除模板
         /// </summary>
-        Task DeleteTemplateAsync(string templateId);
+        Task<Result> DeleteTemplateAsync(string templateId);
 
         /// <summary>
         /// 加载默认模板
         /// </summary>
-        Task<TemplateData> LoadDefaultTemplateAsync();
+        Task<Result<TemplateData>> LoadDefaultTemplateAsync();
 
         /// <summary>
         /// 复制模板
         /// </summary>
-        Task<TemplateData> DuplicateTemplateAsync(TemplateData template);
+        Task<Result<TemplateData>> DuplicateTemplateAsync(TemplateData template);
 
         /// <summary>
         /// 重建模板索引
         /// </summary>
-        Task RebuildTemplatesIndexAsync();
+        Task<Result> RebuildTemplatesIndexAsync();
 
         /// <summary>
         /// 导入模板
         /// </summary>
-        Task<TemplateData> ImportTemplateAsync(string sourceFilePath);
+        Task<Result<TemplateData>> ImportTemplateAsync(string sourceFilePath);
     }
 }

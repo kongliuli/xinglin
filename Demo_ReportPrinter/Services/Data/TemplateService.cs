@@ -53,182 +53,337 @@ namespace Demo_ReportPrinter.Services.Data
             }
         }
 
-        public async Task<List<TemplateData>> GetAllTemplatesAsync()
+        public async Task<Result<List<TemplateData>>> GetAllTemplatesAsync()
         {
-            if (!File.Exists(_templatesIndexFile))
+            try
             {
-                return new List<TemplateData>();
-            }
-
-            var json = await File.ReadAllTextAsync(_templatesIndexFile);
-            return JsonSerializer.Deserialize<List<TemplateData>>(json) ?? new List<TemplateData>();
-        }
-
-        public async Task<List<TemplateData>> GetTemplatesByCategoryAsync(string category)
-        {
-            var templates = await GetAllTemplatesAsync();
-            return templates.Where(t => t.Config.Category == category).ToList();
-        }
-
-        public async Task<List<string>> GetAllCategoriesAsync()
-        {
-            var templates = await GetAllTemplatesAsync();
-            return templates.Select(t => t.Config.Category).Distinct().ToList();
-        }
-
-        public async Task<List<TemplateData>> SearchTemplatesAsync(string searchTerm)
-        {
-            var templates = await GetAllTemplatesAsync();
-            return templates.Where(t => 
-                t.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                t.Config.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
-        }
-
-        public async Task<TemplateData> GetTemplateByIdAsync(string templateId)
-        {
-            var templateFile = Path.Combine(_templatesDirectory, $"{templateId}.json");
-
-            if (!File.Exists(templateFile))
-            {
-                throw new FileNotFoundException("模板文件不存在", templateFile);
-            }
-
-            var json = await File.ReadAllTextAsync(templateFile);
-            return JsonSerializer.Deserialize<TemplateData>(json);
-        }
-
-        public async Task SaveTemplateAsync(TemplateData template)
-        {
-            // 保存当前版本
-            await SaveTemplateVersion(template);
-
-            template.ModifiedDate = DateTime.Now;
-
-            // 保存模板文件
-            var templateFile = Path.Combine(_templatesDirectory, $"{template.TemplateId}.json");
-            var json = JsonSerializer.Serialize(template, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(templateFile, json);
-
-            // 更新模板索引
-            await UpdateTemplatesIndexAsync(template);
-        }
-
-        public async Task DeleteTemplateAsync(string templateId)
-        {
-            var templateFile = Path.Combine(_templatesDirectory, $"{templateId}.json");
-            if (File.Exists(templateFile))
-            {
-                File.Delete(templateFile);
-            }
-
-            // 删除模板版本
-            await DeleteTemplateVersions(templateId);
-
-            // 更新模板索引
-            await RemoveFromTemplatesIndexAsync(templateId);
-        }
-
-        public Task<TemplateData> LoadDefaultTemplateAsync()
-        {
-            // 创建默认模板
-            var defaultTemplate = new TemplateData
-            {
-                TemplateId = Guid.NewGuid().ToString(),
-                Name = "默认模板",
-                Description = "系统默认模板",
-                Layout = new LayoutMetadata(),
-                Config = new TemplateConfig
+                if (!File.Exists(_templatesIndexFile))
                 {
-                    Version = "1.0",
-                    IsLocked = false,
-                    Author = "System",
-                    Category = "默认",
-                    Metadata = new Dictionary<string, object>()
+                    return Result<List<TemplateData>>.Success(new List<TemplateData>());
                 }
-            };
 
-            // 添加一些默认控件
-            defaultTemplate.Layout.EditableElements.Add(new ControlElement
+                var json = await File.ReadAllTextAsync(_templatesIndexFile);
+                var templates = JsonSerializer.Deserialize<List<TemplateData>>(json) ?? new List<TemplateData>();
+                return Result<List<TemplateData>>.Success(templates);
+            }
+            catch (IOException ex)
             {
-                ElementId = Guid.NewGuid().ToString(),
-                Type = ControlType.TextBox,
-                DisplayName = "文本框",
-                X = 50,
-                Y = 50,
-                Width = 200,
-                Height = 30,
-                Value = "默认文本",
-                EditState = EditableState.Editable
-            });
-
-            return Task.FromResult(defaultTemplate);
+                return Result<List<TemplateData>>.Failure($"读取模板索引文件失败：{ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return Result<List<TemplateData>>.Failure($"解析模板索引文件失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result<List<TemplateData>>.Failure($"获取模板列表失败：{ex.Message}");
+            }
         }
 
-        public Task<TemplateData> DuplicateTemplateAsync(TemplateData template)
+        public async Task<Result<TemplateData>> GetTemplateByIdAsync(string templateId)
         {
-            // 创建新模板，复制原始模板的所有属性
-            var duplicatedTemplate = new TemplateData
+            try
             {
-                TemplateId = Guid.NewGuid().ToString(),
-                Name = template.Name,
-                Description = template.Description,
-                Layout = new LayoutMetadata
-                {
-                    PaperWidth = template.Layout.PaperWidth,
-                    PaperHeight = template.Layout.PaperHeight,
-                    PaperType = template.Layout.PaperType,
-                    FixedElements = new ObservableCollection<ControlElement>(),
-                    EditableElements = new ObservableCollection<ControlElement>()
-                },
-                Config = new TemplateConfig
-                {
-                    Version = template.Config.Version,
-                    IsLocked = template.Config.IsLocked,
-                    Author = template.Config.Author,
-                    Category = template.Config.Category,
-                    Metadata = new Dictionary<string, object>(template.Config.Metadata)
-                }
-            };
+                var templateFile = Path.Combine(_templatesDirectory, $"{templateId}.json");
 
-            // 复制固定元素
-            foreach (var element in template.Layout.FixedElements)
+                if (!File.Exists(templateFile))
+                {
+                    return Result<TemplateData>.Failure("模板文件不存在");
+                }
+
+                var json = await File.ReadAllTextAsync(templateFile);
+                var template = JsonSerializer.Deserialize<TemplateData>(json);
+
+                if (template == null)
+                {
+                    return Result<TemplateData>.Failure("模板数据已损坏");
+                }
+
+                return Result<TemplateData>.Success(template);
+            }
+            catch (IOException ex)
             {
-                var duplicatedElement = new ControlElement
+                return Result<TemplateData>.Failure($"读取模板文件失败：{ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return Result<TemplateData>.Failure($"解析模板文件失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result<TemplateData>.Failure($"获取模板失败：{ex.Message}");
+            }
+        }
+
+        public async Task<Result> SaveTemplateAsync(TemplateData template)
+        {
+            try
+            {
+                // 保存当前版本
+                await SaveTemplateVersion(template);
+
+                template.ModifiedDate = DateTime.Now;
+
+                // 保存模板文件
+                var templateFile = Path.Combine(_templatesDirectory, $"{template.TemplateId}.json");
+                var json = JsonSerializer.Serialize(template, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(templateFile, json);
+
+                // 更新模板索引
+                await UpdateTemplatesIndexAsync(template);
+
+                return Result.Success();
+            }
+            catch (IOException ex)
+            {
+                return Result.Failure($"保存模板文件失败：{ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return Result.Failure($"序列化模板数据失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"保存模板失败：{ex.Message}");
+            }
+        }
+
+        public async Task<Result> DeleteTemplateAsync(string templateId)
+        {
+            try
+            {
+                var templateFile = Path.Combine(_templatesDirectory, $"{templateId}.json");
+                if (File.Exists(templateFile))
+                {
+                    File.Delete(templateFile);
+                }
+
+                // 删除模板版本
+                await DeleteTemplateVersions(templateId);
+
+                // 更新模板索引
+                await RemoveFromTemplatesIndexAsync(templateId);
+
+                return Result.Success();
+            }
+            catch (IOException ex)
+            {
+                return Result.Failure($"删除模板文件失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"删除模板失败：{ex.Message}");
+            }
+        }
+
+        public Task<Result<TemplateData>> LoadDefaultTemplateAsync()
+        {
+            try
+            {
+                // 创建默认模板
+                var defaultTemplate = new TemplateData
+                {
+                    TemplateId = Guid.NewGuid().ToString(),
+                    Name = "默认模板",
+                    Description = "系统默认模板",
+                    Layout = new LayoutMetadata(),
+                    Config = new TemplateConfig
+                    {
+                        Version = "1.0",
+                        IsLocked = false,
+                        Author = "System",
+                        Category = "默认",
+                        Metadata = new Dictionary<string, object>()
+                    }
+                };
+
+                // 添加一些默认控件
+                defaultTemplate.Layout.EditableElements.Add(new ControlElement
                 {
                     ElementId = Guid.NewGuid().ToString(),
-                    Type = element.Type,
-                    DisplayName = element.DisplayName,
-                    X = element.X,
-                    Y = element.Y,
-                    Width = element.Width,
-                    Height = element.Height,
-                    Value = element.Value,
-                    EditState = element.EditState
-                };
-                duplicatedTemplate.Layout.FixedElements.Add(duplicatedElement);
-            }
+                    Type = ControlType.TextBox,
+                    DisplayName = "文本框",
+                    X = 50,
+                    Y = 50,
+                    Width = 200,
+                    Height = 30,
+                    Value = "默认文本",
+                    EditState = EditableState.Editable
+                });
 
-            // 复制可编辑元素，生成新的ElementId
-            foreach (var element in template.Layout.EditableElements)
+                return Task.FromResult(Result<TemplateData>.Success(defaultTemplate));
+            }
+            catch (Exception ex)
             {
-                var duplicatedElement = new ControlElement
-                {
-                    ElementId = Guid.NewGuid().ToString(),
-                    Type = element.Type,
-                    DisplayName = element.DisplayName,
-                    X = element.X,
-                    Y = element.Y,
-                    Width = element.Width,
-                    Height = element.Height,
-                    Value = element.Value,
-                    EditState = element.EditState
-                };
-                duplicatedTemplate.Layout.EditableElements.Add(duplicatedElement);
+                return Task.FromResult(Result<TemplateData>.Failure($"加载默认模板失败：{ex.Message}"));
             }
+        }
 
-            return Task.FromResult(duplicatedTemplate);
+        public Task<Result<TemplateData>> DuplicateTemplateAsync(TemplateData template)
+        {
+            try
+            {
+                // 创建新模板，复制原始模板的所有属性
+                var duplicatedTemplate = new TemplateData
+                {
+                    TemplateId = Guid.NewGuid().ToString(),
+                    Name = template.Name,
+                    Description = template.Description,
+                    Layout = new LayoutMetadata
+                    {
+                        PaperWidth = template.Layout.PaperWidth,
+                        PaperHeight = template.Layout.PaperHeight,
+                        PaperType = template.Layout.PaperType,
+                        FixedElements = new ObservableCollection<ControlElement>(),
+                        EditableElements = new ObservableCollection<ControlElement>()
+                    },
+                    Config = new TemplateConfig
+                    {
+                        Version = template.Config.Version,
+                        IsLocked = template.Config.IsLocked,
+                        Author = template.Config.Author,
+                        Category = template.Config.Category,
+                        Metadata = new Dictionary<string, object>(template.Config.Metadata)
+                    }
+                };
+
+                // 复制固定元素
+                foreach (var element in template.Layout.FixedElements)
+                {
+                    var duplicatedElement = new ControlElement
+                    {
+                        ElementId = Guid.NewGuid().ToString(),
+                        Type = element.Type,
+                        DisplayName = element.DisplayName,
+                        X = element.X,
+                        Y = element.Y,
+                        Width = element.Width,
+                        Height = element.Height,
+                        Value = element.Value,
+                        EditState = element.EditState
+                    };
+                    duplicatedTemplate.Layout.FixedElements.Add(duplicatedElement);
+                }
+
+                // 复制可编辑元素，生成新的ElementId
+                foreach (var element in template.Layout.EditableElements)
+                {
+                    var duplicatedElement = new ControlElement
+                    {
+                        ElementId = Guid.NewGuid().ToString(),
+                        Type = element.Type,
+                        DisplayName = element.DisplayName,
+                        X = element.X,
+                        Y = element.Y,
+                        Width = element.Width,
+                        Height = element.Height,
+                        Value = element.Value,
+                        EditState = element.EditState
+                    };
+                    duplicatedTemplate.Layout.EditableElements.Add(duplicatedElement);
+                }
+
+                return Task.FromResult(Result<TemplateData>.Success(duplicatedTemplate));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(Result<TemplateData>.Failure($"复制模板失败：{ex.Message}"));
+            }
+        }
+
+        public async Task<Result> RebuildTemplatesIndexAsync()
+        {
+            try
+            {
+                // 扫描Templates目录中的所有.json文件
+                var templateFiles = Directory.GetFiles(_templatesDirectory, "*.json")
+                    .Where(file => Path.GetFileName(file) != "templates.json") // 排除索引文件本身
+                    .ToList();
+
+                var templates = new List<TemplateData>();
+
+                // 解析每个模板文件
+                foreach (var file in templateFiles)
+                {
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(file);
+                        var template = JsonSerializer.Deserialize<TemplateData>(json);
+                        if (template != null)
+                        {
+                            templates.Add(template);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"解析模板文件失败 {file}: {ex.Message}");
+                    }
+                }
+
+                // 保存更新后的索引
+                var indexJson = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_templatesIndexFile, indexJson);
+
+                return Result.Success();
+            }
+            catch (IOException ex)
+            {
+                return Result.Failure($"重建模板索引失败：{ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return Result.Failure($"序列化模板索引失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"重建模板索引失败：{ex.Message}");
+            }
+        }
+
+        public async Task<Result<TemplateData>> ImportTemplateAsync(string sourceFilePath)
+        {
+            try
+            {
+                if (!File.Exists(sourceFilePath))
+                {
+                    return Result<TemplateData>.Failure("源模板文件不存在");
+                }
+
+                // 读取源模板文件
+                var json = await File.ReadAllTextAsync(sourceFilePath);
+                var template = JsonSerializer.Deserialize<TemplateData>(json);
+                if (template == null)
+                {
+                    return Result<TemplateData>.Failure("无效的模板文件格式");
+                }
+
+                // 生成新的模板ID，确保唯一性
+                template.TemplateId = Guid.NewGuid().ToString();
+                template.CreatedDate = DateTime.Now;
+                template.ModifiedDate = DateTime.Now;
+
+                // 保存到目标位置
+                var templateFile = Path.Combine(_templatesDirectory, $"{template.TemplateId}.json");
+                var templateJson = JsonSerializer.Serialize(template, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(templateFile, templateJson);
+
+                // 更新索引
+                await UpdateTemplatesIndexAsync(template);
+
+                return Result<TemplateData>.Success(template);
+            }
+            catch (IOException ex)
+            {
+                return Result<TemplateData>.Failure($"读取源模板文件失败：{ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                return Result<TemplateData>.Failure($"解析模板文件失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result<TemplateData>.Failure($"导入模板失败：{ex.Message}");
+            }
         }
 
         public async Task<List<TemplateVersion>> GetTemplateVersionsAsync(string templateId)
@@ -326,100 +481,44 @@ namespace Demo_ReportPrinter.Services.Data
 
         private async Task UpdateTemplatesIndexAsync(TemplateData template)
         {
-            var templates = await GetAllTemplatesAsync();
-            var existingTemplate = templates.FirstOrDefault(t => t.TemplateId == template.TemplateId);
-
-            if (existingTemplate != null)
+            try
             {
-                existingTemplate.Name = template.Name;
-                existingTemplate.Description = template.Description;
-                existingTemplate.ModifiedDate = template.ModifiedDate;
-            }
-            else
-            {
-                templates.Add(template);
-            }
+                var templates = (await GetAllTemplatesAsync()).Value;
+                var existingTemplate = templates.FirstOrDefault(t => t.TemplateId == template.TemplateId);
 
-            var json = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_templatesIndexFile, json);
+                if (existingTemplate != null)
+                {
+                    existingTemplate.Name = template.Name;
+                    existingTemplate.Description = template.Description;
+                    existingTemplate.ModifiedDate = template.ModifiedDate;
+                }
+                else
+                {
+                    templates.Add(template);
+                }
+
+                var json = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_templatesIndexFile, json);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"更新模板索引失败：{ex.Message}");
+            }
         }
 
         private async Task RemoveFromTemplatesIndexAsync(string templateId)
         {
-            var templates = await GetAllTemplatesAsync();
-            templates.RemoveAll(t => t.TemplateId == templateId);
-
-            var json = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_templatesIndexFile, json);
-        }
-
-        public async Task RebuildTemplatesIndexAsync()
-        {
-            // 扫描Templates目录中的所有.json文件
-            var templateFiles = Directory.GetFiles(_templatesDirectory, "*.json")
-                .Where(file => Path.GetFileName(file) != "templates.json") // 排除索引文件本身
-                .ToList();
-
-            var templates = new List<TemplateData>();
-
-            // 解析每个模板文件
-            foreach (var file in templateFiles)
-            {
-                try
-                {
-                    var json = await File.ReadAllTextAsync(file);
-                    var template = JsonSerializer.Deserialize<TemplateData>(json);
-                    if (template != null)
-                    {
-                        templates.Add(template);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"解析模板文件失败 {file}: {ex.Message}");
-                }
-            }
-
-            // 保存更新后的索引
-            var indexJson = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
-            await File.WriteAllTextAsync(_templatesIndexFile, indexJson);
-        }
-
-        public async Task<TemplateData> ImportTemplateAsync(string sourceFilePath)
-        {
-            if (!File.Exists(sourceFilePath))
-            {
-                throw new FileNotFoundException("源模板文件不存在", sourceFilePath);
-            }
-
             try
             {
-                // 读取源模板文件
-                var json = await File.ReadAllTextAsync(sourceFilePath);
-                var template = JsonSerializer.Deserialize<TemplateData>(json);
-                if (template == null)
-                {
-                    throw new InvalidDataException("无效的模板文件格式");
-                }
+                var templates = (await GetAllTemplatesAsync()).Value;
+                templates.RemoveAll(t => t.TemplateId == templateId);
 
-                // 生成新的模板ID，确保唯一性
-                template.TemplateId = Guid.NewGuid().ToString();
-                template.CreatedDate = DateTime.Now;
-                template.ModifiedDate = DateTime.Now;
-
-                // 保存到目标位置
-                var templateFile = Path.Combine(_templatesDirectory, $"{template.TemplateId}.json");
-                var templateJson = JsonSerializer.Serialize(template, new JsonSerializerOptions { WriteIndented = true });
-                await File.WriteAllTextAsync(templateFile, templateJson);
-
-                // 更新索引
-                await UpdateTemplatesIndexAsync(template);
-
-                return template;
+                var json = JsonSerializer.Serialize(templates, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(_templatesIndexFile, json);
             }
             catch (Exception ex)
             {
-                throw new Exception("导入模板失败", ex);
+                Console.WriteLine($"更新模板索引失败：{ex.Message}");
             }
         }
     }

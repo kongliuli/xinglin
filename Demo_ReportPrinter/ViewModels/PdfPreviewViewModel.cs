@@ -8,6 +8,7 @@ using Microsoft.Web.WebView2.Wpf;
 using Demo_ReportPrinter.Services.Pdf;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
+using Demo_ReportPrinter.Models.CoreEntities;
 using System.Threading;
 using System;
 
@@ -181,6 +182,19 @@ namespace Demo_ReportPrinter.ViewModels
             }
         }
 
+        private async Task LoadPdfAsync(Result<string> result)
+        {
+            if (result.IsSuccess)
+            {
+                await LoadPdfAsync(result.Value);
+            }
+            else
+            {
+                ErrorMessage = result.ErrorMessage;
+                IsPdfLoaded = false;
+            }
+        }
+
         [RelayCommand]
         private async Task RefreshPdfAsync()
         {
@@ -239,8 +253,8 @@ namespace Demo_ReportPrinter.ViewModels
                         HeaderText = HeaderText,
                         FooterText = FooterText
                     };
-                    var pdfFilePath = await _pdfService.GeneratePdfAsync(_sharedDataService.UserData, _sharedDataService.CurrentTemplate.TemplateId, options);
-                    await LoadPdfAsync(pdfFilePath);
+                    var result = await _pdfService.GeneratePdfAsync(_sharedDataService.UserData, _sharedDataService.CurrentTemplate.TemplateId, options);
+                    await LoadPdfAsync(result);
                 }
                 catch (Exception ex)
                 {
@@ -284,7 +298,11 @@ namespace Demo_ReportPrinter.ViewModels
                 }
                 else if (!string.IsNullOrEmpty(PdfFilePath))
                 {
-                    await _pdfService.PrintPdfAsync(PdfFilePath);
+                    var result = await _pdfService.PrintPdfAsync(PdfFilePath);
+                    if (!result.IsSuccess)
+                    {
+                        ErrorMessage = result.ErrorMessage;
+                    }
                 }
             }
             catch (Exception ex)
@@ -319,8 +337,15 @@ namespace Demo_ReportPrinter.ViewModels
                             HeaderText = HeaderText,
                             FooterText = FooterText
                         };
-                        await _pdfService.ExportPdfAsync(PdfFilePath, options);
-                        ErrorMessage = "PDF导出成功";
+                        var result = await _pdfService.ExportPdfAsync(PdfFilePath, options);
+                        if (result.IsSuccess)
+                        {
+                            ErrorMessage = "PDF导出成功";
+                        }
+                        else
+                        {
+                            ErrorMessage = result.ErrorMessage;
+                        }
                     }
                 }
             }
