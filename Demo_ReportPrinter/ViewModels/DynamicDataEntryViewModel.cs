@@ -71,6 +71,17 @@ namespace Demo_ReportPrinter.ViewModels
             _sharedDataService.BroadcastDataChange("PdfRefresh", true);
         }
 
+        public DynamicDataEntryViewModel()
+        {
+            _sharedDataService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ISharedDataService>();
+            _fieldParser = new FieldParserService();
+            _fieldDefinitions = new ObservableCollection<FieldDefinition>();
+            _fieldValues = new Dictionary<string, object>();
+
+            RegisterMessageHandlers();
+            LoadTemplateFields();
+        }
+
         public DynamicDataEntryViewModel(ISharedDataService sharedDataService)
         {
             _sharedDataService = sharedDataService;

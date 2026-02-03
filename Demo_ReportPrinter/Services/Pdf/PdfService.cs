@@ -233,5 +233,55 @@ namespace Demo_ReportPrinter.Services.Pdf
         {
             return new List<string> { "Portrait", "Landscape" };
         }
+
+        /// <summary>
+        /// 将PDF转换为图片
+        /// </summary>
+        public async Task<Result<string>> ConvertPdfToImageAsync(string pdfFilePath)
+        {
+            try
+            {
+                if (!File.Exists(pdfFilePath))
+                {
+                    return Result<string>.Failure("PDF文件不存在");
+                }
+
+                // 生成图片文件名
+                var imageFileName = Path.GetFileNameWithoutExtension(pdfFilePath) + ".png";
+                var imageFilePath = Path.Combine(_pdfDirectory, imageFileName);
+
+                // 读取PDF内容（实际上是HTML）
+                var pdfContent = await File.ReadAllTextAsync(pdfFilePath);
+
+                // 简单的HTML转图片实现
+                // 注意：这里使用简单的方法，实际项目中应使用专业库
+                // 例如：Selenium WebDriver, PuppeteerSharp, HTML2Image等
+                // 这里我们创建一个简单的占位图片
+                using (var bitmap = new System.Drawing.Bitmap(800, 1000))
+                {
+                    using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
+                    {
+                        graphics.Clear(System.Drawing.Color.White);
+                        var font = new System.Drawing.Font("Arial", 12);
+                        var brush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
+                        graphics.DrawString("PDF Preview", font, brush, 10, 10);
+                        graphics.DrawString($"File: {Path.GetFileName(pdfFilePath)}", font, brush, 10, 40);
+                        graphics.DrawString($"Generated: {DateTime.Now}", font, brush, 10, 70);
+                        graphics.DrawString("(This is a placeholder image)", font, brush, 10, 100);
+                    }
+                    bitmap.Save(imageFilePath, System.Drawing.Imaging.ImageFormat.Png);
+                }
+
+                return Result<string>.Success(imageFilePath);
+            }
+            catch (IOException ex)
+            {
+                return Result<string>.Failure($"创建图片文件失败：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return Result<string>.Failure($"转换PDF为图片失败：{ex.Message}");
+            }
+        }
     }
 }

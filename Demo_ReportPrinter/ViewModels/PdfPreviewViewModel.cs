@@ -4,7 +4,6 @@ using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Web.WebView2.Wpf;
 using Demo_ReportPrinter.Services.Pdf;
 using Demo_ReportPrinter.Services.Shared;
 using Demo_ReportPrinter.ViewModels.Base;
@@ -19,7 +18,6 @@ namespace Demo_ReportPrinter.ViewModels
     /// </summary>
     public partial class PdfPreviewViewModel : ViewModelBase
     {
-        private WebView2 _webView;
         private readonly ISharedDataService _sharedDataService;
         private readonly IPdfService _pdfService;
         private Timer _autoRefreshTimer;
@@ -27,6 +25,9 @@ namespace Demo_ReportPrinter.ViewModels
 
         [ObservableProperty]
         private string _pdfFilePath;
+
+        [ObservableProperty]
+        private string _imageFilePath;
 
         [ObservableProperty]
         private bool _isPdfLoaded;
@@ -52,13 +53,10 @@ namespace Demo_ReportPrinter.ViewModels
         public ObservableCollection<string> PaperSizes { get; set; }
         public ObservableCollection<string> Orientations { get; set; }
 
-        public PdfPreviewViewModel(
-            ISharedDataService sharedDataService,
-            IPdfService pdfService)
+        public PdfPreviewViewModel()
         {
-            _sharedDataService = sharedDataService;
-            _pdfService = pdfService;
-            InitializeWebView();
+            _sharedDataService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ISharedDataService>();
+            _pdfService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<IPdfService>();
             InitializeCollections();
             RegisterDataChangeHandlers();
             
@@ -66,10 +64,17 @@ namespace Demo_ReportPrinter.ViewModels
             _autoRefreshTimer = new Timer(OnAutoRefresh, null, Timeout.Infinite, Timeout.Infinite);
         }
 
-        private async void InitializeWebView()
+        public PdfPreviewViewModel(
+            ISharedDataService sharedDataService,
+            IPdfService pdfService)
         {
-            await Task.CompletedTask;
-            // WebView初始化在View层完成
+            _sharedDataService = sharedDataService;
+            _pdfService = pdfService;
+            InitializeCollections();
+            RegisterDataChangeHandlers();
+            
+            // 初始化自动刷新定时器
+            _autoRefreshTimer = new Timer(OnAutoRefresh, null, Timeout.Infinite, Timeout.Infinite);
         }
 
         private void InitializeCollections()
@@ -111,47 +116,6 @@ namespace Demo_ReportPrinter.ViewModels
             });
         }
 
-        public void SetWebView(WebView2 webView)
-        {
-            _webView = webView;
-            InitializeWebViewCore();
-        }
-
-        private async void InitializeWebViewCore()
-        {
-            try
-            {
-                if (_webView != null)
-                {
-                    // 优化WebView2初始化
-                    await _webView.EnsureCoreWebView2Async(null);
-                    // 配置WebView2
-                    _webView.CoreWebView2.Settings.IsScriptEnabled = true;
-                    _webView.CoreWebView2.Settings.IsWebMessageEnabled = true;
-                    // 注册导航完成事件
-                    _webView.NavigationCompleted += WebView_NavigationCompleted;
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"WebView初始化失败: {ex.Message}";
-            }
-        }
-
-        private void WebView_NavigationCompleted(object sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs e)
-        {
-            if (e.IsSuccess)
-            {
-                IsPdfLoaded = true;
-                ErrorMessage = string.Empty;
-            }
-            else
-            {
-                ErrorMessage = $"导航失败: {e.WebErrorStatus}";
-                IsPdfLoaded = false;
-            }
-        }
-
         [RelayCommand]
         private async Task LoadPdfAsync(string filePath)
         {
@@ -165,14 +129,18 @@ namespace Demo_ReportPrinter.ViewModels
                 PdfFilePath = filePath;
                 _sharedDataService.CurrentPdfFilePath = filePath;
 
-                if (_webView != null && _webView.CoreWebView2 != null)
+                // 将PDF转换为图片
+                var imageResult = await _pdfService.ConvertPdfToImageAsync(filePath);
+                if (imageResult.IsSuccess)
                 {
-                    var fileUrl = $"file:///{filePath.Replace('\\', '/')}";
-                    _webView.CoreWebView2.Navigate(fileUrl);
+                    ImageFilePath = imageResult.Value;
+                    IsPdfLoaded = true;
+                    ErrorMessage = string.Empty;
                 }
                 else
                 {
-                    ErrorMessage = "WebView控件未初始化";
+                    ErrorMessage = imageResult.ErrorMessage;
+                    IsPdfLoaded = false;
                 }
             }
             catch (Exception ex)
@@ -270,21 +238,13 @@ namespace Demo_ReportPrinter.ViewModels
         [RelayCommand]
         private void ZoomIn()
         {
-            if (_webView?.CoreWebView2 != null)
-            {
-                ZoomLevel = Math.Min(ZoomLevel + 0.1, 3.0);
-                _webView.CoreWebView2.ExecuteScriptAsync($"document.body.style.zoom = {ZoomLevel}");
-            }
+            ZoomLevel = Math.Min(ZoomLevel + 0.1, 3.0);
         }
 
         [RelayCommand]
         private void ZoomOut()
         {
-            if (_webView?.CoreWebView2 != null)
-            {
-                ZoomLevel = Math.Max(ZoomLevel - 0.1, 0.5);
-                _webView.CoreWebView2.ExecuteScriptAsync($"document.body.style.zoom = {ZoomLevel}");
-            }
+            ZoomLevel = Math.Max(ZoomLevel - 0.1, 0.5);
         }
 
         [RelayCommand]
@@ -292,11 +252,7 @@ namespace Demo_ReportPrinter.ViewModels
         {
             try
             {
-                if (_webView?.CoreWebView2 != null)
-                {
-                    await _webView.CoreWebView2.ExecuteScriptAsync("window.print()");
-                }
-                else if (!string.IsNullOrEmpty(PdfFilePath))
+                if (!string.IsNullOrEmpty(PdfFilePath))
                 {
                     var result = await _pdfService.PrintPdfAsync(PdfFilePath);
                     if (!result.IsSuccess)

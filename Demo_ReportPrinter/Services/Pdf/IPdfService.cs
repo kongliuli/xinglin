@@ -61,5 +61,10 @@ namespace Demo_ReportPrinter.Services.Pdf
         /// 获取可用的纸张方向
         /// </summary>
         List<string> GetAvailableOrientations();
+
+        /// <summary>
+        /// 将PDF转换为图片
+        /// </summary>
+        Task<Result<string>> ConvertPdfToImageAsync(string pdfFilePath);
     }
 }

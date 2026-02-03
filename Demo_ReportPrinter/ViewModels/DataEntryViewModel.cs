@@ -33,6 +33,23 @@ namespace Demo_ReportPrinter.ViewModels
 
         public ObservableCollection<string> Departments { get; set; }
 
+        public DataEntryViewModel()
+        {
+            _sharedDataService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ISharedDataService>();
+            _validationService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<IValidationService>();
+            Departments = new ObservableCollection<string>
+            {
+                "技术部",
+                "市场部",
+                "销售部",
+                "人力资源部",
+                "财务部"
+            };
+
+            // 注册数据变更监听
+            RegisterDataChangeHandlers();
+        }
+
         public DataEntryViewModel(
             ISharedDataService sharedDataService,
             IValidationService validationService)

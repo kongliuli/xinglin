@@ -49,6 +49,18 @@ namespace Demo_ReportPrinter.ViewModels
         [ObservableProperty]
         private string _selectedCategory;
 
+        public TemplateTreeViewModel()
+        {
+            _sharedDataService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ISharedDataService>();
+            _templateService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ITemplateService>();
+
+            Categories = new ObservableCollection<string> { "全部", "默认", "用户模板" };
+            SelectedCategory = "全部";
+
+            InitializeTree();
+            RegisterMessageHandlers();
+        }
+
         public TemplateTreeViewModel(
             ISharedDataService sharedDataService,
             ITemplateService templateService)
@@ -62,6 +74,7 @@ namespace Demo_ReportPrinter.ViewModels
             InitializeTree();
             RegisterMessageHandlers();
         }
+
 
         private void RegisterMessageHandlers()
         {

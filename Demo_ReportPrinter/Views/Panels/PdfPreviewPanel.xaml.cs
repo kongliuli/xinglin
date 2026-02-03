@@ -12,14 +12,5 @@ namespace Demo_ReportPrinter.Views
         {
             InitializeComponent();
         }
-
-        private void PdfWebView_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            // 将WebView2控件传递给ViewModel
-            if (DataContext is PdfPreviewViewModel viewModel)
-            {
-                viewModel.SetWebView(PdfWebView);
-            }
-        }
     }
 }

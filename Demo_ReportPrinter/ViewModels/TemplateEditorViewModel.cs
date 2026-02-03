@@ -69,6 +69,36 @@ namespace Demo_ReportPrinter.ViewModels
         [ObservableProperty]
         private bool _isLandscape;
 
+        public TemplateEditorViewModel()
+        {
+            _sharedDataService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ISharedDataService>();
+            _templateService = Demo_ReportPrinter.Services.DI.ServiceLocator.Instance.GetService<ITemplateService>();
+            _commandHistory = new CommandHistory();
+            _syncCoordinator = new BidirectionalSyncCoordinator(_sharedDataService);
+
+            // 监听模板变更
+            RegisterMessageHandler<Services.Shared.TemplateSelectedMessage>((message) =>
+            {
+                LoadTemplateAsync(message.TemplateId);
+            });
+
+            // 监听数据变更
+            RegisterMessageHandler<Services.Shared.DataChangedMessage>((message) =>
+            {
+                UpdateElementValue(message.Key, message.Value);
+            });
+
+            // 初始化当前模板
+            CurrentTemplate = _sharedDataService.CurrentTemplate;
+            if (CurrentTemplate != null)
+            {
+                PaperWidth = CurrentTemplate.Layout.PaperWidth;
+                PaperHeight = CurrentTemplate.Layout.PaperHeight;
+                CurrentPaperType = CurrentTemplate.Layout.PaperType;
+                IsLandscape = CurrentTemplate.Layout.IsLandscape;
+            }
+        }
+
         public TemplateEditorViewModel(
             ISharedDataService sharedDataService,
             ITemplateService templateService)
