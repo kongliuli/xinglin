@@ -62,7 +62,7 @@ namespace Demo_ReportPrinter.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Demo_ReportPrinter;component/views/panels/pdfpreviewpanel.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Demo_ReportPrinter;V1.0.0.0;component/views/panels/pdfpreviewpanel.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\..\Views\Panels\PdfPreviewPanel.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
